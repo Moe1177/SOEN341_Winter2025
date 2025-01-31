@@ -49,7 +49,7 @@ The following core features will be available in this project:
 | Mohamad Addasi  | 40278616       | [FouadElian](https://github.com/FouadElian)             |
 | Mijan Ullah     | 40287584       | [mijanullah12](https://github.com/mijanullah12)         |
 | Fouad Elian     | 40273048       | [](https://github.com/)                                 |
-| Junior Boni     | 40287501       | [](https://github.com/)                                 |
+| Junior Boni     | 40287501       | [RealBJr](https://github.com/RealBJr)                   |
 
 ## The following languages/frameworks and techniques will be used in this project:
 
