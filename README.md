@@ -46,7 +46,7 @@ The following core features will be available in this project:
 | --------------- | -------------- | ------------------------------------------------------- |
 | Youssef Yassa   | 40265083       | [YoussefYassa7112](https://github.com/YoussefYassa7112) |
 | Tristan Girardi | 40272203       | [TristanGirardi](https://github.com/TristanGirardi)     |
-| Mohamad Addasi  | 40278616       | []()                                 |
+| Mohamad Addasi  | 40278616       | [](https://github.com/)                                 |
 | Mijan Ullah     | 40287584       | [](https://github.com/)                                 |
 | Fouad Elian     | 40273048       | [FouadElian](https://github.com/FouadElian)                                 |
 | Junior Boni     | 40287501       | [](https://github.com/)                                 |
