@@ -55,7 +55,7 @@ The following core features will be available in this project:
 
 - ### Frontend
 
-  - HTML
+  - Next.Js (React)
   - Tailwind CSS
   - React.js
 
