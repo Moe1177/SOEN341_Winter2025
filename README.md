@@ -23,7 +23,7 @@
 <!-- Objectif is for the class or the app?-->
 
 Develop a flexible, easy to use, versatile and friendly communication platform using the proper tools such as React.js, Java Spring<br>
-Boot and MongoDB. This will allow us to learn the basics and understand the fundamental technologies behind a web app such as the frontend and backend development and it will also allow us to practice using the agile methodologies.
+Boot and MongoDB. This will allow us to learn the basics and understand the fundamental technologies behind a web app such as the frontend and backend development and it will also allow us to practice using the agile methodologies. This platform allows direct messaging, group messaging, and admin supervision over group channels to moderate the text messages.
 
 ## Core features of the project
 
