@@ -1,6 +1,6 @@
 <!-- README.md -->
 
-# SOEN 341 Title
+# Dialogos
 
 ## Description
 
