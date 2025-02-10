@@ -1,6 +1,5 @@
 package com.example.soen341_backend.channel;
 
-import com.example.soen341_backend.user.User;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
