@@ -20,13 +20,9 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(
-            @RequestParam String username,
-            @RequestParam String email,
-            @RequestParam String password
-    ) {
-        User user = service.registerUser(username, email, password);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
+        User registeredUser = service.registerUser(user.getUsername(), user.getEmail(), user.getPassword());
+        return ResponseEntity.ok(registeredUser);
     }
 
     @GetMapping("/{id}")
