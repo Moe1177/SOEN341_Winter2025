@@ -1,5 +1,11 @@
-import Image from "next/image";
+import { Footer } from "@/components/footer";
+import { SidebarDemo } from "@/components/sidemenu";
 
 export default function Home() {
-  return <div></div>;
+  return (
+    <div className="flex flex-col">
+      <SidebarDemo />
+      <Footer/>
+    </div>
+  );
 }
