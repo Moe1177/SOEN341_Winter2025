@@ -1,5 +1,7 @@
 package com.example.soen341_backend.channel;
 
+import com.example.soen341_backend.server.Member;
+import com.example.soen341_backend.server.Server;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,6 +20,6 @@ public class Channel {
 
     private String name;
     private String creatorId;
-    private String inviteCode;
-    private List<Member> members;
+//    private String inviteCode;
+    private Server server;
 }

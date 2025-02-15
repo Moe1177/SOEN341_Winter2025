@@ -1,5 +1,7 @@
 package com.example.soen341_backend.channel;
 
+import com.example.soen341_backend.server.Member;
+import com.example.soen341_backend.server.ServerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,38 +15,19 @@ import java.util.Random;
 public class ChannelService {
 
     private final ChannelRepository channelRepository;
+    private final ServerService serverService;
 
-    public Channel createChannel(String name, String creatorId) {
-        String inviteCode = generateInviteCode();
+    public Channel createChannel(String name, String creatorId, String serverId) {
 
         Member admin = new Member(creatorId, "admin", Instant.now(), Instant.now());
 
         Channel channel = Channel.builder()
                 .name(name)
                 .creatorId(creatorId)
-                .inviteCode(inviteCode)
-                .members(List.of(admin))
+                .server(serverService.getServer(serverId))
                 .build();
 
         return channelRepository.save(channel);
-    }
-
-    public Optional<Channel> joinChannel(String inviteCode, String userId) {
-        Optional<Channel> optionalChannel = channelRepository.findByInviteCode(inviteCode);
-
-        if (optionalChannel.isPresent()) {
-            Channel channel = optionalChannel.get();
-            boolean isAlreadyMember = channel.getMembers().stream().anyMatch(member -> member.getUserId().equals(userId));
-
-            if (!isAlreadyMember) {
-                channel.getMembers().add(new Member(userId, "member", Instant.now(), Instant.now()));
-                channelRepository.save(channel);
-            }
-
-            return Optional.of(channel);
-        }
-
-        return Optional.empty();
     }
 
     private String generateInviteCode() {

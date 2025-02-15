@@ -1,4 +1,4 @@
-package com.example.soen341_backend.channel;
+package com.example.soen341_backend.server;
 
 import lombok.*;
 

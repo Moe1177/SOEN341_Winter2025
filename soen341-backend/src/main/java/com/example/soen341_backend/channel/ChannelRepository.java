@@ -6,5 +6,4 @@ import java.util.Optional;
 
 public interface ChannelRepository extends MongoRepository<Channel, String> {
 
-    Optional<Channel> findByInviteCode(String inviteCode);
 }

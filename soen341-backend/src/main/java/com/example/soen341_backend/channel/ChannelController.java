@@ -3,37 +3,30 @@ package com.example.soen341_backend.channel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping ("/api/channel")
+@RequestMapping ("/api/server/{id}/channel")
 public class ChannelController {
 
     private final ChannelService channelService;
+    private String serverId;
 
     @PostMapping("/create")
     public ResponseEntity<Channel> createChannel(
             @RequestParam String name,
             @RequestParam String creatorId
     ) {
-        Channel channel = channelService.createChannel(name, creatorId);
+        Channel channel = channelService.createChannel(name, creatorId, serverId);
         return ResponseEntity.ok(channel);
     }
 
-    @PostMapping("/join")
-    public ResponseEntity<Channel> joinChannel(
-            @RequestParam String inviteCode,
-            @RequestParam String userId
-    ) {
-        Optional<Channel> optionalChannel= channelService.joinChannel(inviteCode, userId);
-
-        return optionalChannel.map(
-                ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    // Reach the server page and channel management first
+    @GetMapping("")
+    public void setServerId(@PathVariable("id") String serverId) {
+        this.serverId = serverId;
     }
 }
