@@ -23,7 +23,7 @@ public class SecurityConfig {
         http.csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/**").permitAll()      // Public access to registration endpoint
-                        .requestMatchers("/api/auth/register").permitAll()      // Public access to register endpoint
+                        .requestMatchers("/api/auth/**").permitAll()      // Public access to register endpoint
                         .requestMatchers("/api/auth/login").permitAll()         // Public access to login endpoint
                         .anyRequest().authenticated()                            // Secure all other endpoints
                 )

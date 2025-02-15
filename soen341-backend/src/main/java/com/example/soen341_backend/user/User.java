@@ -24,5 +24,8 @@ public class User {
     private List<String> channelIds;
     private Instant createdAt;
     private Instant lastActiveAt;
+    private boolean verified = false;
+    private String verificationCode;
+    private Instant verificationCodeExpiration;
 
 }
