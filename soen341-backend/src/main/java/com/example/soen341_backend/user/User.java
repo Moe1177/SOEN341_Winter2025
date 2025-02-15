@@ -31,6 +31,10 @@ public class User {
     @NotBlank(message = "Password cannot be blank")
     private String password;
 
+    private boolean verified = false;
+    private String verificationCode;
+    private Instant verificationCodeExpiration;
+
     private Status status;
     private List<String> channelIds;
     private Instant createdAt;
