@@ -1,12 +1,8 @@
 package com.example.soen341_backend.channel;
 
-import com.example.soen341_backend.server.Member;
 import com.example.soen341_backend.server.ServerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor

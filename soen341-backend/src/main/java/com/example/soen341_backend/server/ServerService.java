@@ -23,6 +23,7 @@ public class ServerService {
                 name(serverName).
                 inviteCode(inviteCode).
                 members(List.of(admin)).
+                admins(List.of(admin)).
                 channels(List.of()).
                 build();
 
@@ -30,7 +31,7 @@ public class ServerService {
     }
 
     public Optional<Server> joinServer(String inviteCode, String userId) {
-        Optional<Server> optionalServer = serverRepository.findByInviteCode(inviteCode);
+        Optional<Server> optionalServer = serverRepository.findServerByInviteCode(inviteCode);
 
         if (optionalServer.isPresent()) {
             Server server = optionalServer.get();
