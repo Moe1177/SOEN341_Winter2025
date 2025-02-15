@@ -18,6 +18,5 @@ public class Channel {
 
     private String name;
     private String creatorId;
-//    private String inviteCode;
     private Server server;
 }
