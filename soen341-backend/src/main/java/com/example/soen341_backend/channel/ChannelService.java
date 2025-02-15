@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -19,8 +17,6 @@ public class ChannelService {
 
     public Channel createChannel(String name, String creatorId, String serverId) {
 
-        Member admin = new Member(creatorId, "admin", Instant.now(), Instant.now());
-
         Channel channel = Channel.builder()
                 .name(name)
                 .creatorId(creatorId)
@@ -29,10 +25,4 @@ public class ChannelService {
 
         return channelRepository.save(channel);
     }
-
-    private String generateInviteCode() {
-        Random random = new Random();
-        return String.format("%06d", random.nextInt(1000000));
-    }
-
 }

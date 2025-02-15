@@ -1,6 +1,5 @@
 package com.example.soen341_backend.server;
 
-import com.example.soen341_backend.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

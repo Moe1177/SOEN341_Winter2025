@@ -1,6 +1,5 @@
 package com.example.soen341_backend.server;
 
-import com.example.soen341_backend.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +50,7 @@ public class ServerService {
     public Server getServer(String serverId) {
 
         Optional<Server> server = serverRepository.findById(serverId);
-        return server.get();
+        return server.orElse(null);
     }
 
     private String generateInviteCode() {
