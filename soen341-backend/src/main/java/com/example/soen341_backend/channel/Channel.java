@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document
+@Document(collection = "channels")
 public class Channel {
     @Id
     private String id;

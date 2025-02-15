@@ -15,12 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document()
+@Document(collection = "users")
 public class User {
     @Id
     private String id;
 
     @NotBlank(message = "Username cannot be blank")
+    @Indexed(unique = true)
     private String username;
 
     @Email(message = "Email needs to have a valid format")
