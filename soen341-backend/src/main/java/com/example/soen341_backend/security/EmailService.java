@@ -12,6 +12,18 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    /**
+     * Sends an email to the specified recipient.
+     *
+     * This method creates a MIME email message and sends it using the configured
+     * JavaMailSender. It supports sending plain text or HTML content.
+     *
+     * @param to      the recipient's email address
+     * @param subject the subject of the email
+     * @param text    the body of the email (can be plain text or HTML)
+     *
+     * @throws RuntimeException if there is a failure during email sending
+     */
     public void sendEmail(String to, String subject, String text) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
