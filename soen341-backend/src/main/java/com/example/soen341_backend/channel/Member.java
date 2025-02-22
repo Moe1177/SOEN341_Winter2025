@@ -1,8 +1,7 @@
 package com.example.soen341_backend.channel;
 
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Setter
 @Getter
@@ -10,9 +9,8 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 public class Member {
-    private String userId;
-    private String role;
-    private Instant joinedAt;
-    private Instant lastReadAt;
-
+  private String userId;
+  private String role;
+  private Instant joinedAt;
+  private Instant lastReadAt;
 }
