@@ -21,4 +21,9 @@ public class Message {
   private String username;
   private String content;
   private Instant timestamp;
+
+  private boolean edited;
+  private Instant editedAt;
+  private boolean deleted;
+  private MessageType type;
 }

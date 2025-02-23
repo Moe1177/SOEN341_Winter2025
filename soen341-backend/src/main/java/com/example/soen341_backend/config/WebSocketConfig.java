@@ -2,6 +2,7 @@ package com.example.soen341_backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -14,7 +15,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+  private final WebSocketAuthenticationInterceptor authInterceptor;
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -25,7 +29,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
+    registry
+        .addEndpoint("/ws")
+        .setAllowedOrigins("*")
+        .addInterceptors(authInterceptor)
+        .withSockJS();
   }
 
   @Override

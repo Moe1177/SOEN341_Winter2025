@@ -9,8 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Member {
-  private String userId;
-  private String role;
+  private String username;
+  private MemberRole role;
   private Instant joinedAt;
   private Instant lastReadAt;
 }
