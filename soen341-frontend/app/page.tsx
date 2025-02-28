@@ -1,27 +1,30 @@
-import { ThreeDCardDemo } from "@/components/ThreeDCardDemo";
-import { AuroraBackground } from "@/components/ui/aurora-background";
-import SignupFormDemo from "@/components/signup-form-demo";
+
+import Features from "@/Components/Features";
+import Hero from "@/Components/Hero";
+import About from "@/Components/About";
+import Image from "next/image";
+import SignUp from "@/Components/SignUp";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-cover bg-fixed flex flex-col">
-      <AuroraBackground className="absolute inset-0 z-0">
-        <div className="relative z-10 min-h-screen flex items-center">
-          <div className="flex flex-row w-full justify-between items-center min-h-screen">
-            {/* Left side - ThreeDCardDemo */}
-            <div className="flex-1 flex justify-center items-center p-4">
-              <ThreeDCardDemo />
-            </div>
-            
-            {/* Right side - SignupFormDemo */}
-            <div className="flex-1 flex justify-center items-center p-4">
-              <div className="w-full max-w-md">
-                <SignupFormDemo />
-              </div>
-            </div>
-          </div>
-        </div>
-      </AuroraBackground>
+    <>
+    <div id="Hero">
+    <Hero/>
     </div>
-  );
+    <div id="About">
+    <About/>
+    </div>
+    
+    <div id="Features">
+    <Features/>
+    </div>
+    
+    <div id="SignUp">
+    <SignUp/>
+    </div>
+    
+    
+    </>
+   
+    )
 }

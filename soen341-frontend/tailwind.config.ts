@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 const { default: flattenColorPalette } = require("tailwindcss/lib/util/flattenColorPalette");
 
@@ -19,6 +20,7 @@ export default {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{ts,tsx}", // Add this line to include content in src folder
+
   ],
   theme: {
     extend: {
@@ -92,3 +94,4 @@ export default {
     addVariablesForColors
   ],
 } satisfies Config;
+

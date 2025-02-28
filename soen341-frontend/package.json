@@ -15,11 +15,14 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.476.0",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7"
+    "@react-three/drei": "^9.121.5",
+    "@react-three/fiber": "^8.17.14",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "three": "^0.173.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
