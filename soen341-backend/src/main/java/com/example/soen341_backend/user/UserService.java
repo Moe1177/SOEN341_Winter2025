@@ -39,19 +39,6 @@ public class UserService {
             () -> new ResourceNotFoundException("User not found with username: " + username));
   }
 
-  public User createUser(User user) {
-    if (userRepository.existsByUsername(user.getUsername())) {
-      throw new RuntimeException("Username is already taken!");
-    }
-
-    if (userRepository.existsByEmail(user.getEmail())) {
-      throw new RuntimeException("Email is already taken!");
-    }
-
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepository.save(user);
-  }
-
   public User updateUser(String id, User userDetails) {
     User user = getUserById(id);
 

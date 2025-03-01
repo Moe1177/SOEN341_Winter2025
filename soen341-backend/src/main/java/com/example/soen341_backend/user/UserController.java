@@ -25,11 +25,6 @@ public class UserController {
     return userService.getUserById(id);
   }
 
-  @PostMapping
-  public User createUser(@RequestBody User user) {
-    return userService.createUser(user);
-  }
-
   @PutMapping("/{id}")
   public User updateUser(@PathVariable String id, @RequestBody User userDetails) {
     return userService.updateUser(id, userDetails);
