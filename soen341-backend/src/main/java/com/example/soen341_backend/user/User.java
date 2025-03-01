@@ -3,7 +3,8 @@ package com.example.soen341_backend.user;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -29,12 +30,16 @@ public class User {
   @NotBlank(message = "Password cannot be blank")
   private String password;
 
+  private Role role;
+
   private boolean verified = false;
   private String verificationCode;
   private Instant verificationCodeExpiration;
 
   private Status status;
-  private List<String> channelIds;
+  private Set<String> channelIds = new HashSet<>();
+  private Set<String> directMessageIds = new HashSet<>();
+  private Set<String> adminsForWhichChannels = new HashSet<>();
   private Instant createdAt;
   private Instant lastActiveAt;
 }

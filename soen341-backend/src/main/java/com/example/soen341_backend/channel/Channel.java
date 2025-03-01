@@ -1,6 +1,7 @@
 package com.example.soen341_backend.channel;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,5 +18,7 @@ public class Channel {
   private String name;
   private String creatorId;
   private String inviteCode;
-  private List<Member> members;
+  private Set<String> members = new HashSet<>();
+  private boolean isDirectMessage = false;
+  private Set<String> directMessageMembers = new HashSet<>();
 }

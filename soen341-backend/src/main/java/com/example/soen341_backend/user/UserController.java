@@ -1,58 +1,56 @@
 package com.example.soen341_backend.user;
 
 import java.util.List;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping("/api/users")
+@CrossOrigin
 public class UserController {
 
-  private final UserService service;
+  private final UserService userService;
 
-  @PostMapping("/register")
-  public ResponseEntity<User> registerUser(@RequestBody User user) {
-    User registeredUser =
-        service.registerUser(user.getUsername(), user.getEmail(), user.getPassword());
-    return ResponseEntity.ok(registeredUser);
+  @GetMapping
+  public List<User> getAllUsers() {
+    return userService.getAllUsers();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<User> getUser(@PathVariable String id) {
-    Optional<User> user = service.getUserById(id);
-    return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+  public User getUserById(@PathVariable String id) {
+    return userService.getUserById(id);
   }
 
-  @PostMapping("/{userId}/join-channel/{channelId}")
-  public ResponseEntity<Void> joinChannel(
-      @PathVariable String userId, @PathVariable String channelId) {
-    service.joinChannel(userId, channelId);
+  @PostMapping
+  public User createUser(@RequestBody User user) {
+    return userService.createUser(user);
+  }
+
+  @PutMapping("/{id}")
+  public User updateUser(@PathVariable String id, @RequestBody User userDetails) {
+    return userService.updateUser(id, userDetails);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> deleteUser(@PathVariable String id) {
+    userService.deleteUser(id);
     return ResponseEntity.ok().build();
   }
 
-  @MessageMapping("/user.addUser")
-  @SendTo("/user/topic")
-  public User addUser(@Payload User user) {
-    service.saveUser(user);
-    return user;
-  }
+  @PostMapping("/login")
+  public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+    String username = credentials.get("username");
+    String password = credentials.get("password");
 
-  @MessageMapping("/user.disconnectUser")
-  @SendTo("/user/topic")
-  public User disconnect(@Payload User user) {
-    service.disconnect(user);
-    return user;
-  }
-
-  @GetMapping("/users")
-  public ResponseEntity<List<User>> findConnectedUsers() {
-    return ResponseEntity.ok(service.findConnectedUsers());
+    if (userService.authenticateUser(username, password)) {
+      User user = userService.getUserByUsername(username);
+      return ResponseEntity.ok(user);
+    } else {
+      return ResponseEntity.status(401).body("Invalid credentials");
+    }
   }
 }

@@ -15,15 +15,10 @@ public class Message {
 
   @Id private String id;
 
+  private String content;
   private String senderId;
   private String channelId;
-  private String receiverId;
-  private String username;
-  private String content;
   private Instant timestamp;
-
-  private boolean edited;
-  private Instant editedAt;
-  private boolean deleted;
-  private MessageType type;
+  private boolean isDirectMessage;
+  private String receiverId;
 }

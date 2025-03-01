@@ -6,8 +6,8 @@ import com.example.soen341_backend.user.Status;
 import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -100,7 +100,7 @@ public class AuthController {
     user.setEmail(email);
     user.setPassword(passwordEncoder.encode(password)); // Password encryption
     user.setStatus(Status.ONLINE);
-    user.setChannelIds(List.of());
+    user.setChannelIds(Set.of());
     user.setCreatedAt(Instant.now());
     user.setLastActiveAt(Instant.now());
 

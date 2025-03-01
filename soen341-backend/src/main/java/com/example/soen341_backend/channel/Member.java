@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Member {
-  private String username;
+  private String userId;
   private MemberRole role;
   private Instant joinedAt;
   private Instant lastReadAt;
