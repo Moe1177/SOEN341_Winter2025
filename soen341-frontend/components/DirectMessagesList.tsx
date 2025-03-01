@@ -43,7 +43,17 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
   // Fetch all users for the new DM modal
   const handleNewDmClick = async () => {
     try {
-      const response = await axios.get('/api/users');
+      const response = await axios.post(
+        `http://localhost:8080/api/channels/create-channel`,
+        {
+          name: "Test Channel",
+          creatorId: "123456789",
+          inviteCode: "34620",
+          members: ["123456789", "987654321"],
+          isDirectMessage: true,
+          directMessageMembers: ["123456789", "987654321"],
+        }
+      );
       // Filter out the current user and users already in DM list
       const filteredUsers = response.data.filter(
         (user: User) => 

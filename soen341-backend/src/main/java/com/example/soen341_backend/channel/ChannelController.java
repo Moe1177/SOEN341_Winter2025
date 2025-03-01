@@ -25,7 +25,7 @@ public class ChannelController {
     return channelService.getChannelById(id);
   }
 
-  @PostMapping
+  @PostMapping("/create-channel")
   public Channel createChannel(@RequestBody Channel channel, @RequestParam String userId) {
     return channelService.createChannel(channel, userId);
   }
