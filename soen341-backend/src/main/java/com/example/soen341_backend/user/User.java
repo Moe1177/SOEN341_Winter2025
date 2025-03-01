@@ -30,8 +30,6 @@ public class User {
   @NotBlank(message = "Password cannot be blank")
   private String password;
 
-  private Role role;
-
   private boolean verified = false;
   private String verificationCode;
   private Instant verificationCodeExpiration;

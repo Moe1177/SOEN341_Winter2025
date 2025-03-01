@@ -21,4 +21,8 @@ public class Message {
   private Instant timestamp;
   private boolean isDirectMessage;
   private String receiverId;
+
+  public boolean isDirectMessage() {
+    return isDirectMessage;
+  }
 }

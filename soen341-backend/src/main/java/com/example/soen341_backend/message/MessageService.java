@@ -6,8 +6,11 @@ import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +20,7 @@ public class MessageService {
   private final MessageRepository messageRepository;
   private final ChannelService channelService;
   private final UserService userService;
+  private final SimpMessagingTemplate messagingTemplate;
 
   public Message getMessageById(String id) {
     return messageRepository
@@ -78,6 +82,22 @@ public class MessageService {
       throw new UnauthorizedException("You don't have permission to delete this message");
     }
 
+    // Delete from database
     messageRepository.delete(message);
+
+    // Create notification about message deletion
+    Map<String, Object> notification = new HashMap<>();
+    notification.put("type", "MESSAGE_DELETED");
+    notification.put("messageId", messageId);
+    notification.put("deletedBy", userId);
+
+    // For channel messages, broadcast to the channel
+    if (!message.isDirectMessage()) {
+      messagingTemplate.convertAndSend("/topic/channel/" + message.getChannelId(), notification);
+    } else {
+      // For direct messages, notify both parties
+      messagingTemplate.convertAndSend("/queue/user/" + message.getSenderId(), notification);
+      messagingTemplate.convertAndSend("/queue/user/" + message.getReceiverId(), notification);
+    }
   }
 }
