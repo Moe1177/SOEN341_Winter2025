@@ -48,10 +48,6 @@ public class UserService {
       throw new RuntimeException("Email is already taken!");
     }
 
-    if (user.getRole() == null) {
-      user.setRole(Role.MEMBER);
-    }
-
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     return userRepository.save(user);
   }
