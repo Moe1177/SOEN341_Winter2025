@@ -12,23 +12,23 @@
 <!--        </module>-->
         <!--Exclude scope excludes all scopes that are less restrictive than the one given, with anoninner being the
         most restrictive. Basically all scopes are excluded-->
-        <module name="JavadocStyle">
-            <property name="excludeScope" value="anoninner"/>
-            <property name="tokens" value=","/>
-        </module>
-        <module name="JavadocVariable">
-            <property name="excludeScope" value="anoninner"/>
-        </module>
-        <module name="MissingJavadocMethod">
-            <property name="excludeScope" value="anoninner"/>
-            <property name="tokens" value=""/>
-        </module>
-        <module name="AvoidStarImport">
-            <property name="allowClassImports" value="true"/>
-        </module>
-        <module name="FinalParameters">
-            <property name="ignoreUnnamedParameters" value="true"/>
-            <property name="tokens" value=""/>
-        </module>
+<!--        <module name="JavadocStyle">-->
+<!--            <property name="excludeScope" value="anoninner"/>-->
+<!--            <property name="tokens" value=","/>-->
+<!--        </module>-->
+<!--        <module name="JavadocVariable">-->
+<!--            <property name="excludeScope" value="anoninner"/>-->
+<!--        </module>-->
+<!--        <module name="MissingJavadocMethod">-->
+<!--            <property name="excludeScope" value="anoninner"/>-->
+<!--            <property name="tokens" value=""/>-->
+<!--        </module>-->
+<!--        <module name="AvoidStarImport">-->
+<!--            <property name="allowClassImports" value="true"/>-->
+<!--        </module>-->
+<!--        <module name="FinalParameters">-->
+<!--            <property name="ignoreUnnamedParameters" value="true"/>-->
+<!--            <property name="tokens" value=""/>-->
+<!--        </module>-->
     </module>
 </module>
