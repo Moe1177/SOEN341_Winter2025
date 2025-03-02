@@ -78,7 +78,7 @@ if [ -n "$STAGED_FRONTEND_FILES" ]; then
         echo "Running Prettier on frontend files..."
 
         # Run Prettier and capture any errors
-        if ! npx prettier --write --ignore-unknown $STAGED_FRONTEND_FILES >> "$ERROR_LOG" 2>&1; then
+        if ! npx prettier --write --ignore-unknown "$STAGED_FRONTEND_FILES" >> "$ERROR_LOG" 2>&1; then
             echo "Prettier failed. Please review the errors:"
             cat "$ERROR_LOG"
             rm "$ERROR_LOG"
