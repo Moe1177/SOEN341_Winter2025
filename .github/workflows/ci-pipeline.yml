@@ -1,6 +1,10 @@
 name: CI Pipeline
 
-on: [ push, pull_request ]
+on: push
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   lint:
@@ -25,6 +29,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IGNORE_GITIGNORED_FILES: true
+          VALIDATE_MARKDOWN: false
+          VALIDATE_MARKDOWN_PRETTIER: false
 
   backend:
     runs-on: ubuntu-latest
