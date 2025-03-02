@@ -16,9 +16,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run Super-Linter
-        uses: github/super-linter@v4
+        uses: github/super-linter@v7.2.1
         env:
-          #          VALIDATE_ALL_CODEBASE: false
+          # Can be used to check only the changes
+          #VALIDATE_ALL_CODEBASE: false
           JAVA_FILE_NAME: checkstyle.xml
           LINTER_RULES_PATH: .github/configs
           DEFAULT_BRANCH: main
