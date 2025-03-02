@@ -48,7 +48,7 @@ public class SecurityConfig {
     http.cors(withDefaults()) // Enable CORS
         .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for API requests
         .authorizeHttpRequests(
-            auth -> auth.anyRequest().authenticated() // Require authentication for all requests
+            auth -> auth.anyRequest().permitAll() // Require authentication for all requests
             )
         .httpBasic(withDefaults())
         .formLogin(withDefaults());
