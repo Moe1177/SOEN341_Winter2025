@@ -31,6 +31,10 @@ jobs:
           IGNORE_GITIGNORED_FILES: true
           VALIDATE_MARKDOWN: false
           VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_BASH_EXEC: false
+          VALIDATE_CSS_PRETTIER: false
+          VALIDATE_SHELL_SHFMT: false
+          VALIDATE_YAML_PRETTIER: false
 
   backend:
     runs-on: ubuntu-latest

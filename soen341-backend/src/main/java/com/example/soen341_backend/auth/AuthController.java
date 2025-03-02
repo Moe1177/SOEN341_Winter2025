@@ -27,6 +27,9 @@ public class AuthController {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final EmailService emailService;
+  private final int RANDOM_FACTOR = 900000;
+  private final int RANDOM_THRESHOLD = 100000;
+  private final int VERIFICATION_EXPIRATION = 600; // 10-minute expiration
 
   /**
    * Handles the login request by authenticating the user's credentials and generating a JWT token
@@ -105,9 +108,10 @@ public class AuthController {
     user.setLastActiveAt(Instant.now());
 
     // Generate a random verification code and set its expiration
-    int verificationCode = (int) (Math.random() * 900000) + 100000; // 6-digit random code
+    int verificationCode =
+        (int) (Math.random() * RANDOM_FACTOR) + RANDOM_THRESHOLD; // 6-digit random code
     user.setVerificationCode(String.valueOf(verificationCode));
-    user.setVerificationCodeExpiration(Instant.now().plusSeconds(600)); // 10-minute expiration
+    user.setVerificationCodeExpiration(Instant.now().plusSeconds(VERIFICATION_EXPIRATION));
     user.setVerified(false); // Initially unverified
 
     // Save the new user to the database
@@ -200,9 +204,10 @@ public class AuthController {
     }
 
     // Generate a new verification code and set its expiration
-    int newCode = (int) (Math.random() * 900000) + 100000; // 6-digit random code
+    int newCode = (int) (Math.random() * RANDOM_FACTOR) + RANDOM_THRESHOLD; // 6-digit random code
     user.setVerificationCode(String.valueOf(newCode));
-    user.setVerificationCodeExpiration(Instant.now().plusSeconds(600)); // 10 minutes expiration
+    user.setVerificationCodeExpiration(
+        Instant.now().plusSeconds(VERIFICATION_EXPIRATION)); // 10 minutes expiration
 
     // Save the updated user with the new verification code
     userRepository.save(user);
