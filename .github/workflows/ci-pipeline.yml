@@ -10,6 +10,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install CA Certificates
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+
+      - name: Set Java Trust Store (if needed)
+        run: echo "JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts" >> $GITHUB_ENV
+
       - name: Run Super-Linter
         uses: github/super-linter@v4
         env:
