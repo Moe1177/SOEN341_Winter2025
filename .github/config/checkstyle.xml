@@ -37,7 +37,7 @@
         </module>
 
         <module name="FinalParameters">
-            <property name="tokens" value=""/>
+            <property name="ignoreUnnamedParameters" value="true"/>
         </module>
 
     </module>

@@ -10,16 +10,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set Up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: Run Super-Linter
         uses: github/super-linter@v4
         env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64  # Explicitly set JAVA_HOME
           JAVA_FILE_NAME: checkstyle.xml
           LINTER_RULES_PATH: .github/config
           DEFAULT_BRANCH: main
