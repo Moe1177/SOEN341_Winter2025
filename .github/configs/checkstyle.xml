@@ -2,33 +2,40 @@
         "-//Checkstyle//DTD Check Configuration 1.3//EN"
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
+    <!-- Enforce maximum line length -->
     <module name="LineLength">
         <property name="max" value="120"/>
     </module>
+
+    <!-- Checks outside TreeWalker -->
+    <module name="AvoidStarImport">
+        <property name="allowClassImports" value="true"/>
+    </module>
+
     <module name="TreeWalker">
-<!--        <module name="HideUtilityClassConstructor">-->
-<!--            <property name="ignoreAnnotatedBy"-->
-<!--                      value="SpringBootApplication, java.lang.Deprecated"/>-->
-<!--        </module>-->
-        <!--Exclude scope excludes all scopes that are less restrictive than the one given, with anoninner being the
-        most restrictive. Basically all scopes are excluded-->
-<!--        <module name="JavadocStyle">-->
-<!--            <property name="excludeScope" value="anoninner"/>-->
-<!--            <property name="tokens" value=","/>-->
-<!--        </module>-->
-<!--        <module name="JavadocVariable">-->
-<!--            <property name="excludeScope" value="anoninner"/>-->
-<!--        </module>-->
-<!--        <module name="MissingJavadocMethod">-->
-<!--            <property name="excludeScope" value="anoninner"/>-->
-<!--            <property name="tokens" value=""/>-->
-<!--        </module>-->
-<!--        <module name="AvoidStarImport">-->
-<!--            <property name="allowClassImports" value="true"/>-->
-<!--        </module>-->
-<!--        <module name="FinalParameters">-->
-<!--            <property name="ignoreUnnamedParameters" value="true"/>-->
-<!--            <property name="tokens" value=""/>-->
-<!--        </module>-->
+        <!-- Consistent indentation -->
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="8"/>
+        </module>
+
+        <!-- Naming Conventions -->
+        <module name="TypeName"/>
+        <module name="MethodName"/>
+        <module name="VariableName"/>
+        <module name="ConstantName"/>
+        <module name="ParameterName"/>
+
+        <!-- Check for empty blocks -->
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+
+        <!-- Avoid Magic Numbers -->
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1,0,1,2,100"/>
+        </module>
     </module>
 </module>
