@@ -6,10 +6,10 @@
         <property name="max" value="120"/>
     </module>
     <module name="TreeWalker">
-        <module name="HideUtilityClassConstructor">
-            <property name="ignoreAnnotatedBy"
-                      value="SpringBootApplication, java.lang.Deprecated"/>
-        </module>
+<!--        <module name="HideUtilityClassConstructor">-->
+<!--            <property name="ignoreAnnotatedBy"-->
+<!--                      value="SpringBootApplication, java.lang.Deprecated"/>-->
+<!--        </module>-->
         <!--Exclude scope excludes all scopes that are less restrictive than the one given, with anoninner being the
         most restrictive. Basically all scopes are excluded-->
         <module name="JavadocStyle">
