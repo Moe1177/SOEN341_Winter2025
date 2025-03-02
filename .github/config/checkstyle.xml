@@ -12,9 +12,6 @@
         </module>
         <!--Exclude scope excludes all scopes that are less restrictive than the one given, with anoninner being the
         most restrictive. Basically all scopes are excluded-->
-        <module name="MissingJavadocMethod">
-            <property name="excludeScope" value="anoninner"/>
-        </module>
         <module name="JavadocStyle">
             <property name="excludeScope" value="anoninner"/>
         </module>
