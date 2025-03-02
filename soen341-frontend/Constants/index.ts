@@ -1,19 +1,10 @@
 export const NAV_LINKS = [
-    { href: '#About', key: 'about', label: 'About' },
-    { href: '#Hero', key: 'discover', label: 'Discover' },
-    { href: '#Features', key: 'Features', label: 'Features' },
-    { href: '#SignUp', key: 'signup', label: 'Sign Up' },
+    { href: '/#About', key: 'about', label: 'About' },
+    { href: '/#Hero', key: 'discover', label: 'Discover' },
+    { href: '/#Features', key: 'Features', label: 'Features' },
+    { href: '/#SignUp', key: 'signup', label: 'Sign Up' },
   ];
   
-  // CAMP SECTION
-  export const PEOPLE_URL = [
-    '/person-1.png',
-    '/person-2.png',
-    '/person-3.png',
-    '/person-4.png',
-  ];
-  
-  // FEATURES SECTION
   export const FEATURES = [
     {
       title: 'Direct Messaging',

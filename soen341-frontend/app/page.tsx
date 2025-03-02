@@ -1,9 +1,9 @@
+
 import Features from "../Components/Features";
 import Hero from "../Components/Hero";
 import About from "../Components/About";
 import React from "react";
 import SignUp from "../Components/SignUp";
-
 export default function Home() {
   return (
     <>
@@ -21,6 +21,7 @@ export default function Home() {
     <div id="SignUp">
     <SignUp/>
     </div>
+   
     
     
     </>

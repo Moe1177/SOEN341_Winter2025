@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Button from "./Button";
+import React from "react";
 
 
 const Hero = () => {

@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Button from './Button';
 
 
+
 const SignUp = () => {
     return (
         <div className="hero">
@@ -18,6 +19,7 @@ const SignUp = () => {
            
             <div className="flexCenter mt-10">
             <Button 
+            href='/Login'
           type="button"
           title="Sign up"
           icon="/login.svg"

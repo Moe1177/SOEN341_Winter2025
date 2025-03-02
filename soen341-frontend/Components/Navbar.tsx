@@ -1,7 +1,9 @@
-import { NAV_LINKS } from '@/Constants';
+import { NAV_LINKS } from '../Constants';
 import Image from "next/image"
 import Link from "next/link"
+import React from "react"
 import Button from "./Button"
+
 
 const Navbar = () => {
   return (
@@ -18,13 +20,16 @@ const Navbar = () => {
         ))}
       </ul>
 
-      <div className="lg:flexCenter ">
+      <div className="lg:flexCenter">
+      
         <Button 
+        href='/Login'
           type="button"
           title="Login"
           icon="/login.svg"
           variant="btn_dark_purple"
         />
+        
       </div>
       
       <Image 

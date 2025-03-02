@@ -1,6 +1,7 @@
-import { FOOTER_CONTACT_INFO, FOOTER_LINKS, SOCIALS } from "@/Constants";
+import { FOOTER_CONTACT_INFO, FOOTER_LINKS, SOCIALS } from "../Constants";
 import Link from "next/link";
 import Image from "next/image";
+import React from "react";
 
 const Footer = () => {
   return (
