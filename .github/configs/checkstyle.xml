@@ -22,13 +22,6 @@
             <property name="lineWrappingIndentation" value="8"/>
         </module>
 
-        <!-- Naming Conventions -->
-        <module name="TypeName"/>
-        <module name="MethodName"/>
-        <module name="VariableName"/>
-        <module name="ConstantName"/>
-        <module name="ParameterName"/>
-
         <!-- Check for empty blocks -->
         <module name="EmptyBlock">
             <property name="option" value="text"/>
