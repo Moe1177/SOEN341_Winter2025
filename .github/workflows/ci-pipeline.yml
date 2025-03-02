@@ -1,6 +1,6 @@
 name: CI Pipeline
 
-on: push
+on: [push, pull_request]
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ jobs:
         uses: github/super-linter@v7
         env:
           # Can be used to check only the changes
-          #VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ALL_CODEBASE: false
           JAVA_FILE_NAME: checkstyle.xml
           LINTER_RULES_PATH: .github/configs
           DEFAULT_BRANCH: main
