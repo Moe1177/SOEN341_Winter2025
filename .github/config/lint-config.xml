@@ -4,9 +4,41 @@
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <module name="TreeWalker">
-        <!-- Other checks go here -->
-        <module name="HideUtilityClassConstructor">
-            <property name="excludes" value="**/Soen341BackendApplication.java"/>
+
+        <module name="LineLength">
+            <property name="max" value="120"/>
         </module>
+
+        <module name="HideUtilityClassConstructor">
+            <property name="ignoreAnnotatedBy"
+                      value="SpringBootApplication, java.lang.Deprecated"/>
+        </module>
+
+        <!--Exclude scope excludes all scopes that are less restrictive than the one given, with anoninner being the
+        most restrictive. Basically all scopes are excluded-->
+        <module name="MissingJavadocMethod">
+            <property name="excludeScope" value="anoninner"/>
+        </module>
+
+        <module name="JavadocStyle">
+            <property name="excludeScope" value="anoninner"/>
+        </module>
+
+        <module name="JavadocVariable">
+            <property name="excludeScope" value="anoninner"/>
+        </module>
+
+        <module name="MissingJavadocMethod">
+            <property name="excludeScope" value="anoninner"/>
+        </module>
+
+        <module name="AvoidStarImport">
+            <property name="allowClassImports" value="true"/>
+        </module>
+
+        <module name="FinalParameters">
+            <property name="tokens" value=""/>
+        </module>
+
     </module>
 </module>
