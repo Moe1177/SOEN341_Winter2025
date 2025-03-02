@@ -10,10 +10,15 @@ import {
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-import DirectMessages from "./DirectMessagesList";
+import { cn } from "../lib/utils";
+import DirectMessagesList from "./DirectMessagesList";
 import Servers from "./Servers";
 import MessageInterface from "./MessageInterface";
+
+interface User {
+  id: string;
+  username: string;
+}
 
 export function SidebarDemo() {
   const links = [
@@ -23,7 +28,7 @@ export function SidebarDemo() {
       icon: (
         <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
-      feature: "Direct Messaging", // Ensure feature key is present
+      feature: "Direct Messaging",
     },
     {
       label: "Servers",
@@ -31,7 +36,7 @@ export function SidebarDemo() {
       icon: (
         <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
-      feature: "Servers", // Ensure feature key is present
+      feature: "Servers",
     },
     {
       label: "Profile",
@@ -39,7 +44,7 @@ export function SidebarDemo() {
       icon: (
         <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
-      feature: "Profile", // Ensure feature key is present
+      feature: "Profile",
     },
     {
       label: "Settings",
@@ -47,7 +52,7 @@ export function SidebarDemo() {
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
-      feature: "Settings", // Ensure feature key is present
+      feature: "Settings",
     },
     {
       label: "Logout",
@@ -55,15 +60,31 @@ export function SidebarDemo() {
       icon: (
         <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
-      feature: "Logout", // Ensure feature key is present
+      feature: "Logout",
     },
   ];
 
   const [open, setOpen] = useState(false);
   const [activeFeature, setFeature] = useState<string>("Direct Messaging");
 
+  // Have to change to authenticated user////////////////////////////////////////////////////////////////////////////////////////////////
+  const [currentUser] = useState<User>({
+    id: "67c4dc6427eab20817da216e",
+    username: "CurrentUser",
+  });
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   const handleLinkClick = (feature: string) => {
-    setFeature(feature); // Set the active feature based on clicked link
+    setFeature(feature);
+    // Clear selected user when switching away from Direct Messaging
+    if (feature !== "Direct Messaging") {
+      setSelectedUser(null);
+    }
+  };
+
+  const handleSelectUser = (user: User) => {
+    setSelectedUser(user);
   };
 
   return (
@@ -82,7 +103,7 @@ export function SidebarDemo() {
                 <SidebarLink
                   key={idx}
                   link={link}
-                  onClick={() => handleLinkClick(link.feature!)} // Use non-null assertion (!)
+                  onClick={() => handleLinkClick(link.feature)}
                 />
               ))}
             </div>
@@ -90,7 +111,7 @@ export function SidebarDemo() {
           <div>
             <SidebarLink
               link={{
-                label: "User Profile Name",
+                label: currentUser.username,
                 href: "#",
                 icon: (
                   <Image
@@ -106,41 +127,64 @@ export function SidebarDemo() {
           </div>
         </SidebarBody>
       </Sidebar>
-      <Dashboard activeFeature={activeFeature} />
-      <MessageInterface/>
+
+      {activeFeature === "Direct Messaging" && (
+        <div className="w-[250px] border-r border-gray-700">
+          <DirectMessagesList
+            currentUser={currentUser}
+            selectedUser={selectedUser}
+            onSelectUser={handleSelectUser}
+          />
+        </div>
+      )}
+
+      {activeFeature === "Servers" && (
+        <div className="w-[250px] border-r border-gray-700">
+          <Servers />
+        </div>
+      )}
+
+      <div className="flex-1">
+        {activeFeature === "Direct Messaging" ? (
+          <MessageInterface
+            currentUser={currentUser}
+            selectedUser={selectedUser}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            {activeFeature === "Profile" && (
+              <p>Profile content will appear here</p>
+            )}
+            {activeFeature === "Settings" && (
+              <p>Settings content will appear here</p>
+            )}
+            {activeFeature === "Servers" && !selectedUser && (
+              <p>Select a server to view messages</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-const Dashboard = ({ activeFeature }: { activeFeature: string }) => {
+export const Logo = () => {
   return (
-    <div
-    className="border-2 border-black-500 bg-gray-100 w-[150px]"
+    <Link
+      href="#"
+      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      {activeFeature === "Direct Messaging" && <DirectMessages />}
-      {activeFeature === "Servers" && <Servers />}
-    </div>
+      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="font-medium text-black dark:text-white whitespace-pre"
+      >
+        Dialogos
+      </motion.span>
+    </Link>
   );
 };
-
-export const Logo = () => {
-    return (
-      <Link
-        href="#"
-        className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
-      >
-        <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="font-medium text-black dark:text-white whitespace-pre"
-        >
-          Dialogos
-        </motion.span>
-      </Link>
-    );
-  };
-  
 
 export const LogoIcon = () => {
   return (

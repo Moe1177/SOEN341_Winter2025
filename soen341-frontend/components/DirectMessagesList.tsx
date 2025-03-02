@@ -26,7 +26,9 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
       try {
         setIsLoading(true);
         // This endpoint should return all users the current user has direct messages with
-        const response = await axios.get(`/api/users/${currentUser.id}/conversations`);
+        const response = await axios.get(
+          `http://localhost:8080/api/channels/67c4dc6427eab20817da216e`
+        );
         setDmUsers(response.data);
         setIsLoading(false);
       } catch (error) {
@@ -41,17 +43,17 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
   }, [currentUser]);
 
   // Fetch all users for the new DM modal
-  const handleNewDmClick = async () => {
+  const handleNewChannelClick = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/channels/create-channel`,
+        `http://localhost:8080/api/channels/create-channel?userId=${currentUser.id}`,
         {
-          name: "Test Channel",
-          creatorId: "123456789",
+          name: "Test Channel From Frontend",
+          creatorId: "67c4dc6427eab20817da216e",
           inviteCode: "34620",
-          members: ["123456789", "987654321"],
-          isDirectMessage: true,
-          directMessageMembers: ["123456789", "987654321"],
+          members: ["67c4dc6427eab20817da216e"],
+          isDirectMessage: false,
+          directMessageMembers: [],
         }
       );
       // Filter out the current user and users already in DM list
@@ -67,13 +69,29 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
     }
   };
 
-  const startNewConversation = (user: User) => {
-    // Add user to DM list if not already there
-    if (!dmUsers.some(dmUser => dmUser.id === user.id)) {
-      setDmUsers(prev => [...prev, user]);
+  const startNewConversation = async (user: User) => {
+    try {
+      // Create a direct message channel between the users
+      await axios.post("http://localhost:8080/api/channels/dm", {
+        user1Id: currentUser.id,
+        user2Id: user.id,
+      });
+
+      // Add user to DM list if not already there
+      if (!dmUsers.some((dmUser) => dmUser.id === user.id)) {
+        setDmUsers((prev) => [...prev, user]);
+      }
+      onSelectUser(user);
+      setShowNewDmModal(false);
+    } catch (error) {
+      console.error("Error creating direct message channel:", error);
+      // Still add the user to the list and select them for UX purposes
+      if (!dmUsers.some((dmUser) => dmUser.id === user.id)) {
+        setDmUsers((prev) => [...prev, user]);
+      }
+      onSelectUser(user);
+      setShowNewDmModal(false);
     }
-    onSelectUser(user);
-    setShowNewDmModal(false);
   };
 
   return (
@@ -81,7 +99,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
       <div className="flex justify-between items-center p-4 border-b border-gray-700">
         <h2 className="text-xl font-bold">Direct Messages</h2>
         <button 
-          onClick={handleNewDmClick}
+          onClick={handleNewChannelClick}
           className="p-2 rounded-full bg-gray-700 hover:bg-gray-600"
           title="New Message"
         >
@@ -98,7 +116,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
           <div className="p-4 text-center text-gray-400">
             <p>No conversations yet</p>
             <button 
-              onClick={handleNewDmClick}
+              onClick={() => startNewConversation(currentUser)}
               className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
             >
               Start a conversation
