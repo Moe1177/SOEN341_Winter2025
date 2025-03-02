@@ -25,6 +25,7 @@ jobs:
           # Can be used to check only the changes
           VALIDATE_ALL_CODEBASE: false
           JAVA_FILE_NAME: checkstyle.xml
+          CSS_FILE_NAME:
           LINTER_RULES_PATH: .github/configs
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
