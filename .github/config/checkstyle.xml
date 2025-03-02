@@ -1,6 +1,6 @@
 <!DOCTYPE module PUBLIC
         "-//Checkstyle//DTD Check Configuration 1.3//EN"
-        ".github/config/dtds/configuration_1_3.dtd">
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <module name="LineLength">
         <property name="max" value="120"/>
