@@ -136,7 +136,6 @@ public class ChannelService {
 
   private String generateInviteCode() {
     Random random = new Random();
-    int rdmBound = 1000000;
-    return String.format("%06d", random.nextInt(rdmBound));
+    return String.format("%06d", random.nextInt(1000000));
   }
 }
