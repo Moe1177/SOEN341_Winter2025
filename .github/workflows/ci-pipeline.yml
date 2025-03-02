@@ -6,23 +6,24 @@ jobs:
   lint:
     name: Super-Linter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install CA Certificates
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
-
-      - name: Set Java Trust Store (if needed)
-        run: echo "JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts" >> $GITHUB_ENV
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run Super-Linter
         uses: github/super-linter@v4
         env:
+          VALIDATE_ALL_CODEBASE: false
           JAVA_FILE_NAME: checkstyle.xml
-          LINTER_RULES_PATH: .github/config
+          LINTER_RULES_PATH: .github/configs
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IGNORE_GITIGNORED_FILES: true
 
   backend:
     runs-on: ubuntu-latest
