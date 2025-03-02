@@ -35,6 +35,9 @@ public class ChannelService {
     // Add creator to the channel members
     channel.getMembers().add(userId);
 
+    String inviteCode = generateInviteCode();
+    channel.setInviteCode(inviteCode);
+
     Channel savedChannel = channelRepository.save(channel);
 
     // Update user's channels list
@@ -115,6 +118,9 @@ public class ChannelService {
     participants.add(user2Id);
     dmChannel.setDirectMessageMembers(participants);
     dmChannel.setMembers(participants);
+
+    String token = generateInviteCode();
+    dmChannel.setInviteCode(token);
 
     Channel savedChannel = channelRepository.save(dmChannel);
 
