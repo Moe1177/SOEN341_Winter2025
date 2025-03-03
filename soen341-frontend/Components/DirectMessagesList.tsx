@@ -19,19 +19,35 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [showNewDmModal, setShowNewDmModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch all users that the current user has DM'd with
+
   useEffect(() => {
+
+    console.log(currentUser.id)
     const fetchDmUsers = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
+
+        if (!currentUser?.id) {
+          setError("No user ID provided");
+          setIsLoading(false);
+          return;
+        }
+
         const response = await axios.get(
-          `http://localhost:8080/api/channels/67c4dc6427eab20817da216e`
+          `http://localhost:8080/api/channels/${currentUser.id}`
         );
+        
         setDmUsers(response.data);
         setIsLoading(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching DM users:', error);
+        setError(error.response?.data?.message || "Failed to load conversations");
+ 
+        setDmUsers([]);
         setIsLoading(false);
       }
     };
@@ -41,51 +57,61 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
     }
   }, [currentUser]);
 
-  // Fetch all users for the new DM modal
   const handleNewChannelClick = async () => {
     try {
+      setError(null);
+      
       const response = await axios.post(
         `http://localhost:8080/api/channels/create-channel?userId=${currentUser.id}`,
         {
           name: "Test Channel From Frontend",
-          creatorId: "67c4dc6427eab20817da216e",
+          creatorId: currentUser.id, 
           inviteCode: "34620",
-          members: ["67c4dc6427eab20817da216e"],
+          members: [currentUser.id], 
           isDirectMessage: false,
           directMessageMembers: [],
         }
       );
-      // Filter out the current user and users already in DM list
+      
+ 
       const filteredUsers = response.data.filter(
         (user: User) => 
           user.id !== currentUser.id && 
           !dmUsers.some(dmUser => dmUser.id === user.id)
       );
+      
       setAllUsers(filteredUsers);
       setShowNewDmModal(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
+      setError(error.response?.data?.message || "Failed to load users");
     }
   };
 
   const startNewConversation = async (user: User) => {
     try {
+      setError(null);
+      
       await axios.post("http://localhost:8080/api/channels/dm", {
         user1Id: currentUser.id,
         user2Id: user.id,
       });
 
-      // Add user to DM list if not already there
+ 
       if (!dmUsers.some((dmUser) => dmUser.id === user.id)) {
         setDmUsers((prev) => [...prev, user]);
       }
+      
       onSelectUser(user);
       setShowNewDmModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating direct message channel:", error);
+      
+
       if (!dmUsers.some((dmUser) => dmUser.id === user.id)) {
         setDmUsers((prev) => [...prev, user]);
       }
+      
       onSelectUser(user);
       setShowNewDmModal(false);
     }
@@ -109,11 +135,21 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
           <div className="flex justify-center items-center h-20">
             <p>Loading conversations...</p>
           </div>
+        ) : error ? (
+          <div className="p-4 text-center text-red-400">
+            <p>{error}</p>
+            <button 
+              onClick={handleNewChannelClick}
+              className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
+            >
+              Start a new conversation
+            </button>
+          </div>
         ) : dmUsers.length === 0 ? (
           <div className="p-4 text-center text-gray-400">
             <p>No conversations yet</p>
             <button 
-              onClick={() => startNewConversation(currentUser)}
+              onClick={handleNewChannelClick}
               className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
             >
               Start a conversation
@@ -139,7 +175,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
         )}
       </div>
 
-      {/* New DM Modal */}
+
       {showNewDmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-4 w-80 max-h-96 flex flex-col">

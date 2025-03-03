@@ -9,7 +9,7 @@ type ButtonProps = {
   variant: string;
   full?: boolean;
   href?: string;
-  onClick?: () => void; // Added onClick prop
+  onClick?: () => void; 
 };
 
 const Button = ({ type, title, icon, variant, full, href, onClick }: ButtonProps) => {
@@ -17,14 +17,13 @@ const Button = ({ type, title, icon, variant, full, href, onClick }: ButtonProps
     <button
       className={`flexCenter gap-3 rounded-full border ${variant} ${full ? "w-full" : ""}`}
       type={type}
-      onClick={onClick} // Attach onClick event
+      onClick={onClick} 
     >
       {icon && <Image src={icon} alt={title} width={24} height={24} />}
       <label className="bold-16 whitespace-nowrap cursor-pointer">{title}</label>
     </button>
   );
 
-  // If href is provided, wrap with Link, otherwise return button as is
   return href ? (
     <Link href={href}>
       {buttonContent}
