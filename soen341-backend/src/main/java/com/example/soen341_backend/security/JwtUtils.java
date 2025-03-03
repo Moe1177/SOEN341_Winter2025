@@ -3,7 +3,10 @@ package com.example.soen341_backend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,29 @@ public class JwtUtils {
   private static final String SECRET_KEY =
       "YourSuperSecretKeyForJwtDontShare123456789012"; // Use 256-bit key
   private static final long EXPIRATION_TIME = 86400000; // 1 day
+
+  private final Set<String> tokenBlacklist = Collections.synchronizedSet(new HashSet<>());
+
+  /**
+   * Adds a token to the blacklist, invalidating it for future use.
+   *
+   * @param token The JWT token to blacklist.
+   */
+  public void blacklistToken(String token) {
+    tokenBlacklist.add(token);
+    // Schedule removal of this token from blacklist after expiration
+    // to prevent memory leaks (implementation depends on your application)
+  }
+
+  /**
+   * Checks if a token is blacklisted.
+   *
+   * @param token The JWT token to check.
+   * @return true if the token is blacklisted, false otherwise.
+   */
+  public boolean isTokenBlacklisted(String token) {
+    return tokenBlacklist.contains(token);
+  }
 
   /**
    * Generates and returns a signing key used for HMAC (Hash-based Message Authentication Code)

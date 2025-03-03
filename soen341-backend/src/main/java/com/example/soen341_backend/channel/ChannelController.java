@@ -59,12 +59,12 @@ public class ChannelController {
     return channelService.getUserChannels(userId);
   }
 
-  @GetMapping("/dm/{userId}")
+  @GetMapping("/direct-message/{userId}")
   public List<Channel> getUserDirectMessages(@PathVariable String userId) {
     return channelService.getUserDirectMessages(userId);
   }
 
-  @PostMapping("/dm")
+  @PostMapping("/direct-message")
   public Channel getOrCreateDirectMessageChannel(@RequestBody Map<String, String> users) {
     String user1Id = users.get("user1Id");
     String user2Id = users.get("user2Id");
