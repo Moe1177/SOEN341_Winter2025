@@ -25,7 +25,7 @@ public class ChannelService {
         .orElseThrow(() -> new ResourceNotFoundException("Channel not found with id: " + id));
   }
 
-  public Channel createChannel(Channel channel, String userId) {
+  public Channel createChannel(Channel channel, String creatorUserId) {
 
     // Set default values if not provided
     if (channel.getMembers() == null) {
@@ -33,16 +33,18 @@ public class ChannelService {
     }
 
     // Add creator to the channel members
-    channel.getMembers().add(userId);
+    channel.getMembers().add(creatorUserId);
 
     String inviteCode = generateInviteCode();
     channel.setInviteCode(inviteCode);
 
+    channel.setCreatorId(creatorUserId);
+
     Channel savedChannel = channelRepository.save(channel);
 
     // Update user's channels list
-    userService.addChannelToUser(userId, savedChannel.getId());
-    userService.addAdminChannelToUser(userId, savedChannel.getId());
+    userService.addChannelToUser(creatorUserId, savedChannel.getId());
+    userService.addAdminChannelToUser(creatorUserId, savedChannel.getId());
 
     return savedChannel;
   }
