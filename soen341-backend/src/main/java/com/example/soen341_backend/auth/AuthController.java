@@ -5,6 +5,7 @@ import com.example.soen341_backend.security.JwtUtils;
 import com.example.soen341_backend.user.Status;
 import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
+import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
@@ -27,6 +28,7 @@ public class AuthController {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final EmailService emailService;
+  private final UserService userService;
 
   /**
    * Handles the login request by authenticating the user's credentials and generating a JWT token
@@ -61,6 +63,7 @@ public class AuthController {
 
       // Generate JWT token if authentication is successful
       String token = jwtUtils.generateToken(username);
+      userService.updateOnlineStatus(user.get().getId(), Status.ONLINE);
       return ResponseEntity.ok(new AuthResponse(token));
 
     } catch (AuthenticationException e) {
