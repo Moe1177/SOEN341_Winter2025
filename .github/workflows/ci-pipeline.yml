@@ -38,7 +38,7 @@ jobs:
           VALIDATE_YAML_PRETTIER: false
           VALIDATE_JSCPD: false
           VALIDATE_JSON_PRETTIER: false
-          VALIDATE_TYPESCRIPT_ES: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_PRETTIER: false
 
   backend:
