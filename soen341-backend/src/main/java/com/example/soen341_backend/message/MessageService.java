@@ -4,11 +4,14 @@ import com.example.soen341_backend.channel.Channel;
 import com.example.soen341_backend.channel.ChannelService;
 import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
+import com.example.soen341_backend.user.User;
+import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ public class MessageService {
   private final ChannelService channelService;
   private final UserService userService;
   private final SimpMessagingTemplate messagingTemplate;
+  private final UserRepository userRepository;
 
   public Message getMessageById(String id) {
     return messageRepository
@@ -28,31 +32,44 @@ public class MessageService {
         .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + id));
   }
 
-  public List<Message> getChannelMessages(String channelId, String userId) {
+  public List<Message> getChannelMessages(String channelId, String username) {
     // Verify user is a member of the channel
     Channel channel = channelService.getChannelById(channelId);
-    if (!channel.getMembers().contains(userId)) {
+    Optional<User> user = userRepository.findByUsername(username);
+
+    if (user.isPresent() && !channel.getMembers().contains(user.get().getId())) {
       throw new UnauthorizedException("You don't have access to this channel");
     }
 
     return messageRepository.findAllByChannelIdOrderByTimestampAsc(channelId);
   }
 
-  public List<Message> getDirectMessages(String userId, String otherUserId) {
+  public List<Message> getDirectMessages(String username, String otherUserId) {
+    Optional<User> user = userRepository.findByUsername(username);
+
+    if (user.isEmpty()) {
+      throw new ResourceNotFoundException("User not found with username: " + username);
+    }
     return messageRepository
         .findByDirectMessageTrueAndSenderIdAndReceiverIdOrDirectMessageTrueAndSenderIdAndReceiverIdOrderByTimestampAsc(
-            userId, otherUserId, otherUserId, userId);
+            user.get().getId(), otherUserId, otherUserId, user.get().getId());
   }
 
-  public Message sendChannelMessage(Message message, String userId) {
+  public Message sendChannelMessage(Message message, String username) {
     Channel channel = channelService.getChannelById(message.getChannelId());
 
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("User not found with username: " + username));
+
     // Verify user is a member of the channel
-    if (!channel.getMembers().contains(userId)) {
+    if (!channel.getMembers().contains(user.getId())) {
       throw new UnauthorizedException("You don't have access to this channel");
     }
 
-    message.setSenderId(userId);
+    message.setSenderId(user.getId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
     message.setReceiverId(null);
