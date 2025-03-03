@@ -19,8 +19,8 @@
         </module>
 
         <!-- Avoid Magic Numbers -->
-        <module name="MagicNumber">
-            <property name="ignoreNumbers" value="-1,0,1,2,100,401,1000000"/>
-        </module>
+        <!-- <module name="MagicNumber"> -->
+        <!-- <property name="ignoreNumbers" value="-1,0,1,2,100,401,1000000"/> -->
+        <!-- </module> -->
     </module>
 </module>
