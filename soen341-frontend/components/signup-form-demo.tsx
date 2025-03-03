@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { Label } from "../components/ui/label";
-import { Input } from "../Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import { Input } from "@/Components/ui/input";
 
 
 export default function SignupFormDemo() {
