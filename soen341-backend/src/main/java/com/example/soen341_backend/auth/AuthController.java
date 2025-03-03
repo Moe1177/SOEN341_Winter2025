@@ -218,5 +218,47 @@ public class AuthController {
     return ResponseEntity.ok("New verification code sent. Please check your email.");
   }
 
+  /**
+   * Logs out a user by blacklisting their JWT token and updating their status to OFFLINE. This
+   * invalidates the token for future authentication attempts.
+   *
+   * @param authHeader The JWT token to invalidate.
+   * @return A {@link ResponseEntity} indicating the result of the logout process.
+   */
+  @PostMapping("/logout")
+  public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+    // Extract the token from the Authorization header
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+      return ResponseEntity.badRequest().body("Invalid Authorization header");
+    }
+
+    String token = authHeader.substring(7); // Remove "Bearer " prefix
+
+    try {
+      // Get username from token
+      String username = jwtUtils.extractUsername(token);
+      if (username == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+      }
+
+      // Blacklist the token
+      jwtUtils.blacklistToken(token);
+
+      // Update user status
+      Optional<User> userOptional = userRepository.findByUsername(username);
+      if (userOptional.isPresent()) {
+        User user = userOptional.get();
+        user.setStatus(Status.OFFLINE);
+        user.setLastActiveAt(Instant.now());
+        userRepository.save(user);
+      }
+
+      return ResponseEntity.ok("Logged out successfully");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error during logout: " + e.getMessage());
+    }
+  }
+
   public record AuthResponse(String token) {}
 }
