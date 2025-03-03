@@ -67,7 +67,7 @@ export function SidebarDemo() {
   const [open, setOpen] = useState(false);
   const [activeFeature, setFeature] = useState<string>("Direct Messaging");
 
-  // Have to change to authenticated user////////////////////////////////////////////////////////////////////////////////////////////////
+  // Have to change to authenticated user
   const [currentUser] = useState<User>({
     id: "67c4dc6427eab20817da216e",
     username: "CurrentUser",

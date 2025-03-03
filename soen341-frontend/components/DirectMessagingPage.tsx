@@ -19,7 +19,6 @@ const DirectMessagingPage = () => {
     const fetchCurrentUser = async () => {
       try {
         setIsLoading(true);
-        // This should be replaced with your actual authentication endpoint
         const response = await axios.get('/api/auth/me');
         setCurrentUser(response.data);
         setIsLoading(false);
@@ -71,28 +70,6 @@ const DirectMessagingPage = () => {
         />
       </div>
 
-      {/* Mobile view - show either the list or the chat, not both */}
-      {selectedUser && (
-        <div className="fixed inset-0 z-10 md:hidden bg-gray-900">
-          <div className="flex flex-col h-full">
-            <div className="p-3 bg-gray-800 flex items-center">
-              <button 
-                onClick={() => setSelectedUser(null)}
-                className="mr-3 text-gray-400"
-              >
-                ← Back
-              </button>
-              <h2 className="text-lg font-semibold text-white">{selectedUser.username}</h2>
-            </div>
-            <div className="flex-1">
-              <MessageInterface 
-                currentUser={currentUser}
-                selectedUser={selectedUser}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

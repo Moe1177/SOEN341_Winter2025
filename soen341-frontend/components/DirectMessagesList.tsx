@@ -25,7 +25,6 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
     const fetchDmUsers = async () => {
       try {
         setIsLoading(true);
-        // This endpoint should return all users the current user has direct messages with
         const response = await axios.get(
           `http://localhost:8080/api/channels/67c4dc6427eab20817da216e`
         );
@@ -71,7 +70,6 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
 
   const startNewConversation = async (user: User) => {
     try {
-      // Create a direct message channel between the users
       await axios.post("http://localhost:8080/api/channels/dm", {
         user1Id: currentUser.id,
         user2Id: user.id,
@@ -85,7 +83,6 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
       setShowNewDmModal(false);
     } catch (error) {
       console.error("Error creating direct message channel:", error);
-      // Still add the user to the list and select them for UX purposes
       if (!dmUsers.some((dmUser) => dmUser.id === user.id)) {
         setDmUsers((prev) => [...prev, user]);
       }
