@@ -26,7 +26,7 @@ export const initStompClient = (): Client => {
   };
 
   stompClient.activate();
-  
+
   return stompClient;
 };
 
@@ -42,7 +42,7 @@ export const disconnectStompClient = (): void => {
     subscription.unsubscribe();
   });
   subscriptions.clear();
-  
+
   if (stompClient) {
     stompClient.deactivate();
     stompClient = null;
@@ -51,13 +51,13 @@ export const disconnectStompClient = (): void => {
 
 export const subscribe = (destination: string, callback: (message: IMessage) => void): void => {
   const client = getStompClient();
-  
+
   // Unsubscribe if already subscribed to avoid duplicates
   if (subscriptions.has(destination)) {
     subscriptions.get(destination)?.unsubscribe();
     subscriptions.delete(destination);
   }
-  
+
   // Create new subscription
   const subscription = client.subscribe(destination, callback);
   subscriptions.set(destination, subscription);

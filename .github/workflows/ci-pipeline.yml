@@ -1,0 +1,95 @@
+name: CI Pipeline
+
+on: [ push, pull_request ]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  lint:
+    name: Super-Linter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Super-Linter
+        uses: github/super-linter@v7
+        env:
+          # Can be used to check only the changes
+          VALIDATE_ALL_CODEBASE: false
+          JAVA_FILE_NAME: checkstyle.xml
+          CSS_FILE_NAME: stylelint.json
+          LINTER_RULES_PATH: .github/configs
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IGNORE_GITIGNORED_FILES: true
+          VALIDATE_MARKDOWN: false
+          VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_BASH_EXEC: false
+          VALIDATE_CSS_PRETTIER: false
+          VALIDATE_SHELL_SHFMT: false
+          VALIDATE_YAML_PRETTIER: false
+          VALIDATE_JSCPD: false
+          VALIDATE_JSON_PRETTIER: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
+          VALIDATE_TYPESCRIPT_PRETTIER: false
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: soen341-backend
+    needs: lint  # Ensure linting passes before backend build
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Maven
+        run: sudo apt-get install -y maven  # Ensures Maven is installed
+
+      - name: Build & Test Backend
+        run: mvn clean package -Dcheckstyle.skip=true -Dcheckstyle.skipExec=true
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: soen341-frontend
+    needs: lint  # Ensure linting passes before frontend build
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Test Frontend
+        # Check if the test file exists, if it doesn't, don't fail
+        run: |
+          if npm run | grep -q " test"; then
+          npm test
+          else
+            echo "No test script found. Skipping tests."
+          fi
+
+      - name: Build Frontend
+        run: npm run build
