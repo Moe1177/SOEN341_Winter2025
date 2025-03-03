@@ -1,11 +1,31 @@
-import { Footer } from "@/components/footer";
-import { SidebarDemo } from "@/components/sidemenu";
 
+import Features from "../Components/Features";
+import Hero from "../Components/Hero";
+import About from "../Components/About";
+import React from "react";
+import SignUp from "../Components/SignUp";
 export default function Home() {
   return (
-    <div className="flex flex-col">
-      <SidebarDemo />
-      <Footer/>
+    <>
+    <div id="Hero">
+    <Hero/>
     </div>
-  );
+    <div id="About">
+    <About/>
+    </div>
+    
+    <div id="Features">
+    <Features/>
+    </div>
+    
+    <div id="SignUp">
+    <SignUp/>
+    </div>
+   
+    
+    
+    </>
+   
+    )
+
 }
