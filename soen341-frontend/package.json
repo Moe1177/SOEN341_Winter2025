@@ -12,8 +12,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@radix-ui/react-label": "^2.1.2",
-    "@react-three/drei": "^9.121.5",
-    "@react-three/fiber": "^8.17.14",
     "@stomp/stompjs": "^7.0.0",
     "@tabler/icons-react": "^3.30.0",
     "axios": "^1.8.1",
@@ -24,9 +22,9 @@
     "next": "15.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7",
-    "three": "^0.173.0"
+    "react-icons": "^5.4.0",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

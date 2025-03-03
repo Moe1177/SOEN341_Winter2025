@@ -1,7 +1,7 @@
 // components/LandingPage.js
 
 import { ThreeDCardDemo } from "../../Components/ThreeDCardDemo";
-import { AuroraBackground } from "../../Components/ui/aurora-background";
+import { AuroraBackground } from "../../components/ui/aurora-background";
 import SignupFormDemo from "../../Components/signup-form-demo";
 
 import React from "react";

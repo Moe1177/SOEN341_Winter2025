@@ -31,12 +31,10 @@ const MessageInterface = ({ currentUser, selectedUser }: MessageInterfaceProps) 
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Initialize STOMP client on component mount
   useEffect(() => {
     initStompClient();
   }, []);
 
-  // Fetch message history when a user is selected
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedUser) return;
@@ -60,49 +58,37 @@ const MessageInterface = ({ currentUser, selectedUser }: MessageInterfaceProps) 
     if (selectedUser) {
       fetchMessages();
     } else {
-      // Clear messages when no user is selected
       setMessages([]);
     }
   }, [selectedUser, currentUser?.id]);
 
-  // Subscribe to WebSocket destinations when a user is selected
   useEffect(() => {
     if (!selectedUser) return;
     
-    // Subscribe to personal message queue to receive DMs
     const userQueueDestination = `/queue/user/${currentUser?.id}`;
     
     subscribe(userQueueDestination, (message) => {
       const messageData = JSON.parse(message.body);
       
-      // Handle new messages
       if (messageData.content && !messageData.type) {
-        // Only add messages relevant to current conversation
         if ((messageData.senderId === selectedUser.id || messageData.receiverId === selectedUser.id)) {
           setMessages(prev => [...prev, messageData]);
         }
       }
       
-      // Handle message deletion notifications
-      if (messageData.type === 'MESSAGE_DELETED') {
-        setMessages(prev => prev.filter(msg => msg.id !== messageData.messageId));
-      }
     });
 
-    // Cleanup function to unsubscribe when component unmounts or user changes
     return () => {
       unsubscribe(userQueueDestination);
     };
   }, [selectedUser, currentUser?.id]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (messageContainerRef.current) {
       messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Auto-resize textarea based on content
   useEffect(() => {
     if (textAreaRef.current) {
       textAreaRef.current.style.height = "auto";
@@ -116,13 +102,11 @@ const MessageInterface = ({ currentUser, selectedUser }: MessageInterfaceProps) 
     const messageContent = newMessage.trim();
     setNewMessage('');
     
-    // Reset textarea height
     if (textAreaRef.current) {
       textAreaRef.current.style.height = "auto";
     }
     
     try {
-      // Send message via STOMP WebSocket
       sendMessage(`/app/dm/${currentUser?.id}/${selectedUser.id}`, {
         content: messageContent,
         senderId: currentUser?.id,
@@ -131,11 +115,9 @@ const MessageInterface = ({ currentUser, selectedUser }: MessageInterfaceProps) 
         timestamp: new Date().toISOString()
       });
       
-      // We don't add the message to state here as we'll receive it back through the WebSocket
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Fallback to REST API if WebSocket fails
       try {
         const response = await axios.post(`/api/messages/dm`, {
           content: messageContent,
@@ -149,7 +131,6 @@ const MessageInterface = ({ currentUser, selectedUser }: MessageInterfaceProps) 
           }
         });
         
-        // Add the sent message to our state
         setMessages(prev => [...prev, response.data]);
       } catch (apiError) {
         console.error('Error sending message via API:', apiError);
