@@ -39,6 +39,7 @@ public class ChannelService {
     channel.setInviteCode(inviteCode);
 
     channel.setCreatorId(creatorUserId);
+    channel.setChannelType(ChannelType.GROUP);
 
     Channel savedChannel = channelRepository.save(channel);
 
@@ -123,6 +124,7 @@ public class ChannelService {
 
     String token = generateInviteCode();
     dmChannel.setInviteCode(token);
+    dmChannel.setChannelType(ChannelType.DIRECT);
 
     Channel savedChannel = channelRepository.save(dmChannel);
 
