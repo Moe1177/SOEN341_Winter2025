@@ -1,78 +1,138 @@
-import { FOOTER_CONTACT_INFO, FOOTER_LINKS, SOCIALS } from "../Constants";
-import Link from "next/link";
-import Image from "next/image";
+"use client";
 import React from "react";
+import { StickyScroll } from "../components/ui/sticky-scroll-reveal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBullseye,
+  faPeopleGroup,
+  faSms,
+} from "@fortawesome/free-solid-svg-icons";
 
-const Footer = () => {
-  return (
-    <footer className="flexCenter mt-auto w-full py-6">
-      <div className="padding-container max-container flex w-full flex-col gap-14">
-        <div className="flex flex-col items-start justify-center gap-[10%] md:flex-row">
-          <div className="flex flex-wrap gap-10 sm:justify-between md:flex-1">
-            {FOOTER_LINKS.map((columns) => (
-              <FooterColumn key={columns.title} title={columns.title}>
-                <ul className="regular-14 flex flex-col gap-4 text-black">
-                  {columns.links.map((link) => (
-                    <Link href="/" key={link}>
-                      {link}
-                    </Link>
-                  ))}
-                </ul>
-              </FooterColumn>
-            ))}
-
-            <div className="flex flex-col gap-5 text-black ">
-              <FooterColumn title={FOOTER_CONTACT_INFO.title}>
-                {FOOTER_CONTACT_INFO.links.map((link) => (
-                  <Link
-                    href="/"
-                    key={link.label}
-                    className="flex gap-4 md:flex-col lg:flex-row"
-                  >
-                    <p className="whitespace-nowrap">{link.label}:</p>
-                    <p className="medium-14 whitespace-nowrap text-blue-400">
-                      {link.value}
-                    </p>
-                  </Link>
-                ))}
-              </FooterColumn>
-            </div>
-
-            <div className="flex flex-col gap-5">
-              <FooterColumn title={SOCIALS.title}>
-                <ul className="regular-14 flex gap-4 text-black">
-                  {SOCIALS.links.map((link) => (
-                    <Link href="/" key={link}>
-                      <Image src={link} alt="logo" width={24} height={24} />
-                    </Link>
-                  ))}
-                </ul>
-              </FooterColumn>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-red" />
-        <p className="regular-14 w-full text-center text-black">
-          2025 SOEN341 | All rights reserved
-        </p>
-      </div>
-    </footer>
-  );
-};
-
-type FooterColumnProps = {
+type ContentItem = {
   title: string;
-  children: React.ReactNode;
+  description: string;
+  content?: React.ReactNode;
 };
 
-const FooterColumn = ({ title, children }: FooterColumnProps) => {
+const content: ContentItem[] = [
+  {
+    title: "Our Purpose",
+    description:
+      "This web application allows users to communicate together whether personally to contact another user or whether to join a community of users to discuss different subjects as a group. We answer the need of connectivity between users such as students, friends, communities, QA, and so on. It also permits us to enhance the user experience with intuitive design which is clean easy to navigate and free of complexity.",
+    content: (
+      <div className="h-full w-full bg-[linear-gradient(to_bottom_right,var(--cyan-500),var(--emerald-500))] flex items-center justify-center text-white">
+        <FontAwesomeIcon icon={faBullseye} className="w-full h-full text-9xl" />
+      </div>
+    ),
+  },
+  {
+    title: "Features",
+    description:
+      "Users have the ability to either directly message other users, join existing channels to associate with or create their own channels for their own reasons. The platform also separates users based on roles (Role-Based Permissions), giving admins the capability to manage channels and messages with the capacity to create or delete channels and supervise messages and giving members only the capability to send or view messages.",
+    content: (
+      <div className="h-full w-full flex items-center justify-center text-white">
+        <FontAwesomeIcon
+          icon={faPeopleGroup}
+          className="w-full h-full text-9xl"
+        />
+      </div>
+    ),
+  },
+  {
+    title: "Channels",
+    description:
+      "The General channels are where users can communicate or ask general questions. The Project Help channels assist people that are working on projects, helping them with tasks related to the given server. The Social channels are where users build the community allowing them to engage in fun conversations and connect on a more personal level.",
+    content: (
+      <div className="h-full w-full bg-[linear-gradient(to_bottom_right,var(--orange-500),var(--yellow-500))] flex items-center justify-center text-white">
+        <FontAwesomeIcon icon={faSms} className="w-full h-full text-9xl" />
+      </div>
+    ),
+  },
+  {
+    title: "Meet the team",
+    description:
+      "Meet the talented individuals behind the platform. Here’s a brief introduction:",
+    content: (
+      <div className="overflow-hidden p-4 bg-gray-800 text-white rounded-lg">
+        <table className="min-w-full table-auto text-sm text-center animate-fadeIn text-white">
+          <thead>
+            <tr>
+              <th className="p-2">Name</th>
+              <th className="p-2">GitHub Username</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-2">Youssef Yassa</td>
+              <td className="p-2">
+                <a
+                  href="https://github.com/YoussefYassa7112"
+                  className="text-cyan-500"
+                >
+                  YoussefYassa7112
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2">Tristan Girardi</td>
+              <td className="p-2">
+                <a
+                  href="https://github.com/TristanGirardi"
+                  className="text-cyan-500"
+                >
+                  TristanGirardi
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2">Mohamad Addasi</td>
+              <td className="p-2">
+                <a href="https://github.com/Moe1177" className="text-cyan-500">
+                  Moe1177
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2">Mijan Ullah</td>
+              <td className="p-2">
+                <a
+                  href="https://github.com/mijanullah12"
+                  className="text-cyan-500"
+                >
+                  mijanullah12
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2">Fouad Elian</td>
+              <td className="p-2">
+                <a
+                  href="https://github.com/FouadElian"
+                  className="text-cyan-500"
+                >
+                  FouadElian
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-2">Junior Boni</td>
+              <td className="p-2">
+                <a href="https://github.com/RealBJr" className="text-cyan-500">
+                  RealBJr
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    ),
+  },
+];
+
+export function Footer() {
   return (
-    <div className="flex flex-col gap-5">
-      <h4 className="bold-18 whitespace-nowrap text-black">{title}</h4>
-      {children}
+    <div>
+      <StickyScroll content={content} />
     </div>
   );
-};
-
-export default Footer;
+}
