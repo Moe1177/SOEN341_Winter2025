@@ -22,6 +22,7 @@ public class Channel {
   private String name;
 
   private String creatorId;
+  private ChannelType channelType;
 
   @Indexed(unique = true)
   private String inviteCode;
