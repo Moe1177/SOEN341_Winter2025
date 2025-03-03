@@ -78,11 +78,16 @@ public class MessageService {
   }
 
   public Message sendDirectMessage(Message message, String senderId, String recipientId) {
+    // Get users
+    Optional<User> sender = userRepository.findByUsername(senderId);
+    Optional<User> receiver = userRepository.findByUsername(recipientId);
     // Get or create DM channel
-    Channel dmChannel = channelService.getOrCreateDirectMessageChannel(senderId, recipientId);
+    Channel dmChannel =
+        channelService.getOrCreateDirectMessageChannel(
+            sender.get().getId(), receiver.get().getId());
 
-    message.setSenderId(senderId);
-    message.setReceiverId(recipientId);
+    message.setSenderId(sender.get().getId());
+    message.setReceiverId(receiver.get().getId());
     message.setChannelId(dmChannel.getId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(true);
@@ -92,10 +97,11 @@ public class MessageService {
 
   public void deleteMessage(String messageId, String userId) {
     Message message = getMessageById(messageId);
+    Optional<User> user = userRepository.findByUsername(userId);
 
     // Only message sender or admin can delete a message
-    if (!message.getSenderId().equals(userId)
-        && !userService.isAdmin(userId, message.getChannelId())) {
+    if (!message.getSenderId().equals(user.get().getId())
+        && !userService.isAdmin(user.get().getId(), message.getChannelId())) {
       throw new UnauthorizedException("You don't have permission to delete this message");
     }
 
@@ -106,7 +112,7 @@ public class MessageService {
     Map<String, Object> notification = new HashMap<>();
     notification.put("type", "MESSAGE_DELETED");
     notification.put("messageId", messageId);
-    notification.put("deletedBy", userId);
+    notification.put("deletedBy", user.get().getId());
 
     // For channel messages, broadcast to the channel
     if (!message.isDirectMessage()) {
