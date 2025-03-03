@@ -29,7 +29,7 @@ public class MessageController {
     return messageService.getChannelMessages(channelId, userId);
   }
 
-  @GetMapping("/dm")
+  @GetMapping("/direct-messages")
   public List<Message> getDirectMessages(
       @RequestParam String otherUserId, HttpServletRequest request) {
     // Extract userId from JWT token

@@ -110,12 +110,12 @@ public class UserService {
     return false;
   }
 
-  public void updateOnlineStatus(String userId, boolean isOnline) {
+  public void updateOnlineStatus(String userId, Status status) {
     userRepository
         .findById(userId)
         .ifPresent(
             user -> {
-              user.setStatus(Status.ONLINE);
+              user.setStatus(status);
               userRepository.save(user);
             });
   }
