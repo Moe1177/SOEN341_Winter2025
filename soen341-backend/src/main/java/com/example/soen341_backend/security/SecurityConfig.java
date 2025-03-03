@@ -1,24 +1,30 @@
 package com.example.soen341_backend.security;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
+@RequiredArgsConstructor
+@EnableWebSecurity
 public class SecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
-
-  // Inject JwtAuthFilter via constructor
-  public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
-    this.jwtAuthFilter = jwtAuthFilter;
-  }
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -39,27 +45,28 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf()
-        .disable() // Disable CSRF protection (typically for stateless APIs)
+    http.cors(withDefaults()) // Enable CORS
+        .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for API requests
         .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/users/**")
-                    .permitAll() // Allow public access to user registration endpoint
-                    .requestMatchers("/api/auth/**")
-                    .permitAll() // Allow public access to authentication endpoints
-                    .requestMatchers("/api/auth/login")
-                    .permitAll() // Allow public access to login endpoint
-                    .anyRequest()
-                    .authenticated() // Secure all other endpoints
+            auth -> auth.anyRequest().permitAll() // Require authentication for all requests
             )
-        .addFilterBefore(
-            jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // Add custom JWT filter
-        .formLogin()
-        .disable() // Disable form-based login
-        .httpBasic()
-        .disable(); // Disable basic HTTP authentication
+        .httpBasic(withDefaults())
+        .formLogin(withDefaults());
 
     return http.build();
+  }
+
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend URL
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 
   @Bean

@@ -1,34 +1,72 @@
 package com.example.soen341_backend.message;
 
-import com.example.soen341_backend.user.User;
-import com.example.soen341_backend.user.UserRepository;
-import java.time.Instant;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
+import com.example.soen341_backend.security.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/messages")
+@AllArgsConstructor
+@CrossOrigin
 public class MessageController {
 
-  private final UserRepository userRepository;
   private final MessageService messageService;
+  private final JwtUtils jwtUtils;
 
-  @MessageMapping("/chat/{channelId}")
-  @SendTo("/topic/{channelId}")
-  public Message sendChannelMessage(@DestinationVariable String channelId, Message message) {
-    Optional<User> user = userRepository.findByUsername(message.getUsername());
+  @GetMapping("/{id}")
+  public Message getMessageById(@PathVariable String id) {
+    return messageService.getMessageById(id);
+  }
 
-    if (user.isPresent()) {
-      message.setSenderId(user.get().getId());
-      message.setChannelId(channelId);
+  @GetMapping("/channel/{channelId}")
+  public List<Message> getChannelMessages(
+      @PathVariable String channelId, HttpServletRequest request) {
+    // Extract userId from JWT token
+    String userId = getUserIdFromRequest(request);
+    return messageService.getChannelMessages(channelId, userId);
+  }
+
+  @GetMapping("/dm")
+  public List<Message> getDirectMessages(
+      @RequestParam String otherUserId, HttpServletRequest request) {
+    // Extract userId from JWT token
+    String userId = getUserIdFromRequest(request);
+    return messageService.getDirectMessages(userId, otherUserId);
+  }
+
+  @PostMapping("/channel")
+  public Message sendChannelMessage(@RequestBody Message message, HttpServletRequest request) {
+    // Extract userId from JWT token
+    String userId = getUserIdFromRequest(request);
+    return messageService.sendChannelMessage(message, userId);
+  }
+
+  @PostMapping("/dm")
+  public Message sendDirectMessage(
+      @RequestBody Message message, @RequestParam String recipientId, HttpServletRequest request) {
+    // Extract senderId from JWT token
+    String senderId = getUserIdFromRequest(request);
+    return messageService.sendDirectMessage(message, senderId, recipientId);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> deleteMessage(@PathVariable String id, HttpServletRequest request) {
+    // Extract userId from JWT token
+    String userId = getUserIdFromRequest(request);
+    messageService.deleteMessage(id, userId);
+    return ResponseEntity.ok().build();
+  }
+
+  // Helper method to extract the username from JWT token in the request
+  private String getUserIdFromRequest(HttpServletRequest request) {
+    String bearerToken = request.getHeader("Authorization");
+    if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+      String token = bearerToken.substring(7);
+      return jwtUtils.extractUsername(token);
     }
-
-    message.setTimestamp(Instant.now());
-
-    return messageService.saveMessage(message);
+    throw new IllegalStateException("No JWT token found in request");
   }
 }
