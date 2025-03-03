@@ -35,7 +35,6 @@ public class AuthController {
 
   private final UserService userService;
 
-
   /**
    * Handles the login request by authenticating the user's credentials and generating a JWT token
    * if the authentication is successful. The method checks if the provided username and password
