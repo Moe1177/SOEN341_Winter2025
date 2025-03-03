@@ -48,15 +48,15 @@ public class MessageController {
   public Message sendDirectMessage(
       @RequestBody Message message, @RequestParam String recipientId, HttpServletRequest request) {
     // Extract senderId from JWT token
-    String senderId = getUserIdFromRequest(request);
-    return messageService.sendDirectMessage(message, senderId, recipientId);
+    String senderUsername = getUserIdFromRequest(request);
+    return messageService.sendDirectMessage(message, senderUsername, recipientId);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> deleteMessage(@PathVariable String id, HttpServletRequest request) {
     // Extract userId from JWT token
-    String userId = getUserIdFromRequest(request);
-    messageService.deleteMessage(id, userId);
+    String username = getUserIdFromRequest(request);
+    messageService.deleteMessage(id, username);
     return ResponseEntity.ok().build();
   }
 

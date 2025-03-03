@@ -77,17 +77,15 @@ public class MessageService {
     return messageRepository.save(message);
   }
 
-  public Message sendDirectMessage(Message message, String senderId, String recipientId) {
+  public Message sendDirectMessage(Message message, String senderUsername, String recipientId) {
     // Get users
-    Optional<User> sender = userRepository.findByUsername(senderId);
-    Optional<User> receiver = userRepository.findByUsername(recipientId);
+    Optional<User> sender = userRepository.findByUsername(senderUsername);
     // Get or create DM channel
     Channel dmChannel =
-        channelService.getOrCreateDirectMessageChannel(
-            sender.get().getId(), receiver.get().getId());
+        channelService.getOrCreateDirectMessageChannel(sender.get().getId(), recipientId);
 
     message.setSenderId(sender.get().getId());
-    message.setReceiverId(receiver.get().getId());
+    message.setReceiverId(recipientId);
     message.setChannelId(dmChannel.getId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(true);
@@ -95,9 +93,9 @@ public class MessageService {
     return messageRepository.save(message);
   }
 
-  public void deleteMessage(String messageId, String userId) {
+  public void deleteMessage(String messageId, String username) {
     Message message = getMessageById(messageId);
-    Optional<User> user = userRepository.findByUsername(userId);
+    Optional<User> user = userRepository.findByUsername(username);
 
     // Only message sender or admin can delete a message
     if (!message.getSenderId().equals(user.get().getId())
