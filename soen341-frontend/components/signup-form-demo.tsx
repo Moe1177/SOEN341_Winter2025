@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { Label } from "../components/ui/label";
+import { Label } from "../Components/ui/label";
 import { Input } from "../Components/ui/input";
 
 
-// Toast component for success notifications
 const Toast = ({ message, visible, onClose, type = "success" }) => {
   if (!visible) return null;
 
@@ -21,14 +20,13 @@ const Toast = ({ message, visible, onClose, type = "success" }) => {
 };
 
 export default function AuthFormDemo() {
-  const [authState, setAuthState] = useState("signin"); // "signin", "signup", or "verify"
+  const [authState, setAuthState] = useState("signin"); 
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationUsername, setVerificationUsername] = useState("");
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
   const showToast = (message, type = "success") => {
     setToast({ visible: true, message, type });
-    // Auto-hide the toast after 5 seconds
     setTimeout(() => {
       setToast(prev => ({ ...prev, visible: false }));
     }, 5000);
@@ -40,7 +38,6 @@ export default function AuthFormDemo() {
 
   return (
       <div className="rounded-none md:rounded-2xl p-6 md:p-10 shadow-input bg-white dark:bg-black min-h-[450px] flex flex-col">
-        {/* Toast notification */}
         <Toast
             message={toast.message}
             visible={toast.visible}
@@ -48,17 +45,19 @@ export default function AuthFormDemo() {
             type={toast.type}
         />
 
-        {/* Tabs for switching between Sign In and Sign Up (hide when in verification mode) */}
         {authState !== "verify" && (
             <div className="flex justify-center mb-6">
-              <button
+              <button 
                   className={`px-6 py-2 font-medium rounded-l-lg transition-all ${
                       authState === "signin" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700"
                   }`}
-                  onClick={() => setAuthState("signin")}
+                  onClick={() => setAuthState("signin")
+                  }
+                  
               >
                 Sign In
               </button>
+              
               <button
                   className={`px-6 py-2 font-medium rounded-r-lg transition-all ${
                       authState === "signup" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700"
@@ -98,7 +97,6 @@ export default function AuthFormDemo() {
   );
 }
 
-/* Verification Form */
 function VerificationForm({ email, username, setAuthState, showToast }) {
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
@@ -116,7 +114,6 @@ function VerificationForm({ email, username, setAuthState, showToast }) {
       setIsLoading(true);
       setError("");
 
-      // Using the new endpoint format with username and code parameters
       const params = new URLSearchParams({
         username: username,
         code: verificationCode
@@ -143,7 +140,6 @@ function VerificationForm({ email, username, setAuthState, showToast }) {
         throw new Error(errorMessage);
       }
 
-      // Handle successful verification - get response data (if needed)
       let responseData;
       const contentType = response.headers.get("content-type");
 
@@ -155,10 +151,8 @@ function VerificationForm({ email, username, setAuthState, showToast }) {
 
       console.log("Verification successful", responseData);
 
-      // Show success toast
       showToast("Account verified successfully! You can now sign in.", "success");
 
-      // Redirect to sign in after successful verification
       setAuthState("signin");
 
     } catch (error) {
@@ -217,7 +211,6 @@ function VerificationForm({ email, username, setAuthState, showToast }) {
   );
 }
 
-/* Sign Up Form */
 function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsername, showToast }) {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
@@ -230,6 +223,7 @@ function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsernam
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -269,7 +263,6 @@ function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsernam
         throw new Error(errorMessage);
       }
 
-      // Get response (text or JSON)
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
@@ -279,10 +272,8 @@ function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsernam
         console.log("Sign-up successful", message);
       }
 
-      // Show success toast
       showToast("Registration successful! Please verify your account.", "success");
 
-      // Set the email and username for verification and change to verification state
       setVerificationEmail(email);
       setVerificationUsername(userName);
       setAuthState("verify");
@@ -339,7 +330,7 @@ function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsernam
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setEmailError(""); // Clear error while typing
+                  setEmailError(""); 
                 }}
                 onBlur={() => handleBlur("email")}
             />
@@ -383,8 +374,7 @@ function SignupForm({ setAuthState, setVerificationEmail, setVerificationUsernam
       </form>
   );
 }
-
-/* Sign In Form */
+import { useRouter } from "next/navigation"; 
 function SigninForm({ setAuthState, showToast }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -425,7 +415,6 @@ function SigninForm({ setAuthState, showToast }) {
         throw new Error(errorMessage);
       }
 
-      // Handle successful login
       const contentType = response.headers.get("content-type");
       let responseData;
 
@@ -437,12 +426,19 @@ function SigninForm({ setAuthState, showToast }) {
 
       console.log("Login successful", responseData);
 
-      // Show success toast
-      showToast("Login successful!", "success");
+      if (responseData && responseData.token) {
+        localStorage.setItem('authToken', responseData.token);
+      }
+      
+      if (responseData && responseData.user) {
+        localStorage.setItem('currentUser', JSON.stringify(responseData.user));
+      }
 
-      // Here you would typically:
-      // 1. Store the auth token in localStorage or cookies
-      // 2. Redirect to authenticated area of your app
+      showToast("Login successful!", "success");
+      
+      setTimeout(() => {
+        window.location.href = '/direct-messaging';
+      }, 1000);
 
     } catch (error) {
       console.error("Login error:", error);
@@ -521,7 +517,6 @@ function SigninForm({ setAuthState, showToast }) {
   );
 }
 
-/* Reusable Label & Input Container */
 const LabelInputContainer = ({ children }) => {
   return <div className="flex flex-col space-y-2 w-full max-w-2xl mx-auto">{children}</div>;
 };

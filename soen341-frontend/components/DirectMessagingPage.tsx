@@ -14,7 +14,7 @@ const DirectMessagingPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch current user on component mount
+
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -53,7 +53,7 @@ const DirectMessagingPage = () => {
 
   return (
     <div className="flex h-screen bg-gray-900">
-      {/* Sidebar for DM list - takes 1/4 of the screen on larger displays */}
+
       <div className="w-full md:w-1/4 border-r border-gray-700">
         <DirectMessagesList 
           currentUser={currentUser}
@@ -62,7 +62,6 @@ const DirectMessagingPage = () => {
         />
       </div>
       
-      {/* Main chat area - takes 3/4 of the screen on larger displays */}
       <div className="hidden md:block md:w-3/4">
         <MessageInterface 
           currentUser={currentUser}

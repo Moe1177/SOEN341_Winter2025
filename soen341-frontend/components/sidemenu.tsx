@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Sidebar, SidebarBody, SidebarLink } from "../components/ui/sidebar";
+import { Sidebar, SidebarBody, SidebarLink } from "../Components/ui/sidebar";
 import {
   IconArrowLeft,
   IconBrandTabler,
@@ -69,7 +69,7 @@ export function SidebarDemo() {
 
   // Have to change to authenticated user
   const [currentUser] = useState<User>({
-    id: "67c4dc6427eab20817da216e",
+    id: "67c50a6da4d538066589c29",
     username: "CurrentUser",
   });
 
@@ -77,7 +77,6 @@ export function SidebarDemo() {
 
   const handleLinkClick = (feature: string) => {
     setFeature(feature);
-    // Clear selected user when switching away from Direct Messaging
     if (feature !== "Direct Messaging") {
       setSelectedUser(null);
     }
