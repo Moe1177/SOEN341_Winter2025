@@ -1,6 +1,7 @@
 package com.example.soen341_backend.security;
 
-import java.util.Arrays;
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -44,20 +45,25 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configure(http))
-        .csrf(AbstractHttpConfigurer::disable)
+    http.cors(withDefaults()) // Enable CORS
+        .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for API requests
         .authorizeHttpRequests(
-            authorize ->
-                authorize.requestMatchers("/api/**").permitAll().anyRequest().authenticated());
+            auth -> auth.anyRequest().permitAll() // Require authentication for all requests
+            )
+        .httpBasic(withDefaults())
+        .formLogin(withDefaults());
+
     return http.build();
   }
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("*"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend URL
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowCredentials(true);
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;

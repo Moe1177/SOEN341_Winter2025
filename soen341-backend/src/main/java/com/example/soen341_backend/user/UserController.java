@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("/api/users")
 @CrossOrigin
@@ -23,11 +22,6 @@ public class UserController {
   @GetMapping("/{id}")
   public User getUserById(@PathVariable String id) {
     return userService.getUserById(id);
-  }
-
-  @PostMapping
-  public User createUser(@RequestBody User user) {
-    return userService.createUser(user);
   }
 
   @PutMapping("/{id}")

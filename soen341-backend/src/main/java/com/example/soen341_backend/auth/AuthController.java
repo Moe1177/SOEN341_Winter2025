@@ -104,6 +104,8 @@ public class AuthController {
     user.setPassword(passwordEncoder.encode(password)); // Password encryption
     user.setStatus(Status.ONLINE);
     user.setChannelIds(Set.of());
+    user.setDirectMessageIds(Set.of());
+    user.setAdminsForWhichChannels(Set.of());
     user.setCreatedAt(Instant.now());
     user.setLastActiveAt(Instant.now());
 
