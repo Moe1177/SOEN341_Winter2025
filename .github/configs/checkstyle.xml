@@ -7,7 +7,6 @@
         <property name="max" value="120"/>
     </module>
 
-
     <module name="TreeWalker">
         <!-- Checks outside TreeWalker -->
         <module name="AvoidStarImport">
