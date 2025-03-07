@@ -141,7 +141,21 @@ public class ChannelService {
   }
 
   public List<Channel> getUserDirectMessages(String userId) {
-    return channelRepository.findIfMemberIsInDirectMessage(userId);
+    User user = userService.getUserById(userId);
+
+    if (user == null) {
+      throw new ResourceNotFoundException("User not found with id: " + userId);
+    }
+
+    List<Channel> directMessages = channelRepository.findIfMemberIsInDirectMessage(userId);
+    System.out.println(directMessages);
+
+    // Optional logging or validation
+    if (directMessages.isEmpty()) {
+      System.out.println("No direct messages found for user: " + userId);
+    }
+
+    return directMessages;
   }
 
   private String generateInviteCode() {
