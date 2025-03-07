@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import { subscribe, unsubscribe, sendMessage, initStompClient } from '../utils/socket';
+import { subscribe, unsubscribe, sendMessage, initStompClient } from '@/utils/socket';
 
 interface Message {
   id?: string;

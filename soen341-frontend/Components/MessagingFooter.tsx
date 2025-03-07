@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { StickyScroll } from "../Components/ui/sticky-scroll-reveal";
+import { StickyScroll } from "@/Components/ui/sticky-scroll-reveal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBullseye,
