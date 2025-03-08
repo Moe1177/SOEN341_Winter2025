@@ -63,7 +63,6 @@ public class MessageController {
   // Helper method to extract the username from JWT token in the request
   private String getUserIdFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
-    System.out.println("BEARER TOKEN IS: " + bearerToken);
     if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
       String token = bearerToken.substring(7);
       return jwtUtils.extractUsername(token);

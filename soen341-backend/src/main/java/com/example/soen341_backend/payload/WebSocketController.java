@@ -43,7 +43,7 @@ public class WebSocketController {
     Message savedMessage = messageService.sendChannelMessage(message, senderId);
 
     // Add sender name to the response
-    User sender = userService.getUserById(senderId);
+    User sender = userService.getUserByUsername(senderId);
     webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
@@ -74,7 +74,7 @@ public class WebSocketController {
     // Add channel ID and sender name to the response
     webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
     webSocketMessage.setChannelId(savedMessage.getChannelId());
-    User sender = userService.getUserById(senderId);
+    User sender = userService.getUserByUsername(senderId);
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
 
