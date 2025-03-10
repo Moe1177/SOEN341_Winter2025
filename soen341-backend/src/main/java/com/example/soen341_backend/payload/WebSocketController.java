@@ -25,7 +25,7 @@ public class WebSocketController {
 
   // app/channel
   @MessageMapping("/channel/{channelId}")
-  public WebSocketMessage handleChannelMessage(
+  public void handleChannelMessage(
       @DestinationVariable String channelId,
       @Payload WebSocketMessage webSocketMessage,
       SimpMessageHeaderAccessor headerAccessor) {
@@ -55,14 +55,12 @@ public class WebSocketController {
 
     // Broadcast message to all subscribers of this channel
     messagingTemplate.convertAndSend("/channel/" + channelId, webSocketMessage);
-
-    return webSocketMessage;
   }
 
   // app/direct-message
   /** Handle direct messages between users */
-  @MessageMapping("/direct-message")
-  public WebSocketMessage handleDirectMessage(
+  @MessageMapping({"/direct-message"})
+  public void handleDirectMessage(
       @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
 
     System.out.println("Received Direct message: " + webSocketMessage.getContent());
@@ -98,8 +96,6 @@ public class WebSocketController {
         webSocketMessage.getReceiverId(),
         "/direct-messages",
         webSocketMessage); // /user/{recipientId}/queue
-
-    return webSocketMessage;
   }
 
   // Helper method to extract user ID from WebSocket headers

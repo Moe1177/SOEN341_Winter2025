@@ -4,11 +4,12 @@ import com.example.soen341_backend.security.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping(value = "/api/messages", produces = MediaType.APPLICATION_JSON_VALUE)
 @AllArgsConstructor
 @CrossOrigin
 public class MessageController {
