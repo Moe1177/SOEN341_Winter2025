@@ -8,9 +8,9 @@ import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -23,11 +23,13 @@ public class WebSocketController {
   private final UserService userService;
   private final JwtUtils jwtUtils;
 
-  @MessageMapping("/channel/{channelId}")
-  public void handleChannelMessage(
-      @DestinationVariable String channelId,
-      @Payload WebSocketMessage webSocketMessage,
-      SimpMessageHeaderAccessor headerAccessor) {
+  // app/channel
+  @MessageMapping("/channel")
+  @SendTo("/channel/{channelId}")
+  public WebSocketMessage handleChannelMessage(
+      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
+
+    System.out.println("Received Channel message: " + webSocketMessage.getContent());
 
     // Extract user ID from the authentication token
     String senderId = getUsernameFromHeaders(headerAccessor);
@@ -36,11 +38,11 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setChannelId(channelId);
+    message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
-    Message savedMessage = messageService.sendChannelMessage(message, senderId);
+    messageService.sendChannelMessage(message, senderId);
 
     // Add sender name to the response
     User sender = userService.getUserByUsername(senderId);
@@ -48,16 +50,19 @@ public class WebSocketController {
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
 
-    // Broadcast message to all subscribers of this channel
-    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
+    return webSocketMessage;
+
+    //    // Broadcast message to all subscribers of this channel
+    //    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
   }
 
+  // app/direct-message
   /** Handle direct messages between users */
-  @MessageMapping("/dm/{recipientId}")
-  public void handleDirectMessage(
-      @DestinationVariable String recipientId,
-      @Payload WebSocketMessage webSocketMessage,
-      SimpMessageHeaderAccessor headerAccessor) {
+  @MessageMapping("/direct-message")
+  public WebSocketMessage handleDirectMessage(
+      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
+
+    System.out.println("Received Direct message: " + webSocketMessage.getContent());
 
     // Extract user ID from the authentication token
     String senderId = getUsernameFromHeaders(headerAccessor);
@@ -66,10 +71,11 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setReceiverId(recipientId);
+    message.setReceiverId(webSocketMessage.getReceiverId());
     message.setDirectMessage(true);
 
-    Message savedMessage = messageService.sendDirectMessage(message, senderId, recipientId);
+    Message savedMessage =
+        messageService.sendDirectMessage(message, senderId, webSocketMessage.getReceiverId());
 
     // Add channel ID and sender name to the response
     webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
@@ -78,11 +84,17 @@ public class WebSocketController {
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
 
-    // Send message to sender
-    messagingTemplate.convertAndSend("/queue/user/" + senderId, webSocketMessage);
+    //    // Send message to sender
+    //    messagingTemplate.convertAndSendToUser(webSocketMessage.getSenderId(),"/queue" + senderId,
+    // webSocketMessage);
 
     // Send message to recipient
-    messagingTemplate.convertAndSend("/queue/user/" + recipientId, webSocketMessage);
+    messagingTemplate.convertAndSendToUser(
+        webSocketMessage.getReceiverId(),
+        "/queue/messages" + webSocketMessage.getReceiverId(),
+        webSocketMessage); // /user/{recipientId}/queue
+
+    return webSocketMessage;
   }
 
   // Helper method to extract user ID from WebSocket headers

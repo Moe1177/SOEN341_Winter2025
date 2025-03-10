@@ -148,7 +148,6 @@ public class ChannelService {
     }
 
     List<Channel> directMessages = channelRepository.findIfMemberIsInDirectMessage(userId);
-    System.out.println(directMessages);
 
     // Optional logging or validation
     if (directMessages.isEmpty()) {
