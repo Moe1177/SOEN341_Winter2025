@@ -55,21 +55,21 @@ public class MessageService {
             user.get().getId(), otherUserId, otherUserId, user.get().getId());
   }
 
-  public Message sendChannelMessage(Message message, String username) {
+  public Message sendChannelMessage(Message message, String senderId) {
     Channel channel = channelService.getChannelById(message.getChannelId());
 
     User user =
         userRepository
-            .findByUsername(username)
+            .findById(senderId)
             .orElseThrow(
-                () -> new ResourceNotFoundException("User not found with username: " + username));
+                () -> new ResourceNotFoundException("User not found with username: " + senderId));
 
     // Verify user is a member of the channel
     if (!channel.getMembers().contains(user.getId())) {
       throw new UnauthorizedException("You don't have access to this channel");
     }
 
-    message.setSenderId(user.getId());
+    message.setSenderId(senderId);
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
     message.setReceiverId(null);

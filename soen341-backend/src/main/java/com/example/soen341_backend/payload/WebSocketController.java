@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -25,14 +24,14 @@ public class WebSocketController {
   private final JwtUtils jwtUtils;
 
   // app/channel
-  @MessageMapping("/channel")
-  @SendTo("/channel/{channelId}")
+  @MessageMapping("/channel/{channelId}")
   public WebSocketMessage handleChannelMessage(
       @DestinationVariable String channelId,
       @Payload WebSocketMessage webSocketMessage,
       SimpMessageHeaderAccessor headerAccessor) {
 
     System.out.println("Received Channel message: " + webSocketMessage.getContent());
+    System.out.println("Sending message to: /channel/" + channelId);
 
     // Extract user ID from the authentication token
     String senderId = getUsernameFromHeaders(headerAccessor);
@@ -54,10 +53,10 @@ public class WebSocketController {
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
 
-    return webSocketMessage;
+    // Broadcast message to all subscribers of this channel
+    messagingTemplate.convertAndSend("/channel/" + channelId, webSocketMessage);
 
-    //    // Broadcast message to all subscribers of this channel
-    //    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
+    return webSocketMessage;
   }
 
   // app/direct-message
