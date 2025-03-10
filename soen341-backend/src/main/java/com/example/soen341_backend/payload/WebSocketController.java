@@ -8,6 +8,7 @@ import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -27,7 +28,9 @@ public class WebSocketController {
   @MessageMapping("/channel")
   @SendTo("/channel/{channelId}")
   public WebSocketMessage handleChannelMessage(
-      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
+      @DestinationVariable String channelId,
+      @Payload WebSocketMessage webSocketMessage,
+      SimpMessageHeaderAccessor headerAccessor) {
 
     System.out.println("Received Channel message: " + webSocketMessage.getContent());
 
@@ -38,7 +41,8 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setChannelId(webSocketMessage.getChannelId());
+    message.setChannelId(
+        (channelId != null && !channelId.isEmpty()) ? channelId : webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
@@ -71,8 +75,10 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setReceiverId(webSocketMessage.getReceiverId());
+    message.setChannelId(webSocketMessage.getChannelId());
+    message.setTimestamp(Instant.now());
     message.setDirectMessage(true);
+    message.setReceiverId(webSocketMessage.getReceiverId());
 
     Message savedMessage =
         messageService.sendDirectMessage(message, senderId, webSocketMessage.getReceiverId());
@@ -91,7 +97,7 @@ public class WebSocketController {
     // Send message to recipient
     messagingTemplate.convertAndSendToUser(
         webSocketMessage.getReceiverId(),
-        "/queue/messages" + webSocketMessage.getReceiverId(),
+        "/direct-messages",
         webSocketMessage); // /user/{recipientId}/queue
 
     return webSocketMessage;
