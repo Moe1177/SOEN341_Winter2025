@@ -26,7 +26,7 @@ public class WebSocketController {
   private final UserRepository userRepository;
 
   // app/channel
-  @MessageMapping("/group-message")
+  @MessageMapping({"/group-message"})
   public void handleChannelMessage(
       @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
 
