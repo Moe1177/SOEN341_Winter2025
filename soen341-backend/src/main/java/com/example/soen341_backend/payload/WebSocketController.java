@@ -66,12 +66,15 @@ public class WebSocketController {
   public void handleDirectMessage(
       @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
 
-    System.out.println("Received Direct message: " + webSocketMessage.getContent());
+    System.out.println("Received Direct message: " + webSocketMessage);
 
     // Extract user ID from the authentication token
     String senderUsername = getUsernameFromHeaders(headerAccessor);
 
-    User findUser = userRepository.findByUsername(senderUsername).orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
+    User findUser =
+        userRepository
+            .findByUsername(senderUsername)
+            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
 
     // Create and save direct message
     Message message = new Message();
@@ -79,7 +82,7 @@ public class WebSocketController {
     message.setSenderId(findUser.getId()); // Use the extracted senderId
     message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
-    message.setDirectMessage(true);
+    message.setDirectMessage(webSocketMessage.isDirectMessage());
     message.setReceiverId(webSocketMessage.getReceiverId());
 
     Message savedMessage =

@@ -40,6 +40,7 @@ public class ChannelService {
 
     channel.setCreatorId(creatorUserId);
     channel.setChannelType(ChannelType.GROUP);
+    channel.setDirectMessage(false);
 
     Channel savedChannel = channelRepository.save(channel);
 
