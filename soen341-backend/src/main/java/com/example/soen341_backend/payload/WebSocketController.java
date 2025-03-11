@@ -57,7 +57,7 @@ public class WebSocketController {
     webSocketMessage.setTimestamp(Instant.now());
 
     // Broadcast message to all subscribers of this channel
-    messagingTemplate.convertAndSend("/channel/" + channelId, webSocketMessage);
+    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
   }
 
   // app/direct-message
