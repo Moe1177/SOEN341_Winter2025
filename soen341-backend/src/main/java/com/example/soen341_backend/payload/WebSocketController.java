@@ -25,11 +25,22 @@ public class WebSocketController {
   private final JwtUtils jwtUtils;
   private final UserRepository userRepository;
 
-  // app/channel
+  // app/group-message
   @MessageMapping({"/group-message"})
   public void handleChannelMessage(
       @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
-
+    /**
+     * Handles incoming WebSocket messages for group channels.
+     *
+     * @param webSocketMessage the incoming message payload containing content, sender, and channel
+     *     details (type: {@link WebSocketMessage}).
+     * @param headerAccessor provides access to WebSocket session headers for extracting
+     *     authentication details (type: {@link SimpMessageHeaderAccessor}).
+     *     <p>Processes the message by extracting the sender's username, retrieving the user from
+     *     the database, saving the message, and broadcasting it to all subscribers of the specified
+     *     channel.
+     * @return void (no explicit return, message is sent via WebSocket).
+     */
     System.out.println("Received Channel message: " + webSocketMessage.getContent());
     System.out.println("Sending message to: /channel/" + webSocketMessage.getChannelId());
 
@@ -39,7 +50,10 @@ public class WebSocketController {
     User findUser =
         userRepository
             .findByUsername(senderUsername)
-            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "No user exists with this username: " + senderUsername));
 
     // Create and save message to database
     Message message = new Message();
@@ -66,11 +80,20 @@ public class WebSocketController {
   }
 
   // app/direct-message
-  /** Handle direct messages between users */
   @MessageMapping({"/direct-message"})
   public void handleDirectMessage(
       @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
-
+    /**
+     * Handles incoming WebSocket messages for direct messaging between users.
+     *
+     * @param webSocketMessage the incoming message payload containing content, sender, receiver,
+     *     and metadata (type: {@link WebSocketMessage}).
+     * @param headerAccessor provides access to WebSocket session headers for extracting
+     *     authentication details (type: {@link SimpMessageHeaderAccessor}).
+     *     <p>Extracts the sender's username, retrieves the sender from the database, creates and
+     *     saves the direct message, and sends it to the intended recipient via WebSocket.
+     * @return void (no explicit return, message is sent via WebSocket).
+     */
     System.out.println("Received Direct message: " + webSocketMessage);
 
     // Extract user ID from the authentication token

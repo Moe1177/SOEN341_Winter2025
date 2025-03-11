@@ -33,6 +33,17 @@ public class MessageService {
   }
 
   public List<Message> getChannelMessages(String channelId, String username) {
+    /**
+     * Retrieves a list of messages for a specified channel.
+     *
+     * @param channelId the unique identifier of the channel (type: {@link String}).
+     * @param username the username of the requesting user (type: {@link String}).
+     *     <p>Validates whether the user is a member of the specified channel before fetching
+     *     messages. If the user is not a member, an {@link UnauthorizedException} is thrown.
+     * @return a list of messages ordered by timestamp in ascending order (type: {@link
+     *     List<Message>}).
+     */
+
     // Verify user is a member of the channel
     Channel channel = channelService.getChannelById(channelId);
     Optional<User> user = userRepository.findByUsername(username);
@@ -45,6 +56,17 @@ public class MessageService {
   }
 
   public List<Message> getDirectMessages(String username, String otherUserId) {
+    /**
+     * Retrieves a list of direct messages between the requesting user and another user.
+     *
+     * @param username the username of the requesting user (type: {@link String}).
+     * @param otherUserId the unique identifier of the other user in the conversation (type: {@link
+     *     String}).
+     *     <p>Validates that the requesting user exists before fetching messages. If the user is not
+     *     found, a {@link ResourceNotFoundException} is thrown.
+     * @return a list of direct messages exchanged between the two users, ordered by timestamp in
+     *     ascending order (type: {@link List<Message>}).
+     */
     Optional<User> user = userRepository.findByUsername(username);
 
     if (user.isEmpty()) {
@@ -56,6 +78,17 @@ public class MessageService {
   }
 
   public Message sendChannelMessage(Message message, String senderId) {
+    /**
+     * Sends a message to a specified channel.
+     *
+     * @param message the message object containing content, channel ID, and metadata (type: {@link
+     *     Message}).
+     * @param senderId the unique identifier of the user sending the message (type: {@link String}).
+     *     <p>Validates that the sender exists and is a member of the target channel. If the user is
+     *     not found, a {@link ResourceNotFoundException} is thrown. If the user is not a channel
+     *     member, an {@link UnauthorizedException} is thrown.
+     * @return the saved message object after persistence (type: {@link Message}).
+     */
     Channel channel = channelService.getChannelById(message.getChannelId());
 
     User user =
@@ -69,15 +102,27 @@ public class MessageService {
       throw new UnauthorizedException("You don't have access to this channel");
     }
 
-    message.setSenderId(senderId);
-    message.setTimestamp(Instant.now());
-    message.setDirectMessage(false);
-    message.setReceiverId(null);
+    //    message.setSenderId(senderId);
+    //    message.setTimestamp(Instant.now());
+    //    message.setDirectMessage(false);
+    //    message.setReceiverId(null);
 
     return messageRepository.save(message);
   }
 
   public Message sendDirectMessage(Message message, String senderUsername, String recipientId) {
+    /**
+     * Sends a direct message between two users.
+     *
+     * @param message the message object containing content and metadata (type: {@link Message}).
+     * @param senderUsername the username of the sender (type: {@link String}).
+     * @param recipientId the unique identifier of the recipient (type: {@link String}).
+     *     <p>Retrieves the sender's user details and gets or creates a direct message channel
+     *     between the users. Updates the message with sender ID, recipient ID, channel ID,
+     *     timestamp, and direct message status before saving.
+     * @return the saved message object after persistence (type: {@link Message}).
+     */
+
     // Get users
     Optional<User> sender = userRepository.findByUsername(senderUsername);
     // Get or create DM channel
@@ -93,6 +138,7 @@ public class MessageService {
     return messageRepository.save(message);
   }
 
+  /* TODO: Modify this function to match the new WebSocket implementation  */
   public void deleteMessage(String messageId, String username) {
     Message message = getMessageById(messageId);
     Optional<User> user = userRepository.findByUsername(username);
