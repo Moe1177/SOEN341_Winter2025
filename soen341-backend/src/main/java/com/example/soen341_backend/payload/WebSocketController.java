@@ -57,7 +57,7 @@ public class WebSocketController {
 
     // Broadcast message to all subscribers of this channel
     messagingTemplate.convertAndSend(
-        "/topic/channel/" + webSocketMessage.getChannelId(), webSocketMessage);
+        "/channel/" + webSocketMessage.getChannelId(), webSocketMessage);
   }
 
   // app/direct-message
