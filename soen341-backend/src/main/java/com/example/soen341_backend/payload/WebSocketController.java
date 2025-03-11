@@ -1,9 +1,11 @@
 package com.example.soen341_backend.payload;
 
+import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.message.Message;
 import com.example.soen341_backend.message.MessageService;
 import com.example.soen341_backend.security.JwtUtils;
 import com.example.soen341_backend.user.User;
+import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class WebSocketController {
   private final MessageService messageService;
   private final UserService userService;
   private final JwtUtils jwtUtils;
+  private final UserRepository userRepository;
 
   // app/channel
   @MessageMapping("/channel/{channelId}")
@@ -66,25 +69,26 @@ public class WebSocketController {
     System.out.println("Received Direct message: " + webSocketMessage.getContent());
 
     // Extract user ID from the authentication token
-    String senderId = getUsernameFromHeaders(headerAccessor);
+    String senderUsername = getUsernameFromHeaders(headerAccessor);
+
+    User findUser = userRepository.findByUsername(senderUsername).orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
 
     // Create and save direct message
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(senderId); // Use the extracted senderId
+    message.setSenderId(findUser.getId()); // Use the extracted senderId
     message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(true);
     message.setReceiverId(webSocketMessage.getReceiverId());
 
     Message savedMessage =
-        messageService.sendDirectMessage(message, senderId, webSocketMessage.getReceiverId());
+        messageService.sendDirectMessage(message, senderUsername, webSocketMessage.getReceiverId());
 
     // Add channel ID and sender name to the response
-    webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
+    webSocketMessage.setSenderId(findUser.getId()); // Ensure the correct sender ID is set
     webSocketMessage.setChannelId(savedMessage.getChannelId());
-    User sender = userService.getUserByUsername(senderId);
-    webSocketMessage.setSenderUserName(sender.getUsername());
+    webSocketMessage.setSenderUserName(senderUsername);
     webSocketMessage.setTimestamp(Instant.now());
 
     //    // Send message to sender
