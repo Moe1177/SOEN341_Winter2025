@@ -62,6 +62,11 @@ jobs:
         run: sudo apt-get install -y maven  # Ensures Maven is installed
 
       - name: Build & Test Backend
+        env:
+          SOEN341_MONGODB_URI: ${{ secrets.SOEN341_MONGODB_URI }}
+          SOEN341_EMAIL: ${{ secrets.SOEN341_EMAIL }}
+          SOEN341_EMAIL_PASSWORD: ${{ secrets.SOEN341_EMAIL_PASSWORD }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn clean package -Dcheckstyle.skip=true -Dcheckstyle.skipExec=true
 
   frontend:
