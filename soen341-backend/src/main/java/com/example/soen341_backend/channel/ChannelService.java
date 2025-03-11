@@ -78,7 +78,14 @@ public class ChannelService {
     channel.getMembers().add(userId);
 
     Channel updatedChannel = channelRepository.save(channel);
-    userService.addChannelToUser(userId, channelId);
+
+    // Find the user
+    User user = userService.getUserById(userId);
+
+    // Add the channel to the user's list of channels
+    user.getChannelIds().add(channelId);
+
+    userService.saveUser(user);
 
     return updatedChannel;
   }
@@ -98,16 +105,16 @@ public class ChannelService {
     return updatedChannel;
   }
 
-  public Channel getOrCreateDirectMessageChannel(String user1Id, String user2Id) {
+  public Channel getOrCreateDirectMessageChannel(String userId, String receiverId) {
     // Check if users exist
-    User user1 = userService.getUserById(user1Id);
-    User user2 = userService.getUserById(user2Id);
+    User user1 = userService.getUserById(userId);
+    User user2 = userService.getUserById(receiverId);
 
     // Try to find existing DM channel
-    List<Channel> user1Channels = channelRepository.findIfMemberIsInDirectMessage(user1Id);
+    List<Channel> user1Channels = channelRepository.findIfMemberIsInDirectMessage(userId);
 
     for (Channel channel : user1Channels) {
-      if (channel.getDirectMessageMembers().contains(user2Id)) {
+      if (channel.getDirectMessageMembers().contains(receiverId)) {
         return channel;
       }
     }
@@ -118,8 +125,8 @@ public class ChannelService {
     dmChannel.setDirectMessage(true);
 
     Set<String> participants = new HashSet<>();
-    participants.add(user1Id);
-    participants.add(user2Id);
+    participants.add(userId);
+    participants.add(receiverId);
     dmChannel.setDirectMessageMembers(participants);
     dmChannel.setMembers(participants);
 
@@ -130,8 +137,12 @@ public class ChannelService {
     Channel savedChannel = channelRepository.save(dmChannel);
 
     // Add to users' direct message lists
-    userService.addDirectMessageToUser(user1Id, user2Id);
-    userService.addDirectMessageToUser(user2Id, user1Id);
+    userService.addDirectMessageToUser(userId, receiverId);
+    userService.addDirectMessageToUser(receiverId, userId);
+
+    // Add direct message channel to list of channels for each user
+    userService.addChannelToUser(savedChannel.getId(), userId);
+    userService.addChannelToUser(savedChannel.getId(), receiverId);
 
     return savedChannel;
   }
