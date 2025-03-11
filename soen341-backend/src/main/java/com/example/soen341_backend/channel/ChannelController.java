@@ -3,12 +3,13 @@ package com.example.soen341_backend.channel;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/channels")
+@RequestMapping(value = "/api/channels", produces = MediaType.APPLICATION_JSON_VALUE)
 @CrossOrigin
 public class ChannelController {
 

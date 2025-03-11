@@ -16,6 +16,12 @@ public interface ChannelRepository extends MongoRepository<Channel, String> {
   @Query("{ 'members': ?0, 'isDirectMessage': true }")
   List<Channel> findByIsDirectMessageFalse();
 
+  /*
   @Query("{ 'directMessageMembers': ?0 }")
+  List<Channel> findIfMemberIsInDirectMessage(String userId);
+  */
+
+  // In ChannelRepository interface
+  @Query("{ 'channelType': 'DIRECT', 'isDirectMessage': true, 'directMessageMembers': ?0 }")
   List<Channel> findIfMemberIsInDirectMessage(String userId);
 }

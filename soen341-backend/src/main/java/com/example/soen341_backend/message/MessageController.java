@@ -4,11 +4,12 @@ import com.example.soen341_backend.security.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping(value = "/api/messages", produces = MediaType.APPLICATION_JSON_VALUE)
 @AllArgsConstructor
 @CrossOrigin
 public class MessageController {
@@ -63,7 +64,6 @@ public class MessageController {
   // Helper method to extract the username from JWT token in the request
   private String getUserIdFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
-    System.out.println("BEARER TOKEN IS: " + bearerToken);
     if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
       String token = bearerToken.substring(7);
       return jwtUtils.extractUsername(token);

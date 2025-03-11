@@ -28,6 +28,6 @@ public class Channel {
   private String inviteCode;
 
   private Set<String> members = new HashSet<>();
-  private boolean isDirectMessage = false;
+  private boolean isDirectMessage;
   private Set<String> directMessageMembers = new HashSet<>();
 }

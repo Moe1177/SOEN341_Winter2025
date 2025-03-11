@@ -1,14 +1,15 @@
 package com.example.soen341_backend.payload;
 
+import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.message.Message;
 import com.example.soen341_backend.message.MessageService;
 import com.example.soen341_backend.security.JwtUtils;
 import com.example.soen341_backend.user.User;
+import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -22,67 +23,114 @@ public class WebSocketController {
   private final MessageService messageService;
   private final UserService userService;
   private final JwtUtils jwtUtils;
+  private final UserRepository userRepository;
 
-  @MessageMapping("/channel/{channelId}")
+  // app/group-message
+  @MessageMapping({"/group-message"})
   public void handleChannelMessage(
-      @DestinationVariable String channelId,
-      @Payload WebSocketMessage webSocketMessage,
-      SimpMessageHeaderAccessor headerAccessor) {
+      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
+    /**
+     * Handles incoming WebSocket messages for group channels.
+     *
+     * @param webSocketMessage the incoming message payload containing content, sender, and channel
+     *     details (type: {@link WebSocketMessage}).
+     * @param headerAccessor provides access to WebSocket session headers for extracting
+     *     authentication details (type: {@link SimpMessageHeaderAccessor}).
+     *     <p>Processes the message by extracting the sender's username, retrieving the user from
+     *     the database, saving the message, and broadcasting it to all subscribers of the specified
+     *     channel.
+     * @return void (no explicit return, message is sent via WebSocket).
+     */
+    System.out.println("Received Channel message: " + webSocketMessage.getContent());
+    System.out.println("Sending message to: /channel/" + webSocketMessage.getChannelId());
 
     // Extract user ID from the authentication token
-    String senderId = getUsernameFromHeaders(headerAccessor);
+    String senderUsername = getUsernameFromHeaders(headerAccessor);
+
+    User findUser =
+        userRepository
+            .findByUsername(senderUsername)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "No user exists with this username: " + senderUsername));
 
     // Create and save message to database
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(senderId); // Use the extracted senderId
-    message.setChannelId(channelId);
+    message.setSenderId(senderUsername); // Use the extracted senderId
+    message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
-    Message savedMessage = messageService.sendChannelMessage(message, senderId);
+    messageService.sendChannelMessage(message, findUser.getId());
 
     // Add sender name to the response
-    User sender = userService.getUserById(senderId);
-    webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
+    User sender = userService.getUserByUsername(senderUsername);
+    webSocketMessage.setSenderId(sender.getId()); // Ensure the correct sender ID is set
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
+    webSocketMessage.setDirectMessage(false);
+    webSocketMessage.setReceiverId(webSocketMessage.getReceiverId());
+    webSocketMessage.setChannelId(webSocketMessage.getChannelId());
 
+    String destination = "/topic/channel/" + webSocketMessage.getChannelId();
     // Broadcast message to all subscribers of this channel
-    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
+    messagingTemplate.convertAndSend(destination, webSocketMessage);
   }
 
-  /** Handle direct messages between users */
-  @MessageMapping("/dm/{recipientId}")
+  // app/direct-message
+  @MessageMapping({"/direct-message"})
   public void handleDirectMessage(
-      @DestinationVariable String recipientId,
-      @Payload WebSocketMessage webSocketMessage,
-      SimpMessageHeaderAccessor headerAccessor) {
+      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
+    /**
+     * Handles incoming WebSocket messages for direct messaging between users.
+     *
+     * @param webSocketMessage the incoming message payload containing content, sender, receiver,
+     *     and metadata (type: {@link WebSocketMessage}).
+     * @param headerAccessor provides access to WebSocket session headers for extracting
+     *     authentication details (type: {@link SimpMessageHeaderAccessor}).
+     *     <p>Extracts the sender's username, retrieves the sender from the database, creates and
+     *     saves the direct message, and sends it to the intended recipient via WebSocket.
+     * @return void (no explicit return, message is sent via WebSocket).
+     */
+    System.out.println("Received Direct message: " + webSocketMessage);
 
     // Extract user ID from the authentication token
-    String senderId = getUsernameFromHeaders(headerAccessor);
+    String senderUsername = getUsernameFromHeaders(headerAccessor);
+
+    User findUser =
+        userRepository
+            .findByUsername(senderUsername)
+            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
 
     // Create and save direct message
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(senderId); // Use the extracted senderId
-    message.setReceiverId(recipientId);
-    message.setDirectMessage(true);
+    message.setSenderId(findUser.getId()); // Use the extracted senderId
+    message.setChannelId(webSocketMessage.getChannelId());
+    message.setTimestamp(Instant.now());
+    message.setDirectMessage(webSocketMessage.isDirectMessage());
+    message.setReceiverId(webSocketMessage.getReceiverId());
 
-    Message savedMessage = messageService.sendDirectMessage(message, senderId, recipientId);
+    Message savedMessage =
+        messageService.sendDirectMessage(message, senderUsername, webSocketMessage.getReceiverId());
 
     // Add channel ID and sender name to the response
-    webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
+    webSocketMessage.setSenderId(findUser.getId()); // Ensure the correct sender ID is set
     webSocketMessage.setChannelId(savedMessage.getChannelId());
-    User sender = userService.getUserById(senderId);
-    webSocketMessage.setSenderUserName(sender.getUsername());
+    webSocketMessage.setSenderUserName(senderUsername);
     webSocketMessage.setTimestamp(Instant.now());
 
-    // Send message to sender
-    messagingTemplate.convertAndSend("/queue/user/" + senderId, webSocketMessage);
+    //    // Send message to sender
+    //    messagingTemplate.convertAndSendToUser(webSocketMessage.getSenderId(),"/queue" + senderId,
+    // webSocketMessage);
 
     // Send message to recipient
-    messagingTemplate.convertAndSend("/queue/user/" + recipientId, webSocketMessage);
+    messagingTemplate.convertAndSendToUser(
+        webSocketMessage.getReceiverId(),
+        "/direct-messages",
+        webSocketMessage); // /user/{recipientId}/queue
   }
 
   // Helper method to extract user ID from WebSocket headers
