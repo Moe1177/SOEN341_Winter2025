@@ -270,5 +270,89 @@ public class AuthController {
     }
   }
 
+  /**
+   * Initiates a password reset process for a user. The method verifies if the provided email exists
+   * in the system, generates a reset code, and sends it to the user's email address. The reset code
+   * has an expiration time of 10 minutes.
+   *
+   * @param email The email address of the user requesting a password reset.
+   * @return A {@link ResponseEntity} indicating the result of the password reset request. If the
+   *     email is not found, a {@code NOT_FOUND} status is returned. If the request is successful,
+   *     an {@code OK} status is returned with a message instructing the user to check their email.
+   */
+  @PostMapping("/forgot-password")
+  public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    // Check if the email exists in the database
+    Optional<User> userOptional = userRepository.findByEmail(email);
+    if (userOptional.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
+    }
+
+    User user = userOptional.get();
+
+    // Generate a reset code and set its expiration
+    int resetCode = (int) (Math.random() * RANDOM_FACTOR) + RANDOM_THRESHOLD; // 6-digit random code
+    user.setVerificationCode(String.valueOf(resetCode));
+    user.setVerificationCodeExpiration(
+        Instant.now().plusSeconds(VERIFICATION_EXPIRATION)); // 10 minutes expiration
+
+    // Save the user with the reset code information
+    userRepository.save(user);
+
+    // Send the reset code to the user's email
+    emailService.sendEmail(
+        user.getEmail(),
+        "Password Reset Code",
+        "Your password reset code is: " + resetCode + ". It will expire in 10 minutes.");
+
+    return ResponseEntity.ok("Password reset code sent. Please check your email.");
+  }
+
+  /**
+   * Resets a user's password using the provided reset code. The method verifies the user exists,
+   * the reset code is valid and not expired, and then updates the user's password with the new one.
+   *
+   * @param email The email address of the user resetting their password.
+   * @param resetCode The reset code provided by the user.
+   * @param newPassword The new password to be set.
+   * @return A {@link ResponseEntity} indicating the result of the password reset process. If the
+   *     email is not found, the code is invalid or expired, a corresponding error response is
+   *     returned. If the reset is successful, an {@code OK} status is returned with a success
+   *     message.
+   */
+  @PostMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(
+      @RequestParam String email,
+      @RequestParam String resetCode,
+      @RequestParam String newPassword) {
+
+    // Check if the email exists in the database
+    Optional<User> userOptional = userRepository.findByEmail(email);
+    if (userOptional.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
+    }
+
+    User user = userOptional.get();
+
+    // Check if the reset code matches and is not expired
+    if (!user.getVerificationCode().equals(resetCode)) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid reset code");
+    }
+
+    if (Instant.now().isAfter(user.getVerificationCodeExpiration())) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body("Reset code has expired. Please request a new code.");
+    }
+
+    // Update the user's password
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setVerificationCode("0"); // Clear the reset code
+    user.setVerificationCodeExpiration(null);
+    userRepository.save(user);
+
+    return ResponseEntity.ok(
+        "Password reset successfully. You can now log in with your new password.");
+  }
+
   public record AuthResponse(String token) {}
 }
