@@ -34,30 +34,35 @@ public class WebSocketController {
     System.out.println("Sending message to: /channel/" + webSocketMessage.getChannelId());
 
     // Extract user ID from the authentication token
-    String senderId = getUsernameFromHeaders(headerAccessor);
+    String senderUsername = getUsernameFromHeaders(headerAccessor);
+
+    User findUser =
+        userRepository
+            .findByUsername(senderUsername)
+            .orElseThrow(() -> new ResourceNotFoundException("No user exists with this username"));
 
     // Create and save message to database
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(senderId); // Use the extracted senderId
+    message.setSenderId(senderUsername); // Use the extracted senderId
     message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
-    messageService.sendChannelMessage(message, senderId);
+    messageService.sendChannelMessage(message, findUser.getId());
 
     // Add sender name to the response
-    User sender = userService.getUserByUsername(senderId);
-    webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
+    User sender = userService.getUserByUsername(senderUsername);
+    webSocketMessage.setSenderId(sender.getId()); // Ensure the correct sender ID is set
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
     webSocketMessage.setDirectMessage(false);
     webSocketMessage.setReceiverId(webSocketMessage.getReceiverId());
     webSocketMessage.setChannelId(webSocketMessage.getChannelId());
 
+    String destination = "/topic/channel/" + webSocketMessage.getChannelId();
     // Broadcast message to all subscribers of this channel
-    messagingTemplate.convertAndSend(
-        "/channel/" + webSocketMessage.getChannelId(), webSocketMessage);
+    messagingTemplate.convertAndSend(destination, webSocketMessage);
   }
 
   // app/direct-message
