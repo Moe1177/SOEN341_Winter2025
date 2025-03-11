@@ -10,7 +10,6 @@ import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -27,14 +26,12 @@ public class WebSocketController {
   private final UserRepository userRepository;
 
   // app/channel
-  @MessageMapping("/channel/{channelId}")
+  @MessageMapping("/group-message")
   public void handleChannelMessage(
-      @DestinationVariable String channelId,
-      @Payload WebSocketMessage webSocketMessage,
-      SimpMessageHeaderAccessor headerAccessor) {
+      @Payload WebSocketMessage webSocketMessage, SimpMessageHeaderAccessor headerAccessor) {
 
     System.out.println("Received Channel message: " + webSocketMessage.getContent());
-    System.out.println("Sending message to: /channel/" + channelId);
+    System.out.println("Sending message to: /channel/" + webSocketMessage.getChannelId());
 
     // Extract user ID from the authentication token
     String senderId = getUsernameFromHeaders(headerAccessor);
@@ -43,7 +40,7 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setChannelId(channelId);
+    message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
@@ -55,11 +52,12 @@ public class WebSocketController {
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
     webSocketMessage.setDirectMessage(false);
-    webSocketMessage.setReceiverId(channelId);
-    webSocketMessage.setChannelId(channelId);
+    webSocketMessage.setReceiverId(webSocketMessage.getReceiverId());
+    webSocketMessage.setChannelId(webSocketMessage.getChannelId());
 
     // Broadcast message to all subscribers of this channel
-    messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
+    messagingTemplate.convertAndSend(
+        "/topic/channel/" + webSocketMessage.getChannelId(), webSocketMessage);
   }
 
   // app/direct-message
