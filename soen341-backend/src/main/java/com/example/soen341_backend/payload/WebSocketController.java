@@ -43,8 +43,7 @@ public class WebSocketController {
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
     message.setSenderId(senderId); // Use the extracted senderId
-    message.setChannelId(
-        (channelId != null && !channelId.isEmpty()) ? channelId : webSocketMessage.getChannelId());
+    message.setChannelId(channelId);
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
 
@@ -55,6 +54,9 @@ public class WebSocketController {
     webSocketMessage.setSenderId(senderId); // Ensure the correct sender ID is set
     webSocketMessage.setSenderUserName(sender.getUsername());
     webSocketMessage.setTimestamp(Instant.now());
+    webSocketMessage.setDirectMessage(false);
+    webSocketMessage.setReceiverId(channelId);
+    webSocketMessage.setChannelId(channelId);
 
     // Broadcast message to all subscribers of this channel
     messagingTemplate.convertAndSend("/topic/channel/" + channelId, webSocketMessage);
