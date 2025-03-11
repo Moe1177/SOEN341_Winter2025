@@ -1,10 +1,16 @@
 "use client";
-import React, {useState} from "react";
+import React, {ReactNode, useState} from "react";
 import {Label} from "@/Components/ui/label";
 import {Input} from "@/Components/ui/input";
 
+interface ToastProps {
+    message: string;
+    visible: boolean;
+    onClose: () => void;
+    type: string;
+}
 
-const Toast = ({message, visible, onClose, type = "success"}) => {
+const Toast = ({message, visible, onClose, type = "success"}: ToastProps) => {
     if (!visible) return null;
 
     const bgColor = type === "success" ? "bg-green-500" : "bg-red-500";
@@ -26,7 +32,7 @@ export default function AuthFormDemo() {
     const [verificationUsername, setVerificationUsername] = useState("");
     const [toast, setToast] = useState({visible: false, message: "", type: "success"});
 
-    const showToast = (message, type = "success") => {
+    const showToast = (message: string, type = "success") => {
         setToast({visible: true, message, type});
         setTimeout(() => {
             setToast(prev => ({...prev, visible: false}));
@@ -82,7 +88,7 @@ export default function AuthFormDemo() {
                 )}
                 {authState === "signin" && (
                     <SigninForm
-                        setAuthState={setAuthState}
+                        /*setAuthState={setAuthState}*/
                         showToast={showToast}
                     />
                 )}
@@ -99,12 +105,19 @@ export default function AuthFormDemo() {
     );
 }
 
-function VerificationForm({email, username, setAuthState, showToast}) {
+interface VerificationFormProps {
+    email: string;
+    username: string;
+    setAuthState: (state: "signin" | "signup") => void;
+    showToast: (message: string, type: "success" | "error") => void;
+}
+
+function VerificationForm({email, username, setAuthState, showToast}: VerificationFormProps) {
     const [verificationCode, setVerificationCode] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!verificationCode) {
@@ -157,10 +170,16 @@ function VerificationForm({email, username, setAuthState, showToast}) {
 
             setAuthState("signin");
 
-        } catch (error) {
-            console.error("Verification error:", error);
-            setError(error.message || "Verification failed. Please try again.");
-            showToast(error.message || "Verification failed. Please try again.", "error");
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Login error:", error.message);
+                setError(error.message || "Login failed. Please try again.");
+                showToast(error.message || "Login failed. Please try again.", "error");
+            } else {
+                console.error("Unexpected error:", error);
+                setError("An unexpected error occurred. Please try again.");
+                showToast("An unexpected error occurred. Please try again.", "error");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -213,7 +232,21 @@ function VerificationForm({email, username, setAuthState, showToast}) {
     );
 }
 
-function SignupForm({setAuthState, setVerificationEmail, setVerificationUsername, showToast}) {
+
+interface TouchedFields {
+    userName: boolean;
+    email: boolean;
+    password: boolean;
+}
+
+interface SignupFormProps {
+    setAuthState: (state: string) => void;
+    setVerificationEmail: (email: string) => void;
+    setVerificationUsername: (username: string) => void;
+    showToast: (message: string, type: "success" | "error") => void;
+}
+
+function SignupForm({setAuthState, setVerificationEmail, setVerificationUsername, showToast}: SignupFormProps) {
     const [userName, setUserName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -221,13 +254,13 @@ function SignupForm({setAuthState, setVerificationEmail, setVerificationUsername
     const [touchedFields, setTouchedFields] = useState({userName: false, email: false, password: false});
     const [isLoading, setIsLoading] = useState(false);
 
-    const validateEmail = (email) => {
+    const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!validateEmail(email)) {
@@ -280,16 +313,22 @@ function SignupForm({setAuthState, setVerificationEmail, setVerificationUsername
             setVerificationUsername(userName);
             setAuthState("verify");
 
-        } catch (error) {
-            console.error("Registration error:", error);
-            setEmailError(error.message || "Registration failed. Please try again.");
-            showToast(error.message || "Registration failed. Please try again.", "error");
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Login error:", error.message);
+                setEmailError(error.message || "Login failed. Please try again.");
+                showToast(error.message || "Login failed. Please try again.", "error");
+            } else {
+                console.error("Unexpected error:", error);
+                setEmailError("An unexpected error occurred. Please try again.");
+                showToast("An unexpected error occurred. Please try again.", "error");
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleBlur = (field) => {
+    const handleBlur = (field: keyof TouchedFields) => {
         setTouchedFields((prev) => ({...prev, [field]: true}));
     };
 
@@ -377,14 +416,19 @@ function SignupForm({setAuthState, setVerificationEmail, setVerificationUsername
     );
 }
 
-function SigninForm({ /*setAuthState,*/ showToast}) {
+interface SigninFormProps {
+    showToast: (message: string, type: "success" | "error") => void;
+    // setAuthState?: (state: boolean) => void;
+}
+
+function SigninForm({ /*setAuthState,*/ showToast}: SigninFormProps) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [touchedFields, setTouchedFields] = useState({username: false, password: false});
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmitSignIn = async (e) => {
+    const handleSubmitSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
@@ -442,16 +486,22 @@ function SigninForm({ /*setAuthState,*/ showToast}) {
                 window.location.href = '/direct-messaging';
             }, 1000);
 
-        } catch (error) {
-            console.error("Login error:", error);
-            setError(error.message || "Login failed. Please try again.");
-            showToast(error.message || "Login failed. Please try again.", "error");
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error("Login error:", error.message);
+                setError(error.message || "Login failed. Please try again.");
+                showToast(error.message || "Login failed. Please try again.", "error");
+            } else {
+                console.error("Unexpected error:", error);
+                setError("An unexpected error occurred. Please try again.");
+                showToast("An unexpected error occurred. Please try again.", "error");
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleBlur = (field) => {
+    const handleBlur = (field: string) => {
         setTouchedFields((prev) => ({...prev, [field]: true}));
     };
 
@@ -519,6 +569,10 @@ function SigninForm({ /*setAuthState,*/ showToast}) {
     );
 }
 
-const LabelInputContainer = ({children}) => {
+interface LabelInputContainerProps {
+    children: ReactNode;
+}
+
+const LabelInputContainer = ({children}: LabelInputContainerProps) => {
     return <div className="flex flex-col space-y-2 w-full max-w-2xl mx-auto">{children}</div>;
 };
