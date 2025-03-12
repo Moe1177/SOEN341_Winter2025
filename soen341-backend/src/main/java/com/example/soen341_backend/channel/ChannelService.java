@@ -141,8 +141,8 @@ public class ChannelService {
     userService.addDirectMessageToUser(receiverId, userId);
 
     // Add direct message channel to list of channels for each user
-    userService.addChannelToUser(savedChannel.getId(), userId);
-    userService.addChannelToUser(savedChannel.getId(), receiverId);
+    userService.addChannelToUser(userId, savedChannel.getId());
+    userService.addChannelToUser(receiverId, savedChannel.getId());
 
     return savedChannel;
   }

@@ -17,8 +17,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Channel {
   @Id private String id;
 
-  @Indexed(unique = true)
   @NotBlank(message = "Channels must have a name")
+  @Indexed(unique = true)
   private String name;
 
   private String creatorId;

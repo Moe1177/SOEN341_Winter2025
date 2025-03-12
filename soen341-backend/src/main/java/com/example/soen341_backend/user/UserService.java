@@ -56,20 +56,20 @@ public class UserService {
     userRepository.deleteById(userId);
   }
 
-  public User addChannelToUser(String userId, String channelId) {
+  public void addChannelToUser(String userId, String channelId) {
     User user = getUserById(userId);
 
     user.getChannelIds().add(channelId);
 
-    return userRepository.save(user);
+    userRepository.save(user);
   }
 
-  public User addAdminChannelToUser(String userId, String channelId) {
+  public void addAdminChannelToUser(String userId, String channelId) {
     User user = getUserById(userId);
 
     user.getAdminsForWhichChannels().add(channelId);
 
-    return userRepository.save(user);
+    userRepository.save(user);
   }
 
   public boolean isAdmin(String userId, String channelId) {
