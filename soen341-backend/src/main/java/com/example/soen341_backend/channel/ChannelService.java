@@ -19,10 +19,11 @@ public class ChannelService {
     return channelRepository.findByIsDirectMessageFalse();
   }
 
-  public Channel getChannelById(String id) {
+  public Channel getChannelById(String channelId) {
     return channelRepository
-        .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Channel not found with id: " + id));
+        .findById(channelId)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Channel not found with id: " + channelId));
   }
 
   public Channel createChannel(Channel channel, String creatorUserId) {

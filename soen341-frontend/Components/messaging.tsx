@@ -11,14 +11,13 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 
-// Define the DirectMessageDisplay interface to match sidebar.tsx
+
 interface DirectMessageDisplay {
   id: string;
   participant: User;
   unreadCount?: number;
 }
 
-// Define ExtendedChannel interface to match sidebar.tsx
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
 }
@@ -42,7 +41,7 @@ export function Messaging() {
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
-  // Hard-coded values as requested
+  
   const userId = process.env.NEXT_PUBLIC_USER_ID!;
 
   const getActiveDirectMessage = (): {
@@ -131,8 +130,6 @@ export function Messaging() {
           if (exists) return prev;
           return [...prev, newDM];
         });
-
-        
       } catch (error) {
         console.error("Error fetching new DM channel:", error);
       }
@@ -292,42 +289,24 @@ export function Messaging() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dmDisplays: DirectMessageDisplay[] = data.map((dm: any) => {
         // Find the ID of the other user (not the current user)
-        const otherMemberId = dm.members.filter(
+        const otherMemberId = dm.directMessageMembers.find(
           (memberId: string) => memberId !== userId
         );
 
-        // Extract both usernames from the DM name
-        const dmName = dm.name || "";
-        let otherUsername = "Unknown User";
+        let username;
 
-        if (dmName.startsWith("DM:")) {
-          // Remove "DM: " prefix and split by " & "
-          const usernamesPart = dmName.substring(4); // Remove "DM: "
-          const usernames = usernamesPart.split(" & ");
-
-          // Current user's username for comparison
-          let currentUsername;
-          const user1 = usernames[0];
-          const user2 = usernames[1];
-          if (user1 === currentUser?.username) {
-            currentUsername = user2;
-          } else {
-            currentUsername = user1;
-          }
-
-          // If we have exactly two usernames and one matches the current user
-          if (usernames.length === 2) {
-            otherUsername =
-              usernames[0] === currentUsername ? usernames[1] : usernames[0];
-          }
+        if (dm.senderUsername !== currentUser?.username) {
+          username = dm.senderUsername;
+        } else {
+          username = dm.receiverUsername;
         }
 
         return {
           id: dm.id,
           participant: {
-            id: otherMemberId || "", // Fallback to hardcoded ID
-            username: otherUsername,
-            status: "OFFLINE",
+            id: otherMemberId || "", 
+            username: username,
+            status: "ONLINE",
             email: "",
             password: "",
             channelIds: [],
@@ -468,14 +447,12 @@ export function Messaging() {
 
       setDirectMessages((prev) => [...prev, newDM]);
 
-      // Important: Select the new DM conversation after creating it
       // This ensures proper subscription setup before sending messages
       handleConversationSelect(data.id, false);
 
       // Added console log for debugging
       console.log(`Created new DM channel with ID: ${data.id}`);
 
-      // Return the new DM ID for potential use
       return data.id;
     } catch (error) {
       console.error("Error creating direct message:", error);

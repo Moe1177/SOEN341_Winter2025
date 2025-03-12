@@ -4,7 +4,6 @@ import SockJS from "sockjs-client";
 import { WebSocketMessage } from "./types";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_BASE_BACKEND_WEBSOCKET_URL!; 
-console.log("SOCKET_URL", SOCKET_URL);
 
 const useChat = (
   channelId: string,
