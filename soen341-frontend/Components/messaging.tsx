@@ -11,7 +11,6 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 
-
 interface DirectMessageDisplay {
   id: string;
   participant: User;
@@ -41,7 +40,6 @@ export function Messaging() {
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
-  
   const userId = process.env.NEXT_PUBLIC_USER_ID!;
 
   const getActiveDirectMessage = (): {
@@ -64,7 +62,9 @@ export function Messaging() {
   const receiverId = getActiveDirectMessage()?.receiverId as string;
   console.log("Receiver ID: ", receiverId);
 
-  const token =  process.env.NEXT_PUBLIC_JWT_TOKEN as string || localStorage.getItem("authToken")! ;
+  const token =
+    localStorage.getItem("authToken")! ||
+    (process.env.NEXT_PUBLIC_JWT_TOKEN as string);
   console.log("Token: ", token);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -304,7 +304,7 @@ export function Messaging() {
         return {
           id: dm.id,
           participant: {
-            id: otherMemberId || "", 
+            id: otherMemberId || "",
             username: username,
             status: "ONLINE",
             email: "",

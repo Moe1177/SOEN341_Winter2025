@@ -39,7 +39,7 @@ export function Sidebar({
   return (
     <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20">
       <div className="p-3 flex items-center justify-between border-b">
-        <div className="font-semibold">Workspace</div>
+        <div className="font-semibold">Dialogos</div>
       </div>
 
       <ScrollArea className="flex-1">
