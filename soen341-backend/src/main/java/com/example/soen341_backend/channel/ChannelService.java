@@ -179,8 +179,8 @@ public class ChannelService {
      */
 
     // Check if users exist
-    User user1 = userService.getUserById(userId);
-    User user2 = userService.getUserById(receiverId);
+    User sender = userService.getUserById(userId);
+    User recipient = userService.getUserById(receiverId);
 
     // Try to find existing DM channel
     List<Channel> user1Channels = channelRepository.findIfMemberIsInDirectMessage(userId);
@@ -193,7 +193,7 @@ public class ChannelService {
 
     // Create new DM channel if not exists
     Channel dmChannel = new Channel();
-    dmChannel.setName("DM: " + user1.getUsername() + " & " + user2.getUsername());
+    dmChannel.setName("DM: " + sender.getUsername() + " & " + recipient.getUsername());
     dmChannel.setDirectMessage(true);
 
     Set<String> participants = new HashSet<>();
@@ -202,8 +202,10 @@ public class ChannelService {
     dmChannel.setDirectMessageMembers(participants);
     dmChannel.setMembers(participants);
 
-    String token = generateInviteCode();
-    dmChannel.setInviteCode(token);
+    dmChannel.setSenderUsername(sender.getUsername());
+    dmChannel.setReceiverUsername(recipient.getUsername());
+
+    dmChannel.setInviteCode(null);
     dmChannel.setChannelType(ChannelType.DIRECT);
 
     Channel savedChannel = channelRepository.save(dmChannel);

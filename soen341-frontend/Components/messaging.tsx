@@ -62,7 +62,7 @@ export function Messaging() {
     return null;
   };
 
-  const receiverId = getActiveDirectMessage()?.receiverId || "";
+  const receiverId = getActiveDirectMessage()?.receiverId as string;
   console.log("Receiver ID: ", receiverId);
 
   const token = localStorage.getItem("authToken")!;
@@ -131,12 +131,15 @@ export function Messaging() {
           if (exists) return prev;
           return [...prev, newDM];
         });
+
+        
       } catch (error) {
         console.error("Error fetching new DM channel:", error);
       }
     }
   };
 
+  console.log("Check direct messages array:", directMessages);
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
       activeConversationId as string,
@@ -285,11 +288,11 @@ export function Messaging() {
       );
       const data = await handleApiResponse(response);
 
-      // Transform DirectMessage data to match DirectMessageDisplay
+      console.log("Fetched direct messages:", data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dmDisplays: DirectMessageDisplay[] = data.map((dm: any) => {
         // Find the ID of the other user (not the current user)
-        const otherMemberId = dm.directMessageMembers.find(
+        const otherMemberId = dm.members.filter(
           (memberId: string) => memberId !== userId
         );
 
@@ -389,8 +392,6 @@ export function Messaging() {
         formattedMessages
       );
 
-      // ✅ No need to update `setMessages` manually – `useChat` handles this.
-      // Merge historical messages into useChat state.
       setInitialMessages(formattedMessages);
     } catch (error) {
       console.error(

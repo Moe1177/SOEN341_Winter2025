@@ -27,6 +27,9 @@ public class Channel {
   @Indexed(unique = true)
   private String inviteCode;
 
+  private String senderUsername;
+  private String receiverUsername;
+
   private Set<String> members = new HashSet<>();
   private boolean isDirectMessage;
   private Set<String> directMessageMembers = new HashSet<>();
