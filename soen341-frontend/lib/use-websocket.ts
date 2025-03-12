@@ -76,6 +76,7 @@ const useChat = (
     return () => {
       stompClient.deactivate();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId, userId, token]);
 
   // ✅ Send Group Message
