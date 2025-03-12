@@ -5,11 +5,12 @@ import { AuroraBackground } from "@/Components/ui/aurora-background";
 import SignupFormDemo from "@/Components/signup-form-demo";
 
 import React from "react";
+// import Footer from "@/Components/footer";
 
 export default function Login() {
   return (
-    // Landing page 
-    
+    // Landing page
+
     <div className="min-h-screen bg-cover bg-fixed flex flex-col">
       {/* Aurora background */}
       <AuroraBackground className="absolute inset-0 z-0">
@@ -27,6 +28,7 @@ export default function Login() {
               </div>
             </div>
           </div>
+          {/* <Footer /> */}
         </div>
       </AuroraBackground>
     </div>

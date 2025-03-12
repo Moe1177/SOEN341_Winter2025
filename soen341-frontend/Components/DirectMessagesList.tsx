@@ -43,6 +43,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
         
         setDmUsers(response.data);
         setIsLoading(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error('Error fetching DM users:', error);
         setError(error.response?.data?.message || "Failed to load conversations");
@@ -82,6 +83,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
       
       setAllUsers(filteredUsers);
       setShowNewDmModal(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error fetching users:', error);
       setError(error.response?.data?.message || "Failed to load users");
@@ -104,6 +106,7 @@ const DirectMessagesList = ({ currentUser, onSelectUser, selectedUser }: DirectM
       
       onSelectUser(user);
       setShowNewDmModal(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error creating direct message channel:", error);
       

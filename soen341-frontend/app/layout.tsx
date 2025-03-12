@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
 import './globals.css'
-import Footer from '@/Components/footer';
 import React from 'react';
 
 
@@ -23,10 +22,7 @@ export default function RootLayout({
           {children}
           </main>
           <div className="w-full bg-white">
-          <Footer />
            </div>
-          
-       
       </body>
     </html>
   )

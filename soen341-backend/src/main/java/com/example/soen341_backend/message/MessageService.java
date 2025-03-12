@@ -125,6 +125,7 @@ public class MessageService {
 
     // Get users
     Optional<User> sender = userRepository.findByUsername(senderUsername);
+
     // Get or create DM channel
     Channel dmChannel =
         channelService.getOrCreateDirectMessageChannel(sender.get().getId(), recipientId);

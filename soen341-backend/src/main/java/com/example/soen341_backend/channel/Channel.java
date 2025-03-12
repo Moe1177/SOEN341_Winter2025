@@ -17,8 +17,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Channel {
   @Id private String id;
 
-  @Indexed(unique = true)
   @NotBlank(message = "Channels must have a name")
+  @Indexed(unique = true)
   private String name;
 
   private String creatorId;
@@ -26,6 +26,9 @@ public class Channel {
 
   @Indexed(unique = true)
   private String inviteCode;
+
+  private String senderUsername;
+  private String receiverUsername;
 
   private Set<String> members = new HashSet<>();
   private boolean isDirectMessage;
