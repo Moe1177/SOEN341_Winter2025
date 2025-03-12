@@ -63,3 +63,8 @@ The following core features will be available in this project:
 - ### Backend
   - Java Spring Boot
   - MongoDB
+
+- ### Hosting
+  - Docker
+  - Render
+  - Vercel
