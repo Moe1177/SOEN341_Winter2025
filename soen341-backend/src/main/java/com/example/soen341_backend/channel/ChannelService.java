@@ -26,6 +26,18 @@ public class ChannelService {
   }
 
   public Channel createChannel(Channel channel, String creatorUserId) {
+    /**
+     * Creates a new group channel and assigns the creator as a member and admin.
+     *
+     * @param channel the channel object containing initial details (type: {@link Channel}).
+     * @param creatorUserId the unique identifier of the user creating the channel (type: {@link
+     *     String}).
+     *     <p>If no members are provided, initializes an empty set. The creator is added to the
+     *     channel members and assigned as an admin. An invite code is generated, and default
+     *     properties such as channel type and direct message status are set. The created channel is
+     *     saved, and the creator's user record is updated with the new channel.
+     * @return the saved channel object after persistence (type: {@link Channel}).
+     */
 
     // Set default values if not provided
     if (channel.getMembers() == null) {
@@ -52,7 +64,16 @@ public class ChannelService {
   }
 
   public Channel updateChannel(String id, Channel channelDetails, String userId) {
-
+    /**
+     * Updates the name of an existing channel if the user has admin privileges.
+     *
+     * @param id the unique identifier of the channel to be updated (type: {@link String}).
+     * @param channelDetails the object containing updated channel details (type: {@link Channel}).
+     * @param userId the unique identifier of the user attempting the update (type: {@link String}).
+     *     <p>Retrieves the channel by ID and validates if the user has admin privileges. Updates
+     *     the channel name and saves the changes to the database.
+     * @return the updated channel object after persistence (type: {@link Channel}).
+     */
     Channel channel = getChannelById(id);
 
     userService.validateAdminRole(userId, channel.getId());
@@ -62,6 +83,17 @@ public class ChannelService {
   }
 
   public void deleteChannel(String id, String userId) {
+    /**
+     * Deletes a channel if the user has admin privileges.
+     *
+     * @param id the unique identifier of the channel to be deleted (type: {@link String}).
+     * @param userId the unique identifier of the user attempting the deletion (type: {@link
+     *     String}).
+     *     <p>Retrieves the channel by ID and validates if the user has admin privileges. Removes
+     *     the channel from all associated users' channel lists before deletion. Deletes the channel
+     *     from the database.
+     * @return void (no return value).
+     */
     Channel channel = getChannelById(id);
     userService.validateAdminRole(userId, channel.getId());
 
@@ -74,6 +106,17 @@ public class ChannelService {
   }
 
   public Channel addUserToChannel(String channelId, String userId) {
+    /**
+     * Adds a user to a specified channel.
+     *
+     * @param channelId the unique identifier of the channel to which the user will be added (type:
+     *     {@link String}).
+     * @param userId the unique identifier of the user to be added to the channel (type: {@link
+     *     String}).
+     *     <p>Retrieves the channel by ID and adds the user to its members list. Updates the channel
+     *     in the database and associates the channel with the user. Saves the updated user data.
+     * @return the updated {@link Channel} object after adding the user.
+     */
     Channel channel = getChannelById(channelId);
     channel.getMembers().add(userId);
 
@@ -91,6 +134,22 @@ public class ChannelService {
   }
 
   public Channel removeUserFromChannel(String channelId, String userId, String requesterId) {
+    /**
+     * Removes a user from a specified channel.
+     *
+     * @param channelId the unique identifier of the channel from which the user will be removed
+     *     (type: {@link String}).
+     * @param userId the unique identifier of the user to be removed from the channel (type: {@link
+     *     String}).
+     * @param requesterId the unique identifier of the user making the removal request (type: {@link
+     *     String}).
+     *     <p>Ensures that only an admin or the user themselves can remove a user from a channel.
+     *     Retrieves the channel by ID and removes the user from its members list. Updates the
+     *     channel in the database and removes the channel association from the user.
+     * @return the updated {@link Channel} object after removing the user.
+     * @throws UnauthorizedException if the requester does not have permission to remove the user.
+     */
+
     // Only admin or the user themselves can remove a user from a channel
     if (!userService.isAdmin(requesterId, channelId) && !userId.equals(requesterId)) {
       throw new UnauthorizedException("You don't have permission to remove this user");
@@ -106,6 +165,19 @@ public class ChannelService {
   }
 
   public Channel getOrCreateDirectMessageChannel(String userId, String receiverId) {
+    /**
+     * Retrieves an existing direct message (DM) channel between two users or creates a new one if
+     * none exists.
+     *
+     * @param userId the unique identifier of the first user (type: {@link String}).
+     * @param receiverId the unique identifier of the second user (type: {@link String}).
+     *     <p>Checks if a DM channel already exists between the two users. If found, returns the
+     *     existing channel; otherwise, creates a new DM channel. Adds the new channel to both
+     *     users' channel lists and establishes a direct message relationship.
+     * @return the existing or newly created {@link Channel} object representing the direct message
+     *     channel.
+     */
+
     // Check if users exist
     User user1 = userService.getUserById(userId);
     User user2 = userService.getUserById(receiverId);
@@ -153,6 +225,18 @@ public class ChannelService {
   }
 
   public List<Channel> getUserDirectMessages(String userId) {
+    /**
+     * Retrieves a list of direct message (DM) channels for a specified user.
+     *
+     * @param userId the unique identifier of the user whose direct message channels are being
+     *     retrieved (type: {@link String}).
+     *     <p>Fetches the user by ID to ensure they exist. Queries the database for direct message
+     *     channels in which the user is a participant. Logs a message if no direct message channels
+     *     are found for the user.
+     * @return a {@link List} of {@link Channel} objects representing the user's direct message
+     *     channels.
+     * @throws ResourceNotFoundException if the user does not exist.
+     */
     User user = userService.getUserById(userId);
 
     if (user == null) {

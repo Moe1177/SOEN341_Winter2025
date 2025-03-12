@@ -103,11 +103,7 @@ public class UserService {
   public boolean authenticateUser(String username, String password) {
     Optional<User> user = userRepository.findByUsername(username);
 
-    if (user.isPresent()) {
-      return passwordEncoder.matches(password, user.get().getPassword());
-    }
-
-    return false;
+    return user.filter(value -> passwordEncoder.matches(password, value.getPassword())).isPresent();
   }
 
   public void updateOnlineStatus(String userId, Status status) {
