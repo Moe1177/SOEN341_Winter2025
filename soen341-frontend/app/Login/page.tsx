@@ -5,7 +5,7 @@ import { AuroraBackground } from "@/Components/ui/aurora-background";
 import SignupFormDemo from "@/Components/signup-form-demo";
 
 import React from "react";
-import { Footer } from "@/Components/MessagingFooter";
+// import Footer from "@/Components/footer";
 
 export default function Login() {
   return (
@@ -28,7 +28,7 @@ export default function Login() {
               </div>
             </div>
           </div>
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </AuroraBackground>
     </div>
