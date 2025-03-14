@@ -49,7 +49,6 @@ export function Messaging() {
     if (!isActiveChannelConversation && activeConversationId) {
       const dm = directMessages.find((d) => d.id === activeConversationId);
       if (dm) {
-        console.log("Active DM recipitent ID: ", dm.participant.id);
         return {
           receiverId: dm.participant.id,
           senderUsername: dm.participant.username,
@@ -60,33 +59,23 @@ export function Messaging() {
   };
 
   const receiverId = getActiveDirectMessage()?.receiverId as string;
-  console.log("Receiver ID: ", receiverId);
 
   const token =
     localStorage.getItem("authToken")! ||
     (process.env.NEXT_PUBLIC_JWT_TOKEN as string);
-  console.log("Token: ", token);
+
+  // -------------------------------------------------------------------
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNewDirectMessage = async (message: any) => {
-    console.log("Handling new direct message:", message);
-    // Only proceed if it's a DM with a valid channel ID
     if (!message.channelId || !message.directMessage) return;
 
     const normalizedId = message.channelId.trim();
 
     const exists = directMessages.some((dm) => {
-      // Optionally log for debugging
-      console.log(
-        "Comparing dm.id:",
-        `"${dm.id}"`,
-        "to normalizedId:",
-        `"${normalizedId}"`
-      );
       return dm.id === normalizedId;
     });
 
-    console.log("DM exists:", exists);
     if (!exists) {
       try {
         // Fetch the channel details from your backend
@@ -106,12 +95,10 @@ export function Messaging() {
           );
         }
 
-        // Parse the JSON response
         const channelData = await response.json();
 
-        // Create a new DirectMessageDisplay object
         const newDM: DirectMessageDisplay = {
-          id: channelData.id, // Unique channel ID from the backend
+          id: channelData.id,
           participant: {
             id: receiverId,
             username: message.senderUserName || "Unknown User",
@@ -136,7 +123,6 @@ export function Messaging() {
     }
   };
 
-  console.log("Check direct messages array:", directMessages);
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
       activeConversationId as string,
@@ -174,6 +160,8 @@ export function Messaging() {
     setUsersMap(map);
   }, [users]);
 
+  // -------------------------------------------------------------------
+
   // Helper function to handle API responses
   const handleApiResponse = async (response: Response) => {
     if (!response.ok) {
@@ -182,6 +170,8 @@ export function Messaging() {
     }
     return response.json();
   };
+
+  // -------------------------------------------------------------------
 
   // Handle sending messages
   const handleSendMessage = (content: string) => {
@@ -196,6 +186,8 @@ export function Messaging() {
       sendDirectMessage(content, receiverId);
     }
   };
+
+  // -------------------------------------------------------------------
 
   // API calls to fetch data
   const fetchCurrentUser = async () => {
@@ -382,6 +374,8 @@ export function Messaging() {
     }
   };
 
+  // -------------------------------------------------------------------
+
   const handleCreateChannel = async (name: string) => {
     try {
       const response = await fetch(
@@ -462,6 +456,8 @@ export function Messaging() {
     }
   };
 
+  // -------------------------------------------------------------------
+
   const filteredMessages = messages.filter((msg) => {
     if (isActiveChannelConversation) {
       // Show only group (non-DM) messages for the active channel
@@ -497,6 +493,8 @@ export function Messaging() {
     fetchMessages(conversationId, isChannel);
   };
 
+  // -------------------------------------------------------------------
+
   // Get the active channel or direct message
   const getActiveChannel = (): Channel | null => {
     if (isActiveChannelConversation && activeConversationId) {
@@ -512,6 +510,8 @@ export function Messaging() {
     }
     return undefined;
   };
+
+  // -------------------------------------------------------------------
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
