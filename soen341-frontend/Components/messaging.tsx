@@ -40,6 +40,8 @@ export function Messaging() {
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
+  // -------------------------------------------------------------------
+
   const userId = process.env.NEXT_PUBLIC_USER_ID!;
 
   const getActiveDirectMessage = (): {
