@@ -15,7 +15,7 @@ const SignUp = () => {
 
         <div className="flexCenter mt-10">
           <Button
-            href="/login"
+            href="/Login"
             type="button"
             title="Sign up"
             icon="/login.svg"
