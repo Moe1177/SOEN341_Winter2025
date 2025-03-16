@@ -1,3 +1,4 @@
+// Allow users to communicate directly or in channels
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +12,7 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 
-
+// interf
 interface DirectMessageDisplay {
   id: string;
   participant: User;
@@ -63,8 +64,9 @@ export function Messaging() {
 
   const receiverId = getActiveDirectMessage()?.receiverId as string;
   console.log("Receiver ID: ", receiverId);
-
-  const token =  process.env.NEXT_PUBLIC_JWT_TOKEN as string || localStorage.getItem("authToken")! ;
+    
+  // process.env.NEXT_PUBLIC_JWT_TOKEN as string ||
+  const token =  localStorage.getItem("authToken")! ;
   console.log("Token: ", token);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
