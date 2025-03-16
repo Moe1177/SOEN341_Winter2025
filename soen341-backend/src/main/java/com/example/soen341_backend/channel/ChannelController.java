@@ -72,7 +72,7 @@ public class ChannelController {
     return channelService.getOrCreateDirectMessageChannel(user1Id, user2Id);
   }
 
-  @PostMapping("/join")
+  @PutMapping("/join")
   public ResponseEntity<?> joinChannel(
       @RequestParam String inviteCode, @RequestParam String userId) {
     Channel updatedChannel = channelService.joinChannelByInviteCode(inviteCode, userId);
