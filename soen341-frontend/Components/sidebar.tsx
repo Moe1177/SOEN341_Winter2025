@@ -4,6 +4,9 @@ import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Hash, Plus, Settings, MessageSquare } from "lucide-react";
+import { Input } from "@/Components/ui/input"; 
+import { useState } from "react";
+
 
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
@@ -24,6 +27,7 @@ interface SidebarProps {
   onCreateDirectMessage: () => void;
   onViewChannelInvite: (channel: Channel) => void;
   currentUser: User | null;
+  fetchChannels: () => void;
 }
 
 export function Sidebar({
@@ -35,7 +39,50 @@ export function Sidebar({
   onCreateDirectMessage,
   onViewChannelInvite,
   currentUser,
+  fetchChannels,
 }: SidebarProps) {
+  const [inviteCode, setInviteCode] = useState("");
+
+  const handleJoinChannel = async () => {
+    if (!inviteCode.trim()) {
+      alert("Please enter a valid invite code.");
+      return;
+    }
+
+    if (!currentUser) {
+      alert("You must be logged in to join a channel.");
+      return;
+    }
+
+    try {
+      console.log("Joining channel with invite code:", inviteCode);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/join?inviteCode=${inviteCode}&userId=${currentUser.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken") || process.env.NEXT_PUBLIC_JWT_TOKEN}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to join channel:", response.body);
+        throw new Error("Failed to join channel. Please check the invite code.");
+      }
+
+      const updatedChannel = await response.json();
+      fetchChannels();
+      alert(`Joined channel: ${updatedChannel.name}`);
+      setInviteCode("");
+    } catch (error) {
+      console.error("Error joining channel:", error);
+      alert("Error joining channel. Please try again.");
+    }
+  };
+
+  
   return (
     <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20">
       <div className="p-3 flex items-center justify-between border-b">
@@ -107,6 +154,20 @@ export function Sidebar({
               </Button>
             </div>
           )}
+<div className="flex items-center space-x-2 px-2 py-2">
+  <Input
+    type="text"
+    placeholder="Enter invite code"
+    value={inviteCode}
+    onChange={(e) => setInviteCode(e.target.value)}
+    className="flex-1"
+  />
+  <Button onClick={handleJoinChannel} variant="default">
+    Join
+  </Button>
+</div>
+
+
 
           <div className="flex items-center justify-between px-2 py-1.5 mt-4">
             <div className="text-xs font-semibold text-muted-foreground">
