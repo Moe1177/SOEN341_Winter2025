@@ -129,6 +129,11 @@ const content: ContentItem[] = [
   },
 ];
 
+/**
+ * Footer component for Chats.
+ * 
+ * @returns {JSX.Element} The rendered MessagingFooter component
+ */
 export function Footer() {
   return (
     <div>

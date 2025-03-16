@@ -3,6 +3,11 @@ import Link from "next/link";
 import Image from "next/image";
 import React from "react";
 
+/**
+ * Footer component that summarizes our componany for landing page.
+ * 
+ * @returns {JSX.Element} The rendered Footer component
+ */
 const Footer = () => {
   return (
     <footer className="flexCenter mt-auto w-full py-6">

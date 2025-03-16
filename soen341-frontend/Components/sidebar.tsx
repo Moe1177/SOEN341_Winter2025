@@ -30,6 +30,19 @@ interface SidebarProps {
   fetchChannels: () => void;
 }
 
+/**
+ * Sidebar component that displays a list of channels and direct messages, allowing users to select or create new conversations.
+ * 
+ * @param {Object} props - The props for the Sidebar component.
+ * @param {Array} props.channels - List of channels in the workspace.
+ * @param {Array} props.directMessages - List of direct message conversations.
+ * @param {string} props.activeConversationId - The ID of the currently active conversation (channel or direct message).
+ * @param {function} props.onConversationSelect - Callback when a conversation (channel or direct message) is selected.
+ * @param {function} props.onCreateChannel - Callback when creating a new channel.
+ * @param {function} props.onCreateDirectMessage - Callback when creating a new direct message conversation.
+ * @param {function} props.onViewChannelInvite - Callback to view or manage channel invites.
+ * @param {Object} props.currentUser - Information about the currently logged-in user.
+ */
 export function Sidebar({
   channels,
   directMessages,

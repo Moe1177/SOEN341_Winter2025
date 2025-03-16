@@ -1,7 +1,11 @@
-//About component that describes our goal as a company
 import React from 'react'
 import Image from 'next/image'
 
+/**
+ * About component that describes our goal as a company.
+ * 
+ * @returns {JSX.Element} The rendered About component
+ */
 const About = () => {
     return (
         <div className="hero">
