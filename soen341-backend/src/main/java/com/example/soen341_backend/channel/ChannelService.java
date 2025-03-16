@@ -3,6 +3,7 @@ package com.example.soen341_backend.channel;
 import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
 import com.example.soen341_backend.user.User;
+import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ public class ChannelService {
 
   private final ChannelRepository channelRepository;
   private final UserService userService;
+  private final UserRepository userRepository;
 
   public List<Channel> getAllChannels() {
     return channelRepository.findByIsDirectMessageFalse();
@@ -255,5 +257,12 @@ public class ChannelService {
   private String generateInviteCode() {
     Random random = new Random();
     return String.format("%06d", random.nextInt(1000000));
+  }
+
+  public boolean promoteUserToAdmin(String channelId, String userId) {
+    if (userService.isAdmin(userId, channelId)) {
+      userService.addAdminChannelToUser(userId, channelId);
+      return true;
+    } else return false;
   }
 }

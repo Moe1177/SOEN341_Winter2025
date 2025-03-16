@@ -47,6 +47,14 @@ public class ChannelController {
     return channelService.addUserToChannel(channelId, userId);
   }
 
+  @PostMapping("/{channelId}/users/{userId}/promote")
+  public ResponseEntity<?> promoteChannelAdmin(
+      @PathVariable String channelId, @PathVariable String userId) {
+    return channelService.promoteUserToAdmin(channelId, userId)
+        ? ResponseEntity.badRequest().build()
+        : ResponseEntity.ok().build();
+  }
+
   @DeleteMapping("/{channelId}/users/{userId}")
   public Channel removeUserFromChannel(
       @PathVariable String channelId,
