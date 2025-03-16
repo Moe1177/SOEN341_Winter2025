@@ -49,7 +49,7 @@ The following core features will be available in this project:
 | Tristan Girardi | 40272203       | [TristanGirardi](https://github.com/TristanGirardi)     |
 | Mohamad Addasi  | 40278616       | [Moe1177](https://github.com/Moe1177)                   |
 | Mijan Ullah     | 40287584       | [mijanullah12](https://github.com/mijanullah12)         |
-| Fouad Elian     | 40273045      | [FouadElian](https://github.com/FouadElian)             |
+| Fouad Elian     | 40273045       | [FouadElian](https://github.com/FouadElian)             |
 | Junior Boni     | 40287501       | [RealBJr](https://github.com/RealBJr)                   |
 
 ## The following languages/frameworks and techniques will be used in this project:
@@ -63,3 +63,6 @@ The following core features will be available in this project:
 - ### Backend
   - Java Spring Boot
   - MongoDB
+
+## Design and Architecture
+![Block Architecture of the Project](/BlockDiagram_SOEN341_Winter2025.png)
