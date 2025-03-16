@@ -2,7 +2,7 @@
 
 import { ThreeDCardDemo } from "@/Components/ThreeDCardDemo";
 import { AuroraBackground } from "@/Components/ui/aurora-background";
-import SignupFormDemo from "@/Components/signup-form-demo";
+import AuthFormDemo from "@/Components/auth/AuthFormDemo";
 
 import React from "react";
 // import Footer from "@/Components/footer";
@@ -24,7 +24,7 @@ export default function Login() {
             {/* Right side - SignupFormDemo */}
             <div className="flex-1 flex justify-center items-center p-4">
               <div className="w-full max-w-md">
-                <SignupFormDemo />
+                <AuthFormDemo />
               </div>
             </div>
           </div>
