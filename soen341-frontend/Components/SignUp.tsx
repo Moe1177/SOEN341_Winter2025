@@ -2,6 +2,11 @@ import React from "react";
 import Image from "next/image";
 import Button from "./Button";
 
+/**
+ * SignUp component allows the user to direct themselves to signing up from the landing page.
+ * 
+ * @returns {JSX.Element} The rendered SignUp component
+ */
 const SignUp = () => {
   return (
     <div className="hero">

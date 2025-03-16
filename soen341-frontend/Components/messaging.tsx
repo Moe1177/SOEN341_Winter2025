@@ -12,39 +12,59 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 
-// interf
+// interface to represent a direct message display
 interface DirectMessageDisplay {
   id: string;
   participant: User;
   unreadCount?: number;
 }
 
+// interface to show the number of unread messages
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
 }
 
+/**
+ *  Messaging component allowing users to message eachother
+ *
+ */
 export function Messaging() {
+  // State for current logged in user
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // State for for storing available channels
   const [channels, setChannels] = useState<ExtendedChannel[]>([]);
+  // State for storing DMs
   const [directMessages, setDirectMessages] = useState<DirectMessageDisplay[]>(
     []
   );
+  // State to show active Dms and active Channels
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
+  // State to differentiate active Dms or channels
   const [isActiveChannelConversation, setIsActiveChannelConversation] =
     useState<boolean>(true);
+  // State to store all users
   const [users, setUsers] = useState<User[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, User>>({});
-
+  // States different functions for channels and DMs
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
-  
+  // Initialise the current user's ID
   const userId = process.env.NEXT_PUBLIC_USER_ID!;
-
+  
+  /**
+ * Retrieves the active direct message conversation, if any.
+ *
+ * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
+ *                        if an active direct message is found, otherwise returns null.
+ * 
+ * @property {string} receiverId - The ID of the direct message recipient.
+ * @property {string} senderUsername - The username of the direct message sender.
+ */
   const getActiveDirectMessage = (): {
     receiverId: string;
     senderUsername: string;
@@ -68,16 +88,28 @@ export function Messaging() {
   const token =  localStorage.getItem("authToken")!;
   console.log("Token: ", token);
 
+  /**
+ * Handles a new direct message (DM) by checking if the channel ID already exists.
+ * If the DM does not exist in the current direct messages, it fetches the channel details 
+ * from the backend and adds the new DM to the list.
+ * 
+ * @async
+ * @param {Object} message - The direct message object containing information about the DM.
+ * @param {string} message.channelId - The unique ID of the direct message channel.
+ * @param {string} message.senderUserName - The username of the direct message sender.
+ * @param {boolean} message.directMessage - Flag indicating whether the message is a direct message.
+ * 
+ * @throws {Error} Throws an error if fetching channel data from the backend fails.
+ */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNewDirectMessage = async (message: any) => {
     console.log("Handling new direct message:", message);
     // Only proceed if it's a DM with a valid channel ID
     if (!message.channelId || !message.directMessage) return;
-
+    // Get rid of whitespace
     const normalizedId = message.channelId.trim();
-
+    // Dm already exists in state
     const exists = directMessages.some((dm) => {
-      // Optionally log for debugging
       console.log(
         "Comparing dm.id:",
         `"${dm.id}"`,
@@ -88,9 +120,10 @@ export function Messaging() {
     });
 
     console.log("DM exists:", exists);
+    // Dm does not exist
     if (!exists) {
       try {
-        // Fetch the channel details from your backend
+        // Fetch the channel details
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/${message.channelId}`,
           {
@@ -107,12 +140,11 @@ export function Messaging() {
           );
         }
 
-        // Parse the JSON response
         const channelData = await response.json();
 
-        // Create a new DirectMessageDisplay object
+        // New DirectMessageDisplay object
         const newDM: DirectMessageDisplay = {
-          id: channelData.id, // Unique channel ID from the backend
+          id: channelData.id,
           participant: {
             id: receiverId,
             username: message.senderUserName || "Unknown User",
@@ -149,7 +181,6 @@ export function Messaging() {
 
   // Initialize connection and fetch initial data
   useEffect(() => {
-    // Fetch initial data
     fetchCurrentUser();
     fetchChannels();
     fetchDirectMessages();
@@ -201,7 +232,6 @@ export function Messaging() {
   // API calls to fetch data
   const fetchCurrentUser = async () => {
     try {
-      // Using hard-coded token as requested
       if (!token) {
         console.error("No authentication token found");
         return;
@@ -224,7 +254,7 @@ export function Messaging() {
     } catch (error) {
       console.error("Error fetching current user:", error);
 
-      // For testing purposes, set a fallback user
+      // For testing purposes fallback user
       setCurrentUser({
         id: userId,
         username: "TestUser",
@@ -252,7 +282,7 @@ export function Messaging() {
       );
       const data = await handleApiResponse(response);
 
-      // Add unreadCount property to match ExtendedChannel
+      // UnreadCount property to match ExtendedChannel
       const extendedChannels: ExtendedChannel[] = data.map(
         (channel: Channel) => ({
           ...channel,
@@ -408,6 +438,16 @@ export function Messaging() {
     setShowCreateChannel(false);
   };
 
+  /**
+ * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
+ * 
+ * @async
+ * @param {string} recipientId - The unique ID of the user to start a DM with.
+ * 
+ * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
+ * 
+ * @throws {Error} Throws an error if the API call to create a DM fails.
+ */
   const handleCreateDirectMessage = async (recipientId: string) => {
     try {
       const response = await fetch(

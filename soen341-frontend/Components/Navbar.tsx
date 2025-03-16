@@ -4,7 +4,11 @@ import Link from "next/link"
 import React from "react"
 import Button from "./Button"
 
-
+/**
+ * Navbar component allows the user to see who we are and receive a welcoming landing page.
+ * 
+ * @returns {JSX.Element} The rendered Navbar component
+ */
 const Navbar = () => {
   return (
     <nav className="flexBetween max-container padding-container relative z-30 py-5 ">

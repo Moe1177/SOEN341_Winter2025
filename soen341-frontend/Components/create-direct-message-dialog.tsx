@@ -21,6 +21,18 @@ interface CreateDirectMessageDialogProps {
   onCloseAction: () => void;
   onCreateDirectMessageAction: (userId: string) => void;
 }
+/**
+ * CreateDirectMessageDialog component provides a dialog interface for creating a new direct message with a user.
+ * The user can search for other users and select one to initiate a direct message. The dialog includes a search input field,
+ * a list of users with their usernames and status, and a button to send the message invitation.
+ * 
+ * @param {Object} props - The component props.
+ * @param {User[]} props.users - An array of users available for direct messaging, each containing an id, username, and status.
+ * @param {() => void} props.onCloseAction - Callback function to close the dialog when triggered by the user (e.g., clicking "Cancel").
+ * @param {(userId: string) => void} props.onCreateDirectMessageAction - Callback function to initiate the direct message with a user by their id.
+ * 
+ * @returns {JSX.Element} The rendered CreateDirectMessageDialog component, which includes the search functionality and list of users.
+ */
 
 export function CreateDirectMessageDialog({
   users,
@@ -30,6 +42,7 @@ export function CreateDirectMessageDialog({
 }: CreateDirectMessageDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  
   return (
     <Dialog open={true} onOpenChange={onCloseAction}>
       <DialogContent className="sm:max-w-[425px]">

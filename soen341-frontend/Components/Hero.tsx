@@ -1,7 +1,11 @@
 import Image from "next/image";
 import React from "react";
 
-
+/**
+ * Hero component that welcomes users on the landing page.
+ * 
+ * @returns {JSX.Element} The rendered Hero component
+ */
 const Hero = () => {
 
 

@@ -2,6 +2,11 @@ import { FEATURES } from '@/Constants'
 import Image from 'next/image'
 import React from 'react'
 
+/**
+ * Features component that shows users our different features.
+ * 
+ * @returns {JSX.Element} The rendered Features component
+ */
 const Features = () => {
   return (
     <section className="flex flex-col items-center justify-center overflow-hidden  py-5 ">
