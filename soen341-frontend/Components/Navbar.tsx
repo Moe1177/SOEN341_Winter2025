@@ -23,7 +23,7 @@ const Navbar = () => {
       <div className="lg:flexCenter">
       
         <Button 
-        href='/Login'
+        href='/login'
           type="button"
           title="Login"
           icon="/login.svg"
