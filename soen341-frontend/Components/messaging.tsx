@@ -525,6 +525,7 @@ export function Messaging() {
         onCreateDirectMessage={() => setShowCreateDM(true)}
         onViewChannelInvite={handleViewChannelInvite}
         currentUser={currentUser}
+        fetchChannels={fetchChannels}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden border-l">

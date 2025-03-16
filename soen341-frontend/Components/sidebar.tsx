@@ -4,11 +4,8 @@ import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Hash, Plus, Settings, MessageSquare } from "lucide-react";
-import { Input } from "@/Components/ui/input"; // ✅ Import Input component
+import { Input } from "@/Components/ui/input"; 
 import { useState } from "react";
-
-
-
 
 
 interface ExtendedChannel extends Channel {
@@ -30,9 +27,8 @@ interface SidebarProps {
   onCreateDirectMessage: () => void;
   onViewChannelInvite: (channel: Channel) => void;
   currentUser: User | null;
-  
+  fetchChannels: () => void;
 }
-
 
 export function Sidebar({
   channels,
@@ -43,6 +39,7 @@ export function Sidebar({
   onCreateDirectMessage,
   onViewChannelInvite,
   currentUser,
+  fetchChannels,
 }: SidebarProps) {
   const [inviteCode, setInviteCode] = useState("");
 
@@ -65,8 +62,8 @@ export function Sidebar({
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken") || process.env.NEXT_PUBLIC_JWT_TOKEN}`,
           },
-          credentials: "include",
         }
       );
 
@@ -76,6 +73,7 @@ export function Sidebar({
       }
 
       const updatedChannel = await response.json();
+      fetchChannels();
       alert(`Joined channel: ${updatedChannel.name}`);
       setInviteCode("");
     } catch (error) {
