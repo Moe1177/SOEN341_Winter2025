@@ -64,9 +64,8 @@ export function Messaging() {
 
   const receiverId = getActiveDirectMessage()?.receiverId as string;
   console.log("Receiver ID: ", receiverId);
-    
-  // process.env.NEXT_PUBLIC_JWT_TOKEN as string ||
-  const token =  localStorage.getItem("authToken")! ;
+
+  const token =  localStorage.getItem("authToken")!;
   console.log("Token: ", token);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -527,6 +526,7 @@ export function Messaging() {
         onCreateDirectMessage={() => setShowCreateDM(true)}
         onViewChannelInvite={handleViewChannelInvite}
         currentUser={currentUser}
+        fetchChannels={fetchChannels}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden border-l">
