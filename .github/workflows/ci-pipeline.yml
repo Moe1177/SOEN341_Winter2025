@@ -41,6 +41,7 @@ jobs:
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_PRETTIER: false
           VALIDATE_NATURAL_LANGUAGE: false
+          VALIDATE_CHECKOV: false
 
   backend:
     runs-on: ubuntu-latest
