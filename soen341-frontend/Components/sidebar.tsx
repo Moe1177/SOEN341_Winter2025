@@ -1,12 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import type { User, Channel } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Hash, Plus, Settings, MessageSquare } from "lucide-react";
-import { Input } from "@/Components/ui/input"; 
-import { useState } from "react";
-
+import { Input } from "@/Components/ui/input";
 
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
@@ -32,7 +30,7 @@ interface SidebarProps {
 
 /**
  * Sidebar component that displays a list of channels and direct messages, allowing users to select or create new conversations.
- * 
+ *
  * @param {Object} props - The props for the Sidebar component.
  * @param {Array} props.channels - List of channels in the workspace.
  * @param {Array} props.directMessages - List of direct message conversations.
@@ -55,6 +53,13 @@ export function Sidebar({
   fetchChannels,
 }: SidebarProps) {
   const [inviteCode, setInviteCode] = useState("");
+  const [authToken, setAuthToken] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setAuthToken(localStorage.getItem("authToken") || "");
+    }
+  }, []);
 
   const handleJoinChannel = async () => {
     if (!inviteCode.trim()) {
@@ -75,14 +80,16 @@ export function Sidebar({
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken") || process.env.NEXT_PUBLIC_JWT_TOKEN}`,
+            Authorization: `Bearer ${authToken}`,
           },
         }
       );
 
       if (!response.ok) {
         console.error("Failed to join channel:", response.body);
-        throw new Error("Failed to join channel. Please check the invite code.");
+        throw new Error(
+          "Failed to join channel. Please check the invite code."
+        );
       }
 
       const updatedChannel = await response.json();
@@ -95,7 +102,6 @@ export function Sidebar({
     }
   };
 
-  
   return (
     <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20">
       <div className="p-3 flex items-center justify-between border-b">
@@ -167,20 +173,18 @@ export function Sidebar({
               </Button>
             </div>
           )}
-<div className="flex items-center space-x-2 px-2 py-2">
-  <Input
-    type="text"
-    placeholder="Enter invite code"
-    value={inviteCode}
-    onChange={(e) => setInviteCode(e.target.value)}
-    className="flex-1"
-  />
-  <Button onClick={handleJoinChannel} variant="default">
-    Join
-  </Button>
-</div>
-
-
+          <div className="flex items-center space-x-2 px-2 py-2">
+            <Input
+              type="text"
+              placeholder="Enter invite code"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={handleJoinChannel} variant="default">
+              Join
+            </Button>
+          </div>
 
           <div className="flex items-center justify-between px-2 py-1.5 mt-4">
             <div className="text-xs font-semibold text-muted-foreground">

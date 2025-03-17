@@ -6,7 +6,7 @@ import { MessageList } from "./message-list";
 import { MessageInput } from "./message-input";
 import { Sidebar } from "@/Components/sidebar";
 import { ConversationHeader } from "./conversation-header";
-import type { User, Channel } from "@/lib/types";
+import type { User, Channel, WebSocketMessage } from "@/lib/types";
 import useChat from "@/lib/use-websocket";
 import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
@@ -52,63 +52,85 @@ export function Messaging() {
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  // State for auth token
+  const [token, setToken] = useState<string>("");
 
   // Initialise the current user's ID
   const userId = process.env.NEXT_PUBLIC_USER_ID!;
-  
+
+  // Initialize the token from localStorage (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("authToken");
+      if (storedToken) {
+        setToken(storedToken);
+      }
+
+      const storedUsername = localStorage.getItem("currentUsername");
+      if (storedUsername && !currentUser) {
+        setCurrentUser({
+          id: userId,
+          username: storedUsername,
+          email: "",
+          password: "",
+          channelIds: [],
+          directMessageIds: [],
+          adminsForWhichChannels: [],
+          status: "ONLINE",
+        });
+      }
+    }
+  }, []);
+
   /**
- * Retrieves the active direct message conversation, if any.
- *
- * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
- *                        if an active direct message is found, otherwise returns null.
- * 
- * @property {string} receiverId - The ID of the direct message recipient.
- * @property {string} senderUsername - The username of the direct message sender.
- */
+   * Retrieves the active direct message conversation, if any.
+   *
+   * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
+   *                        if an active direct message is found, otherwise returns null.
+   *
+   * @property {string} receiverId - The ID of the direct message recipient.
+   * @property {string} senderUsername - The username of the direct message sender.
+   */
   const getActiveDirectMessage = (): {
     receiverId: string;
     senderUsername: string;
   } | null => {
-    if (!isActiveChannelConversation && activeConversationId) {
+    if (
+      !isActiveChannelConversation &&
+      activeConversationId &&
+      directMessages &&
+      directMessages.length > 0
+    ) {
       const dm = directMessages.find((d) => d.id === activeConversationId);
-      if (dm) {
+      if (dm && dm.participant) {
         console.log("Active DM recipitent ID: ", dm.participant.id);
         return {
-          receiverId: dm.participant.id,
-          senderUsername: dm.participant.username,
+          receiverId: dm.participant.id || "",
+          senderUsername: dm.participant.username || "Unknown User",
         };
       }
     }
     return null;
   };
 
-  const receiverId = getActiveDirectMessage()?.receiverId as string;
-  console.log("Receiver ID: ", receiverId);
-
-  const token =  localStorage.getItem("authToken")!;
-  console.log("Token: ", token);
+  const activeDM = getActiveDirectMessage();
+  const receiverId = activeDM?.receiverId || "";
 
   /**
- * Handles a new direct message (DM) by checking if the channel ID already exists.
- * If the DM does not exist in the current direct messages, it fetches the channel details 
- * from the backend and adds the new DM to the list.
- * 
- * @async
- * @param {Object} message - The direct message object containing information about the DM.
- * @param {string} message.channelId - The unique ID of the direct message channel.
- * @param {string} message.senderUserName - The username of the direct message sender.
- * @param {boolean} message.directMessage - Flag indicating whether the message is a direct message.
- * 
- * @throws {Error} Throws an error if fetching channel data from the backend fails.
- */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleNewDirectMessage = async (message: any) => {
+   * Handles a new direct message (DM) by checking if the channel ID already exists.
+   * If the DM does not exist in the current direct messages, it fetches the channel details
+   * from the backend and adds the new DM to the list.
+   *
+   * @async
+   * @param {WebSocketMessage} message - The direct message object containing information about the DM.
+   *
+   * @throws {Error} Throws an error if fetching channel data from the backend fails.
+   */
+  const handleNewDirectMessage = async (message: WebSocketMessage) => {
     console.log("Handling new direct message:", message);
-    // Only proceed if it's a DM with a valid channel ID
     if (!message.channelId || !message.directMessage) return;
-    // Get rid of whitespace
+
     const normalizedId = message.channelId.trim();
-    // Dm already exists in state
     const exists = directMessages.some((dm) => {
       console.log(
         "Comparing dm.id:",
@@ -120,10 +142,9 @@ export function Messaging() {
     });
 
     console.log("DM exists:", exists);
-    // Dm does not exist
+
     if (!exists) {
       try {
-        // Fetch the channel details
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/${message.channelId}`,
           {
@@ -142,12 +163,19 @@ export function Messaging() {
 
         const channelData = await response.json();
 
-        // New DirectMessageDisplay object
+        const otherUserId =
+          channelData.directMessageMembers &&
+          Array.isArray(channelData.directMessageMembers)
+            ? channelData.directMessageMembers.find(
+                (id: string) => id !== userId
+              ) || ""
+            : "";
+
         const newDM: DirectMessageDisplay = {
           id: channelData.id,
           participant: {
-            id: receiverId,
-            username: message.senderUserName || "Unknown User",
+            id: otherUserId,
+            username: message.senderUsername || "Unknown User",
             email: "",
             password: "",
             channelIds: [],
@@ -172,20 +200,23 @@ export function Messaging() {
   console.log("Check direct messages array:", directMessages);
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
-      activeConversationId as string,
-      userId,
+      activeConversationId || "",
+      userId || "",
       token,
-      receiverId,
+      receiverId || "",
       handleNewDirectMessage
     );
 
   // Initialize connection and fetch initial data
   useEffect(() => {
-    fetchCurrentUser();
-    fetchChannels();
-    fetchDirectMessages();
-    fetchUsers();
-  }, []);
+    // Only fetch data if token is available
+    if (token) {
+      fetchCurrentUser();
+      fetchChannels();
+      fetchDirectMessages();
+      fetchUsers();
+    }
+  }, [token]); // Depend on token, so fetching only happens after token is available
 
   // Subscribe to active conversation when it changes
   useEffect(() => {
@@ -250,6 +281,11 @@ export function Messaging() {
       );
 
       const data = await handleApiResponse(response);
+
+      if (typeof window !== "undefined" && data && data.username) {
+        localStorage.setItem("currentUsername", data.username);
+      }
+
       setCurrentUser(data);
     } catch (error) {
       console.error("Error fetching current user:", error);
@@ -317,36 +353,72 @@ export function Messaging() {
       const data = await handleApiResponse(response);
 
       console.log("Fetched direct messages:", data);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const dmDisplays: DirectMessageDisplay[] = data.map((dm: any) => {
-        // Find the ID of the other user (not the current user)
-        const otherMemberId = dm.directMessageMembers.find(
-          (memberId: string) => memberId !== userId
-        );
 
-        let username;
+      interface DirectMessageChannel extends Partial<WebSocketMessage> {
+        id: string;
+        directMessageMembers: string[];
+        senderUsername: string;
+        receiverUsername: string;
+      }
 
-        if (dm.senderUsername !== currentUser?.username) {
-          username = dm.senderUsername;
-        } else {
-          username = dm.receiverUsername;
-        }
+      const dmDisplays: DirectMessageDisplay[] = data
+        .map((dm: DirectMessageChannel) => {
+          const otherMemberId = dm.directMessageMembers.find(
+            (memberId: string) => memberId !== userId
+          );
 
-        return {
-          id: dm.id,
-          participant: {
-            id: otherMemberId || "", 
-            username: username,
-            status: "ONLINE",
-            email: "",
-            password: "",
-            channelIds: [],
-            directMessageIds: [],
-            adminsForWhichChannels: [],
-          },
-          unreadCount: 0,
-        };
-      });
+          const currentUsername =
+            currentUser?.username ||
+            (typeof window !== "undefined"
+              ? localStorage.getItem("currentUsername")
+              : null);
+
+          if (!currentUsername) {
+            console.error(
+              "Current user username not found - using senderId comparison instead"
+            );
+            return {
+              id: dm.id,
+              participant: {
+                id: otherMemberId || "",
+                username:
+                  dm.senderId !== userId
+                    ? dm.senderUsername
+                    : dm.receiverUsername,
+                status: "ONLINE",
+                email: "",
+                password: "",
+                channelIds: [],
+                directMessageIds: [],
+                adminsForWhichChannels: [],
+              },
+              unreadCount: 0,
+            };
+          }
+
+          let username;
+          if (dm.receiverUsername !== currentUsername) {
+            username = dm.receiverUsername;
+          } else {
+            username = dm.senderUsername;
+          }
+
+          return {
+            id: dm.id,
+            participant: {
+              id: otherMemberId || "",
+              username: username,
+              status: "ONLINE",
+              email: "",
+              password: "",
+              channelIds: [],
+              directMessageIds: [],
+              adminsForWhichChannels: [],
+            },
+            unreadCount: 0,
+          };
+        })
+        .filter(Boolean);
 
       setDirectMessages(dmDisplays);
     } catch (error) {
@@ -388,11 +460,9 @@ export function Messaging() {
 
       const data = await handleApiResponse(response);
 
-      // Convert timestamps to Date objects
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const formattedMessages = data.map((msg: any) => ({
+      const formattedMessages = data.map((msg: Partial<WebSocketMessage>) => ({
         ...msg,
-        timestamp: new Date(msg.timestamp),
+        timestamp: new Date(msg.timestamp || Date.now()),
       }));
 
       console.log(
@@ -439,15 +509,15 @@ export function Messaging() {
   };
 
   /**
- * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
- * 
- * @async
- * @param {string} recipientId - The unique ID of the user to start a DM with.
- * 
- * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
- * 
- * @throws {Error} Throws an error if the API call to create a DM fails.
- */
+   * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
+   *
+   * @async
+   * @param {string} recipientId - The unique ID of the user to start a DM with.
+   *
+   * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
+   *
+   * @throws {Error} Throws an error if the API call to create a DM fails.
+   */
   const handleCreateDirectMessage = async (recipientId: string) => {
     try {
       const response = await fetch(
