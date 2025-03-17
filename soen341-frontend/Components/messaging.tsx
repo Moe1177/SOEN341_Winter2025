@@ -357,7 +357,7 @@ export function Messaging() {
   const fetchUsers = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users`,
+        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users/get-other-users/${userId}`,
         {
           method: "GET",
           headers: {
