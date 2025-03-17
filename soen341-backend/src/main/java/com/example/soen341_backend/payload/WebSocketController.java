@@ -58,7 +58,7 @@ public class WebSocketController {
     // Create and save message to database
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(senderUsername); // Use the extracted senderId
+    message.setSenderId(findUser.getId()); // Use the extracted senderId
     message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
@@ -66,9 +66,8 @@ public class WebSocketController {
     messageService.sendChannelMessage(message, findUser.getId());
 
     // Add sender name to the response
-    User sender = userService.getUserByUsername(senderUsername);
-    webSocketMessage.setSenderId(sender.getId()); // Ensure the correct sender ID is set
-    webSocketMessage.setSenderUserName(sender.getUsername());
+    webSocketMessage.setSenderId(findUser.getId());
+    webSocketMessage.setSenderUsername(senderUsername);
     webSocketMessage.setTimestamp(Instant.now());
     webSocketMessage.setDirectMessage(false);
     webSocketMessage.setReceiverId(webSocketMessage.getReceiverId());
@@ -119,7 +118,7 @@ public class WebSocketController {
     // Add channel ID and sender name to the response
     webSocketMessage.setSenderId(findUser.getId()); // Ensure the correct sender ID is set
     webSocketMessage.setChannelId(savedMessage.getChannelId());
-    webSocketMessage.setSenderUserName(senderUsername);
+    webSocketMessage.setSenderUsername(senderUsername);
     webSocketMessage.setTimestamp(Instant.now());
 
     //    // Send message to sender

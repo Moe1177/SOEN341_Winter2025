@@ -102,11 +102,6 @@ public class MessageService {
       throw new UnauthorizedException("You don't have access to this channel");
     }
 
-    //    message.setSenderId(senderId);
-    //    message.setTimestamp(Instant.now());
-    //    message.setDirectMessage(false);
-    //    message.setReceiverId(null);
-
     return messageRepository.save(message);
   }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Message, User } from "@/lib/types";
+import type { User, WebSocketMessage } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 
 interface MessageListProps {
-  messages: Message[];
+  messages: WebSocketMessage[];
   currentUser: User | null;
   users: Record<string, User>;
 }
@@ -61,7 +61,7 @@ export function MessageList({
   };
 
   // Group messages by date
-  const groupedMessages: { [key: string]: Message[] } = {};
+  const groupedMessages: { [key: string]: WebSocketMessage[] } = {};
   messages.forEach((message) => {
     // Ensure timestamp is a Date object
     const timestamp =
@@ -79,6 +79,7 @@ export function MessageList({
     });
   });
 
+
   return (
     <ScrollArea className="flex-1 p-4" ref={scrollRef}>
       {Object.entries(groupedMessages).map(([date, dateMessages]) => (
@@ -93,14 +94,16 @@ export function MessageList({
 
           {dateMessages.map((message, index) => {
             const isCurrentUser =
-              currentUser && message.senderId === currentUser.id;
+              currentUser && message.id === currentUser.id;
             const showAvatar =
               index === 0 ||
-              dateMessages[index - 1].senderId !== message.senderId;
+              dateMessages[index - 1].id !== message.id;
+
+
 
             const sender = users[message.senderId] || {
-              username: "Unknown",
-              id: message.senderId,
+              username: message.senderId,
+              id: message.id,
             };
 
             return (
