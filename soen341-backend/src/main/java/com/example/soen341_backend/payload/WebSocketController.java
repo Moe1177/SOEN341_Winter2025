@@ -58,7 +58,8 @@ public class WebSocketController {
     // Create and save message to database
     Message message = new Message();
     message.setContent(webSocketMessage.getContent());
-    message.setSenderId(findUser.getId()); // Use the extracted senderId
+    message.setSenderId(findUser.getId());
+    message.setSenderUsername(senderUsername);
     message.setChannelId(webSocketMessage.getChannelId());
     message.setTimestamp(Instant.now());
     message.setDirectMessage(false);
