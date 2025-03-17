@@ -11,6 +11,16 @@ interface MessageInputProps {
   onSendMessageAction: (content: string) => void;
 }
 
+/**
+ * MessageInput component allows the user to type and send messages. It automatically sends the message when the user
+ * presses the "Enter" key or presses the button to send the message.
+ * 
+ * @param {Object} props - The component props.
+ * @param {(message: string)} props.onSendMessageAction - Callback function to handle sending the message. 
+ * This function is called with the message text when the user sends a message.
+ * 
+ * @returns {JSX.Element} The rendered MessageInput component, which includes a text area for typing and a send button.
+ */
 export function MessageInput({ onSendMessageAction }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);

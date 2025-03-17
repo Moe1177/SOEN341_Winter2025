@@ -11,6 +11,17 @@ interface MessageListProps {
   users: Record<string, User>;
 }
 
+/**
+ * MessageList component displays a list of messages grouped by date. It automatically scrolls to the latest message
+ * and formats timestamps for messages with respect to the current date.
+ * 
+ * @param {Object} props - The component props.
+ * @param {Message[]} props.messages - An array of messages to display in the list.
+ * @param {User | null} props.currentUser - The current user object, used to determine if a message is sent by the current user.
+ * @param {Record<string, User>} props.users - A dictionary of users where the key is the user ID and the value is the user object.
+ * 
+ * @returns {JSX.Element} The rendered MessageList component, displaying messages grouped by date.
+ */
 export function MessageList({
   messages,
   currentUser,

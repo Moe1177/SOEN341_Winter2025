@@ -19,6 +19,16 @@ interface ChannelInviteDialogProps {
   onCloseAction: () => void;
 }
 
+/**
+ * ChannelInviteDialog component provides a dialog interface for sharing an invite code to join a specific channel.
+ * The dialog allows the user to copy the invite code to the clipboard and share it with others to invite them to the channel.
+ * 
+ * @param {Object} props - The component props.
+ * @param {Channel} props.channel - The channel for which the invitation is being sent, containing the channel name and invite code.
+ * @param {()} props.onCloseAction - Callback function to close the dialog when triggered by the user (e.g., clicking "Close").
+ * 
+ * @returns {JSX.Element} The rendered ChannelInviteDialog component, which includes the dialog for copying the invite code.
+ */
 export function ChannelInviteDialog({
   channel,
   onCloseAction,

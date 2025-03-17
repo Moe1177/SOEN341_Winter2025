@@ -79,4 +79,11 @@ public class ChannelController {
     String user2Id = users.get("user2Id");
     return channelService.getOrCreateDirectMessageChannel(user1Id, user2Id);
   }
+
+  @PutMapping("/join")
+  public ResponseEntity<?> joinChannel(
+      @RequestParam String inviteCode, @RequestParam String userId) {
+    Channel updatedChannel = channelService.joinChannelByInviteCode(inviteCode, userId);
+    return ResponseEntity.ok(updatedChannel);
+  }
 }

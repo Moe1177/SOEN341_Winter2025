@@ -3,7 +3,6 @@ package com.example.soen341_backend.channel;
 import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
 import com.example.soen341_backend.user.User;
-import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ public class ChannelService {
 
   private final ChannelRepository channelRepository;
   private final UserService userService;
-  private final UserRepository userRepository;
 
   public List<Channel> getAllChannels() {
     return channelRepository.findByIsDirectMessageFalse();
@@ -257,6 +255,34 @@ public class ChannelService {
   private String generateInviteCode() {
     Random random = new Random();
     return String.format("%06d", random.nextInt(1000000));
+  }
+
+  public Channel joinChannelByInviteCode(String inviteCode, String userId) {
+    /**
+     * Allows a user to join a channel using an invite code.
+     *
+     * @param inviteCode the invite code provided by the user.
+     * @param userId the ID of the user joining the channel.
+     * @return the updated {@link Channel} object after adding the user.
+     * @throws ResourceNotFoundException if no channel with the given invite code exists.
+     */
+    Channel channel =
+        channelRepository
+            .findByInviteCode(inviteCode)
+            .orElseThrow(() -> new ResourceNotFoundException("Invalid invite code"));
+
+    if (channel.getMembers().contains(userId)) {
+      throw new IllegalArgumentException("User is already in this channel");
+    }
+
+    channel.getMembers().add(userId);
+    Channel updatedChannel = channelRepository.save(channel);
+
+    User user = userService.getUserById(userId);
+    user.getChannelIds().add(channel.getId());
+    userService.saveUser(user);
+
+    return updatedChannel;
   }
 
   public boolean promoteUserToAdmin(String channelId, String userId) {
