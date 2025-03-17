@@ -94,15 +94,13 @@ export function MessageList({
 
           {dateMessages.map((message, index) => {
             const isCurrentUser =
-              currentUser && message.id === currentUser.id;
+              currentUser && message.senderId === currentUser.id;
             const showAvatar =
               index === 0 ||
               dateMessages[index - 1].id !== message.id;
 
-
-
             const sender = users[message.senderId] || {
-              username: message.senderId,
+              username: message.senderUsername,
               id: message.id,
             };
 
