@@ -24,11 +24,34 @@ interface ExtendedChannel extends Channel {
   unreadCount?: number;
 }
 
+// Custom hook for safely accessing localStorage
+const useLocalStorage = (key: string, initialValue: string) => {
+  const [value, setValue] = useState(initialValue);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedValue = localStorage.getItem(key);
+      setValue(storedValue || initialValue);
+      setIsLoaded(true);
+    }
+  }, [key, initialValue]);
+
+  return [value, setValue, isLoaded] as const;
+};
+
 /**
  *  Messaging component allowing users to message eachother
  *
  */
 export function Messaging() {
+  // State for client-side rendering
+  const [isClient, setIsClient] = useState(false);
+
+  // Use the custom hook for localStorage values
+  const [userId, setUserId, isUserIdLoaded] = useLocalStorage("userId", "");
+  const [token, setToken, isTokenLoaded] = useLocalStorage("authToken", "");
+
   // State for current logged in user
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   // State for for storing available channels
@@ -53,18 +76,20 @@ export function Messaging() {
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
-  // Initialise the current user's ID
-  const userId = process.env.NEXT_PUBLIC_USER_ID!;
-  
+  // Set isClient to true when component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   /**
- * Retrieves the active direct message conversation, if any.
- *
- * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
- *                        if an active direct message is found, otherwise returns null.
- * 
- * @property {string} receiverId - The ID of the direct message recipient.
- * @property {string} senderUsername - The username of the direct message sender.
- */
+   * Retrieves the active direct message conversation, if any.
+   *
+   * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
+   *                        if an active direct message is found, otherwise returns null.
+   *
+   * @property {string} receiverId - The ID of the direct message recipient.
+   * @property {string} senderUsername - The username of the direct message sender.
+   */
   const getActiveDirectMessage = (): {
     receiverId: string;
     senderUsername: string;
@@ -84,23 +109,21 @@ export function Messaging() {
 
   const receiverId = getActiveDirectMessage()?.receiverId as string;
   console.log("Receiver ID: ", receiverId);
-
-  const token =  localStorage.getItem("authToken")!;
   console.log("Token: ", token);
 
   /**
- * Handles a new direct message (DM) by checking if the channel ID already exists.
- * If the DM does not exist in the current direct messages, it fetches the channel details 
- * from the backend and adds the new DM to the list.
- * 
- * @async
- * @param {Object} message - The direct message object containing information about the DM.
- * @param {string} message.channelId - The unique ID of the direct message channel.
- * @param {string} message.senderUserName - The username of the direct message sender.
- * @param {boolean} message.directMessage - Flag indicating whether the message is a direct message.
- * 
- * @throws {Error} Throws an error if fetching channel data from the backend fails.
- */
+   * Handles a new direct message (DM) by checking if the channel ID already exists.
+   * If the DM does not exist in the current direct messages, it fetches the channel details
+   * from the backend and adds the new DM to the list.
+   *
+   * @async
+   * @param {Object} message - The direct message object containing information about the DM.
+   * @param {string} message.channelId - The unique ID of the direct message channel.
+   * @param {string} message.senderUserName - The username of the direct message sender.
+   * @param {boolean} message.directMessage - Flag indicating whether the message is a direct message.
+   *
+   * @throws {Error} Throws an error if fetching channel data from the backend fails.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNewDirectMessage = async (message: any) => {
     console.log("Handling new direct message:", message);
@@ -121,7 +144,7 @@ export function Messaging() {
 
     console.log("DM exists:", exists);
     // Dm does not exist
-    if (!exists) {
+    if (!exists && token) {
       try {
         // Fetch the channel details
         const response = await fetch(
@@ -179,13 +202,15 @@ export function Messaging() {
       handleNewDirectMessage
     );
 
-  // Initialize connection and fetch initial data
+  // Initialize connection and fetch initial data when localStorage values are available
   useEffect(() => {
-    fetchCurrentUser();
-    fetchChannels();
-    fetchDirectMessages();
-    fetchUsers();
-  }, []);
+    if (isUserIdLoaded && isTokenLoaded && userId && token) {
+      fetchCurrentUser();
+      fetchChannels();
+      fetchDirectMessages();
+      fetchUsers();
+    }
+  }, [isUserIdLoaded, isTokenLoaded, userId, token]);
 
   // Subscribe to active conversation when it changes
   useEffect(() => {
@@ -270,6 +295,8 @@ export function Messaging() {
 
   const fetchChannels = async () => {
     try {
+      if (!userId || !token) return;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/user/${userId}`,
         {
@@ -304,6 +331,8 @@ export function Messaging() {
 
   const fetchDirectMessages = async () => {
     try {
+      if (!userId || !token) return;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message/${userId}`,
         {
@@ -335,7 +364,7 @@ export function Messaging() {
         return {
           id: dm.id,
           participant: {
-            id: otherMemberId || "", 
+            id: otherMemberId || "",
             username: username,
             status: "ONLINE",
             email: "",
@@ -356,6 +385,8 @@ export function Messaging() {
 
   const fetchUsers = async () => {
     try {
+      if (!token) return;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users`,
         {
@@ -375,7 +406,7 @@ export function Messaging() {
 
   const fetchMessages = async (conversationId: string, isChannel: boolean) => {
     try {
-      if (!conversationId) return;
+      if (!conversationId || !token) return;
 
       const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel/${conversationId}`;
 
@@ -415,6 +446,8 @@ export function Messaging() {
 
   const handleCreateChannel = async (name: string) => {
     try {
+      if (!userId || !token) return;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/create-channel?userId=${userId}`,
         {
@@ -439,17 +472,19 @@ export function Messaging() {
   };
 
   /**
- * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
- * 
- * @async
- * @param {string} recipientId - The unique ID of the user to start a DM with.
- * 
- * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
- * 
- * @throws {Error} Throws an error if the API call to create a DM fails.
- */
+   * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
+   *
+   * @async
+   * @param {string} recipientId - The unique ID of the user to start a DM with.
+   *
+   * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
+   *
+   * @throws {Error} Throws an error if the API call to create a DM fails.
+   */
   const handleCreateDirectMessage = async (recipientId: string) => {
     try {
+      if (!userId || !token) return null;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message`,
         {
@@ -459,7 +494,7 @@ export function Messaging() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            user1Id: userId, // Using hardcoded userId
+            user1Id: userId,
             user2Id: recipientId,
           }),
         }
@@ -553,6 +588,15 @@ export function Messaging() {
     }
     return undefined;
   };
+
+  // Show loading state if client-side rendering hasn't happened yet or localStorage values aren't loaded
+  if (!isClient || !isUserIdLoaded || !isTokenLoaded) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

@@ -68,8 +68,11 @@ public class AuthController {
 
       // Generate JWT token if authentication is successful
       String token = jwtUtils.generateToken(username);
-      userService.updateOnlineStatus(user.get().getId(), Status.ONLINE);
-      return ResponseEntity.ok(new AuthResponse(token));
+      String userId = user.get().getId();
+      userService.updateOnlineStatus(userId, Status.ONLINE);
+
+      // Return token and userId in the response using the updated record
+      return ResponseEntity.ok(new AuthResponse(token, userId.toString()));
 
     } catch (AuthenticationException e) {
       // Return an error response if authentication fails
@@ -270,5 +273,5 @@ public class AuthController {
     }
   }
 
-  public record AuthResponse(String token) {}
+  public record AuthResponse(String token, String userId) {}
 }

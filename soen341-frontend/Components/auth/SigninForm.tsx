@@ -33,7 +33,7 @@ function SigninForm({ showToast }: SigninFormProps) {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/auth/login?${params.toString()}`,
+        `http://localhost:8080/api/auth/login?${params.toString()}`,
         {
           method: "POST",
           headers: {
@@ -65,14 +65,11 @@ function SigninForm({ showToast }: SigninFormProps) {
         responseData = { message: await response.text() };
       }
 
-      console.log("Login successful", responseData);
+      console.log("Login successful", responseData.userId);
 
       if (responseData && responseData.token) {
         localStorage.setItem("authToken", responseData.token);
-      }
-
-      if (responseData && responseData.user) {
-        localStorage.setItem("currentUser", JSON.stringify(responseData.user));
+        localStorage.setItem("userId", responseData.userId);
       }
 
       showToast("Login successful!", "success");
