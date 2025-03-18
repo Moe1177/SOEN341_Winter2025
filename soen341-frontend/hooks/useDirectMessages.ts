@@ -19,6 +19,8 @@ export function useDirectMessages(
     []
   );
 
+  console.log("User ID:", userId);
+
   // Fetch all direct message conversations
   const fetchDirectMessages = async () => {
     try {
