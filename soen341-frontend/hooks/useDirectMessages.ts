@@ -12,6 +12,7 @@ export function useDirectMessages(
   userId: string,
   token: string,
   currentUser: User | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handleApiResponse: (response: Response) => Promise<any>
 ) {
   const [directMessages, setDirectMessages] = useState<DirectMessageDisplay[]>(

@@ -285,13 +285,11 @@ public class ChannelService {
     return updatedChannel;
   }
 
-  public boolean promoteUserToAdmin(
-      String channelId, String userIdToPromote, String adminUsername) {
+  public void promoteUserToAdmin(String channelId, String userIdToPromote, String adminUsername) {
     User admin = userService.getUserByUsername(adminUsername);
 
     if (userService.isAdmin(admin.getId(), channelId)) {
       userService.addAdminChannelToUser(userIdToPromote, channelId);
-      return true;
-    } else return false;
+    }
   }
 }
