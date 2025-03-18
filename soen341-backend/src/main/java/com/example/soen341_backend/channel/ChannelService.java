@@ -284,4 +284,11 @@ public class ChannelService {
 
     return updatedChannel;
   }
+
+  public boolean promoteUserToAdmin(String channelId, String userId) {
+    if (userService.isAdmin(userId, channelId)) {
+      userService.addAdminChannelToUser(userId, channelId);
+      return true;
+    } else return false;
+  }
 }

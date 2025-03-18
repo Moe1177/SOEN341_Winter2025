@@ -163,4 +163,18 @@ public class MessageService {
       messagingTemplate.convertAndSend("/queue/user/" + message.getReceiverId(), notification);
     }
   }
+
+  public void editMessage(String messageId, String username, Message editedMessage) {
+    Message messageToEdit = getMessageById(messageId);
+    Optional<User> user = userRepository.findByUsername(username);
+
+    // Only message sender and admin can edit a message
+    if (!messageToEdit.getSenderId().equals(user.get().getId())
+        && !userService.isAdmin(user.get().getId(), messageToEdit.getChannelId())) {
+      throw new UnauthorizedException("You don't have permission to edit this message");
+    }
+
+    messageToEdit.setContent(editedMessage.getContent());
+    messageRepository.save(messageToEdit);
+  }
 }

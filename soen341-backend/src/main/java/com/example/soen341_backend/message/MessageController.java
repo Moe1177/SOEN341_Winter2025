@@ -61,6 +61,15 @@ public class MessageController {
     return ResponseEntity.ok().build();
   }
 
+  @PostMapping("/{id}")
+  public ResponseEntity<?> editMessage(
+      @PathVariable String id, Message newMessage, HttpServletRequest request) {
+    // Extract userId from JWT token
+    String username = getUserIdFromRequest(request);
+    messageService.editMessage(id, username, newMessage);
+    return ResponseEntity.ok().build();
+  }
+
   // Helper method to extract the username from JWT token in the request
   private String getUserIdFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
