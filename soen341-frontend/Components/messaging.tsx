@@ -6,198 +6,78 @@ import { MessageList } from "./message-list";
 import { MessageInput } from "./message-input";
 import { Sidebar } from "@/Components/sidebar";
 import { ConversationHeader } from "./conversation-header";
-import type { User, Channel, WebSocketMessage } from "@/lib/types";
+import type { User, Channel } from "@/lib/types";
 import useChat from "@/lib/use-websocket";
 import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
+import { ChannelMembersList } from "./channel-members-list";
+
+// Import custom hooks
+import { useAuth } from "@/hooks/useAuth";
+import { useChannels } from "@/hooks/useChannels";
+import { useDirectMessages } from "@/hooks/useDirectMessages";
+import { useMessaging } from "@/hooks/useMessaging";
 
 // interface to represent a direct message display
-interface DirectMessageDisplay {
-  id: string;
-  participant: User;
-  unreadCount?: number;
-}
-
-// interface to show the number of unread messages
-interface ExtendedChannel extends Channel {
-  unreadCount?: number;
-}
 
 /**
  *  Messaging component allowing users to message eachother
  *
  */
 export function Messaging() {
-  // State for current logged in user
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  // State for for storing available channels
-  const [channels, setChannels] = useState<ExtendedChannel[]>([]);
-  // State for storing DMs
-  const [directMessages, setDirectMessages] = useState<DirectMessageDisplay[]>(
-    []
-  );
-  // State to show active Dms and active Channels
+  // Using custom auth hook
+  const { currentUser, token, userId, fetchCurrentUser, handleApiResponse } =
+    useAuth();
+
+  // Using custom channels hook
+  const {
+    channels,
+    selectedChannel,
+    setSelectedChannel,
+    fetchChannels,
+    fetchChannelMembers,
+    createChannel,
+    getChannelById,
+  } = useChannels(userId, token, handleApiResponse);
+
+  // Using custom direct messages hook
+  const {
+    directMessages,
+    fetchDirectMessages,
+    fetchDirectMessageListUsers,
+    createDirectMessage,
+    getActiveDirectMessage,
+    handleNewDirectMessage,
+  } = useDirectMessages(userId, token, currentUser, handleApiResponse);
+
+  // Using custom messaging hook
+  const { fetchMessages } = useMessaging(token, handleApiResponse);
+
+  // State for users
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersMap, setUsersMap] = useState<Record<string, User>>({});
+
+  // Conversation states
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
-  // State to differentiate active Dms or channels
   const [isActiveChannelConversation, setIsActiveChannelConversation] =
     useState<boolean>(true);
-  // State to store all users
-  const [users, setUsers] = useState<User[]>([]);
-  const [usersMap, setUsersMap] = useState<Record<string, User>>({});
-  // States different functions for channels and DMs
+
+  // UI dialog states
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  // State for auth token
-  const [token, setToken] = useState<string>("");
+  const [showChannelMembers, setShowChannelMembers] = useState<boolean>(true);
 
-  // Initialise the current user's ID
-  const userId = process.env.NEXT_PUBLIC_USER_ID!;
-
-  // Initialize the token from localStorage (client-side only)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("authToken");
-      if (storedToken) {
-        setToken(storedToken);
-      }
-
-      const storedUsername = localStorage.getItem("currentUsername");
-      if (storedUsername && !currentUser) {
-        setCurrentUser({
-          id: userId,
-          username: storedUsername,
-          email: "",
-          password: "",
-          channelIds: [],
-          directMessageIds: [],
-          adminsForWhichChannels: [],
-          status: "ONLINE",
-        });
-      }
-    }
-  }, []);
-
-  /**
-   * Retrieves the active direct message conversation, if any.
-   *
-   * @returns {Object|null} Returns an object containing `receiverId` and `senderUsername`
-   *                        if an active direct message is found, otherwise returns null.
-   *
-   * @property {string} receiverId - The ID of the direct message recipient.
-   * @property {string} senderUsername - The username of the direct message sender.
-   */
-  const getActiveDirectMessage = (): {
-    receiverId: string;
-    senderUsername: string;
-  } | null => {
-    if (
-      !isActiveChannelConversation &&
-      activeConversationId &&
-      directMessages &&
-      directMessages.length > 0
-    ) {
-      const dm = directMessages.find((d) => d.id === activeConversationId);
-      if (dm && dm.participant) {
-        console.log("Active DM recipitent ID: ", dm.participant.id);
-        return {
-          receiverId: dm.participant.id || "",
-          senderUsername: dm.participant.username || "Unknown User",
-        };
-      }
-    }
-    return null;
-  };
-
-  const activeDM = getActiveDirectMessage();
+  // Get active DM info
+  const activeDM = isActiveChannelConversation
+    ? null
+    : getActiveDirectMessage(activeConversationId);
   const receiverId = activeDM?.receiverId || "";
 
-  /**
-   * Handles a new direct message (DM) by checking if the channel ID already exists.
-   * If the DM does not exist in the current direct messages, it fetches the channel details
-   * from the backend and adds the new DM to the list.
-   *
-   * @async
-   * @param {WebSocketMessage} message - The direct message object containing information about the DM.
-   *
-   * @throws {Error} Throws an error if fetching channel data from the backend fails.
-   */
-  const handleNewDirectMessage = async (message: WebSocketMessage) => {
-    console.log("Handling new direct message:", message);
-    if (!message.channelId || !message.directMessage) return;
-
-    const normalizedId = message.channelId.trim();
-    const exists = directMessages.some((dm) => {
-      console.log(
-        "Comparing dm.id:",
-        `"${dm.id}"`,
-        "to normalizedId:",
-        `"${normalizedId}"`
-      );
-      return dm.id === normalizedId;
-    });
-
-    console.log("DM exists:", exists);
-
-    if (!exists) {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/${message.channelId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch channel data: ${response.statusText}`
-          );
-        }
-
-        const channelData = await response.json();
-
-        const otherUserId =
-          channelData.directMessageMembers &&
-          Array.isArray(channelData.directMessageMembers)
-            ? channelData.directMessageMembers.find(
-                (id: string) => id !== userId
-              ) || ""
-            : "";
-
-        const newDM: DirectMessageDisplay = {
-          id: channelData.id,
-          participant: {
-            id: otherUserId,
-            username: message.senderUsername || "Unknown User",
-            email: "",
-            password: "",
-            channelIds: [],
-            directMessageIds: [],
-            adminsForWhichChannels: [],
-            status: "ONLINE",
-          },
-          unreadCount: 1,
-        };
-
-        setDirectMessages((prev) => {
-          const exists = prev.some((dm) => dm.id === newDM.id);
-          if (exists) return prev;
-          return [...prev, newDM];
-        });
-      } catch (error) {
-        console.error("Error fetching new DM channel:", error);
-      }
-    }
-  };
-
-  console.log("Check direct messages array:", directMessages);
+  // Setup WebSocket chat
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
       activeConversationId || "",
@@ -209,14 +89,13 @@ export function Messaging() {
 
   // Initialize connection and fetch initial data
   useEffect(() => {
-    // Only fetch data if token is available
     if (token) {
       fetchCurrentUser();
       fetchChannels();
       fetchDirectMessages();
-      fetchUsers();
+      fetchDirectMessageListUsers(setUsers);
     }
-  }, [token]); // Depend on token, so fetching only happens after token is available
+  }, [token]);
 
   // Subscribe to active conversation when it changes
   useEffect(() => {
@@ -237,15 +116,6 @@ export function Messaging() {
     setUsersMap(map);
   }, [users]);
 
-  // Helper function to handle API responses
-  const handleApiResponse = async (response: Response) => {
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API error (${response.status}): ${text}`);
-    }
-    return response.json();
-  };
-
   // Handle sending messages
   const handleSendMessage = (content: string) => {
     if (!activeConversationId) {
@@ -260,334 +130,7 @@ export function Messaging() {
     }
   };
 
-  // API calls to fetch data
-  const fetchCurrentUser = async () => {
-    try {
-      if (!token) {
-        console.error("No authentication token found");
-        return;
-      }
-
-      // Make the request to the correct endpoint with Authorization header
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users/currentUser`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await handleApiResponse(response);
-
-      if (typeof window !== "undefined" && data && data.username) {
-        localStorage.setItem("currentUsername", data.username);
-      }
-
-      setCurrentUser(data);
-    } catch (error) {
-      console.error("Error fetching current user:", error);
-
-      // For testing purposes fallback user
-      setCurrentUser({
-        id: userId,
-        username: "TestUser",
-        email: "test@example.com",
-        password: "",
-        channelIds: [],
-        directMessageIds: [],
-        adminsForWhichChannels: [],
-        status: "ONLINE",
-      });
-    }
-  };
-
-  const fetchChannels = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/user/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await handleApiResponse(response);
-
-      // UnreadCount property to match ExtendedChannel
-      const extendedChannels: ExtendedChannel[] = data.map(
-        (channel: Channel) => ({
-          ...channel,
-          unreadCount: 0,
-        })
-      );
-      setChannels(extendedChannels);
-
-      // Set first channel as active if no active conversation
-      if (extendedChannels.length > 0 && !activeConversationId) {
-        setActiveConversationId(extendedChannels[0].id);
-        setIsActiveChannelConversation(true);
-        fetchMessages(extendedChannels[0].id, true);
-      }
-    } catch (error) {
-      console.error("Error fetching channels:", error);
-    }
-  };
-
-  const fetchDirectMessages = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await handleApiResponse(response);
-
-      console.log("Fetched direct messages:", data);
-
-      interface DirectMessageChannel extends Partial<WebSocketMessage> {
-        id: string;
-        directMessageMembers: string[];
-        senderUsername: string;
-        receiverUsername: string;
-      }
-
-      const dmDisplays: DirectMessageDisplay[] = data
-        .map((dm: DirectMessageChannel) => {
-          const otherMemberId = dm.directMessageMembers.find(
-            (memberId: string) => memberId !== userId
-          );
-
-          const currentUsername =
-            currentUser?.username ||
-            (typeof window !== "undefined"
-              ? localStorage.getItem("currentUsername")
-              : null);
-
-          if (!currentUsername) {
-            console.error(
-              "Current user username not found - using senderId comparison instead"
-            );
-            return {
-              id: dm.id,
-              participant: {
-                id: otherMemberId || "",
-                username:
-                  dm.senderId !== userId
-                    ? dm.senderUsername
-                    : dm.receiverUsername,
-                status: "ONLINE",
-                email: "",
-                password: "",
-                channelIds: [],
-                directMessageIds: [],
-                adminsForWhichChannels: [],
-              },
-              unreadCount: 0,
-            };
-          }
-
-          let username;
-          if (dm.receiverUsername !== currentUsername) {
-            username = dm.receiverUsername;
-          } else {
-            username = dm.senderUsername;
-          }
-
-          return {
-            id: dm.id,
-            participant: {
-              id: otherMemberId || "",
-              username: username,
-              status: "ONLINE",
-              email: "",
-              password: "",
-              channelIds: [],
-              directMessageIds: [],
-              adminsForWhichChannels: [],
-            },
-            unreadCount: 0,
-          };
-        })
-        .filter(Boolean);
-
-      setDirectMessages(dmDisplays);
-    } catch (error) {
-      console.error("Error fetching direct messages:", error);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users/get-other-users/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await handleApiResponse(response);
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const fetchMessages = async (conversationId: string, isChannel: boolean) => {
-    try {
-      if (!conversationId) return;
-
-      const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel/${conversationId}`;
-
-      const response = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await handleApiResponse(response);
-
-      const formattedMessages = data.map((msg: Partial<WebSocketMessage>) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp || Date.now()),
-      }));
-
-      console.log(
-        `Fetched messages for ${
-          isChannel ? "channel" : "DM"
-        } ${conversationId}:`,
-        formattedMessages
-      );
-
-      setInitialMessages(formattedMessages);
-    } catch (error) {
-      console.error(
-        `Error fetching messages for ${
-          isChannel ? "channel" : "direct message"
-        } ${conversationId}:`,
-        error
-      );
-    }
-  };
-
-  const handleCreateChannel = async (name: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/create-channel?userId=${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: name,
-          }),
-        }
-      );
-
-      const data = await handleApiResponse(response);
-      setChannels((prev) => [...prev, { ...data, unreadCount: 0 }]);
-    } catch (error) {
-      console.error("Error creating channel:", error);
-    }
-
-    setShowCreateChannel(false);
-  };
-
-  /**
-   * Creates a new direct message (DM) channel with the specified recipient and adds it to the list of direct messages.
-   *
-   * @async
-   * @param {string} recipientId - The unique ID of the user to start a DM with.
-   *
-   * @returns {string | null} Returns the new DM channel ID if successful, or null if an error occurs.
-   *
-   * @throws {Error} Throws an error if the API call to create a DM fails.
-   */
-  const handleCreateDirectMessage = async (recipientId: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user1Id: userId, // Using hardcoded userId
-            user2Id: recipientId,
-          }),
-        }
-      );
-
-      const data = await handleApiResponse(response);
-
-      // Find recipient user info
-      const recipient = users.find((user) => user.id === recipientId);
-
-      // Add to direct messages list
-      const newDM: DirectMessageDisplay = {
-        id: data.id,
-        participant: recipient || {
-          id: recipientId,
-          username: "Unknown User",
-          email: "",
-          password: "",
-          channelIds: [],
-          directMessageIds: [],
-          adminsForWhichChannels: [],
-          status: "ONLINE",
-        },
-        unreadCount: 0,
-      };
-
-      setDirectMessages((prev) => [...prev, newDM]);
-
-      // This ensures proper subscription setup before sending messages
-      handleConversationSelect(data.id, false);
-
-      // Added console log for debugging
-      console.log(`Created new DM channel with ID: ${data.id}`);
-
-      return data.id;
-    } catch (error) {
-      console.error("Error creating direct message:", error);
-      return null;
-    } finally {
-      setShowCreateDM(false);
-    }
-  };
-
-  const filteredMessages = messages.filter((msg) => {
-    if (isActiveChannelConversation) {
-      // Show only group (non-DM) messages for the active channel
-      return !msg.directMessage && msg.channelId === activeConversationId;
-    } else {
-      // Show only direct messages for the active DM channel
-      return msg.directMessage && msg.channelId === activeConversationId;
-    }
-  });
-
-  const handleViewChannelInvite = (channel: Channel) => {
-    setSelectedChannel(channel);
-    setShowChannelInvite(true);
-  };
-
+  // Handle conversation selection
   const handleConversationSelect = (
     conversationId: string,
     isChannel: boolean
@@ -604,18 +147,64 @@ export function Messaging() {
     setActiveConversationId(conversationId);
     setIsActiveChannelConversation(isChannel);
 
-    // Fetch historical messages for the new conversation.
-    fetchMessages(conversationId, isChannel);
-  };
+    // Show members list only for channels
+    setShowChannelMembers(isChannel);
 
-  // Get the active channel or direct message
-  const getActiveChannel = (): Channel | null => {
-    if (isActiveChannelConversation && activeConversationId) {
-      return channels.find((c) => c.id === activeConversationId) || null;
+    // Fetch historical messages for the new conversation
+    loadConversationMessages(conversationId, isChannel);
+
+    // Fetch channel members if this is a channel
+    if (isChannel) {
+      fetchChannelMembers(conversationId, currentUser, usersMap, setUsersMap);
     }
-    return null;
   };
 
+  // Load messages for a conversation
+  const loadConversationMessages = async (
+    conversationId: string,
+    isChannel: boolean
+  ) => {
+    const messages = await fetchMessages(conversationId, isChannel);
+    setInitialMessages(messages);
+  };
+
+  // Handle creating a new channel
+  const handleCreateChannel = async (name: string) => {
+    await createChannel(name);
+    setShowCreateChannel(false);
+  };
+
+  // Handle creating a new direct message
+  const handleCreateDirectMessage = async (recipientId: string) => {
+    const newDmId = await createDirectMessage(
+      recipientId,
+      users,
+      handleConversationSelect
+    );
+
+    fetchDirectMessageListUsers(setUsers);
+    setShowCreateDM(false);
+    return newDmId;
+  };
+
+  // Handle viewing channel invite
+  const handleViewChannelInvite = (channel: Channel) => {
+    setSelectedChannel(channel);
+    setShowChannelInvite(true);
+  };
+
+  // Filter messages for the current conversation
+  const filteredMessages = messages.filter((msg) => {
+    if (isActiveChannelConversation) {
+      // Show only group (non-DM) messages for the active channel
+      return !msg.directMessage && msg.channelId === activeConversationId;
+    } else {
+      // Show only direct messages for the active DM channel
+      return msg.directMessage && msg.channelId === activeConversationId;
+    }
+  });
+
+  // Get the active user for DMs
   const getActiveUser = (): User | undefined => {
     if (!isActiveChannelConversation && activeConversationId) {
       const dm = directMessages.find((d) => d.id === activeConversationId);
@@ -645,13 +234,16 @@ export function Messaging() {
             <ConversationHeader
               conversation={
                 isActiveChannelConversation
-                  ? getActiveChannel()!
-                  : getActiveDirectMessage()!
+                  ? getChannelById(activeConversationId)!
+                  : getActiveDirectMessage(activeConversationId)!
               }
               receiver={getActiveUser()}
               onViewChannelInvite={
                 isActiveChannelConversation
-                  ? () => handleViewChannelInvite(getActiveChannel()!)
+                  ? () =>
+                      handleViewChannelInvite(
+                        getChannelById(activeConversationId)!
+                      )
                   : undefined
               }
             />
@@ -665,6 +257,20 @@ export function Messaging() {
         )}
       </div>
 
+      {/* Channel Members List - only shown for channels */}
+      {showChannelMembers &&
+        isActiveChannelConversation &&
+        activeConversationId && (
+          <ChannelMembersList
+            channel={getChannelById(activeConversationId)}
+            currentUser={currentUser}
+            usersMap={usersMap}
+            token={token}
+            onMembersUpdated={fetchChannels}
+          />
+        )}
+
+      {/* Dialogs */}
       {showCreateChannel && (
         <CreateChannelDialog
           onCloseAction={() => setShowCreateChannel(false)}

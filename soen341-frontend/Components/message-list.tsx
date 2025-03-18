@@ -14,12 +14,12 @@ interface MessageListProps {
 /**
  * MessageList component displays a list of messages grouped by date. It automatically scrolls to the latest message
  * and formats timestamps for messages with respect to the current date.
- * 
+ *
  * @param {Object} props - The component props.
  * @param {Message[]} props.messages - An array of messages to display in the list.
  * @param {User | null} props.currentUser - The current user object, used to determine if a message is sent by the current user.
  * @param {Record<string, User>} props.users - A dictionary of users where the key is the user ID and the value is the user object.
- * 
+ *
  * @returns {JSX.Element} The rendered MessageList component, displaying messages grouped by date.
  */
 export function MessageList({
@@ -79,7 +79,6 @@ export function MessageList({
     });
   });
 
-
   return (
     <ScrollArea className="flex-1 p-4" ref={scrollRef}>
       {Object.entries(groupedMessages).map(([date, dateMessages]) => (
@@ -96,8 +95,7 @@ export function MessageList({
             const isCurrentUser =
               currentUser && message.senderId === currentUser.id;
             const showAvatar =
-              index === 0 ||
-              dateMessages[index - 1].id !== message.id;
+              index === 0 || dateMessages[index - 1].id !== message.id;
 
             const sender = users[message.senderId] || {
               username: message.senderUsername,
@@ -107,7 +105,7 @@ export function MessageList({
             return (
               <div
                 key={message.id || index} // Fallback to index if id is not available
-                className={`flex items-start mb-4 ${
+                className={`flex items-start mb-6 ${
                   isCurrentUser ? "justify-end" : ""
                 }`}
               >
@@ -150,8 +148,8 @@ export function MessageList({
                       {message.content}
                     </div>
 
-                    {isCurrentUser && showAvatar && (
-                      <div className="absolute right-0 top-0 text-xs text-muted-foreground -mt-5">
+                    {isCurrentUser && (
+                      <div className="absolute right-0 -bottom-5 text-xs text-muted-foreground">
                         {formatTime(message.timestamp)}
                       </div>
                     )}

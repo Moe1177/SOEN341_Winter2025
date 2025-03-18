@@ -205,33 +205,35 @@ export function Sidebar({
               <Button
                 key={dm.id}
                 variant={activeConversationId === dm.id ? "secondary" : "ghost"}
-                className="w-full justify-start mb-1 px-2 font-normal relative"
+                className="w-full justify-start mb-1 px-2 font-normal relative h-auto py-1.5"
                 onClick={() => onConversationSelect(dm.id, false)}
               >
-                <span className="relative mr-2">
-                  <Avatar className="h-5 w-5">
-                    <AvatarFallback>
-                      {dm.participant?.username
-                        ? dm.participant.username.charAt(0)
-                        : "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
-                      dm.participant?.status === "ONLINE"
-                        ? "bg-green-500"
-                        : "bg-gray-500"
-                    }`}
-                  />
-                </span>
-                <span className="flex-1 truncate">
-                  {dm.participant?.username || "Unknown User"}
-                </span>
-                {dm.unreadCount && dm.unreadCount > 0 && (
-                  <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1">
-                    {dm.unreadCount}
+                <div className="flex items-center w-full">
+                  <span className="relative mr-2 flex-shrink-0">
+                    <Avatar className="h-5 w-5">
+                      <AvatarFallback>
+                        {dm.participant?.username
+                          ? dm.participant.username.charAt(0)
+                          : "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background ${
+                        dm.participant?.status === "ONLINE"
+                          ? "bg-green-500"
+                          : "bg-gray-500"
+                      }`}
+                    />
                   </span>
-                )}
+                  <span className="flex-1 truncate text-left">
+                    {dm.participant?.username || "Unknown User"}
+                  </span>
+                  {dm.unreadCount && dm.unreadCount > 0 && (
+                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1 flex-shrink-0">
+                      {dm.unreadCount}
+                    </span>
+                  )}
+                </div>
               </Button>
             ))
           ) : (
