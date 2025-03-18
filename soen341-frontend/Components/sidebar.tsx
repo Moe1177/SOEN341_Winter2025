@@ -96,17 +96,16 @@ export function Sidebar({
                     </span>
                   )} */}
                   {currentUserIsAdmin(channel) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                    <div
+                      role="button"
+                      className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md hover:bg-accent"
                       onClick={(e) => {
                         e.stopPropagation();
                         onViewChannelInvite(channel);
                       }}
                     >
                       <Settings className="h-3 w-3 text-muted-foreground" />
-                    </Button>
+                    </div>
                   )}
                 </Button>
               ))}
