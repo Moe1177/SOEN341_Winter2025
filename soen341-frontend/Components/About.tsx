@@ -9,7 +9,7 @@ import Image from 'next/image'
 const About = () => {
     return (
         <div className="hero flex flex-col-reverse md:flex-row px-5 sm:px-8">
-          <div className="flex-1 pt-8 md:pt-36 pb-10 md:pb-0">
+          <div className="flex-1 pt-0 md:pt-8 pb-10 md:pb-0">
             <h1 className="hero__title text-3xl sm:text-4xl lg:text-5xl xl:text-[64px] leading-tight">
             About Us
             </h1>
@@ -19,7 +19,7 @@ const About = () => {
             </p>
           </div>
           
-          <div className="flex items-center justify-center w-full md:w-1/2 py-4 md:py-0">
+          <div className="flex items-center justify-center w-full md:w-1/2 pt-0 pb-4 md:py-0">
             <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-full aspect-square md:aspect-auto md:h-[590px]">
               <Image 
                 src="/undraw_social-networking_v4z1.svg" 
