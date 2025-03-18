@@ -27,6 +27,11 @@ public class UserController {
     return userService.getUserById(id);
   }
 
+  @GetMapping("/get-other-users/{userId}")
+  public List<User> getUsersByIds(@PathVariable String userId) {
+    return userService.getUsersWithNoDmWithUser(userId);
+  }
+
   @PutMapping("/{id}")
   public User updateUser(@PathVariable String id, @RequestBody User userDetails) {
     return userService.updateUser(id, userDetails);

@@ -13,7 +13,7 @@ import lombok.Setter;
 public class WebSocketMessage {
   private String content;
   private String senderId;
-  private String senderUserName;
+  private String senderUsername;
   private String channelId;
   private String receiverId;
   private boolean isDirectMessage;

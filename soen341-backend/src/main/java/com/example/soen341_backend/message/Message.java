@@ -17,6 +17,7 @@ public class Message {
 
   private String content;
   private String senderId;
+  private String senderUsername;
   private String channelId;
   private Instant timestamp;
   private boolean isDirectMessage;

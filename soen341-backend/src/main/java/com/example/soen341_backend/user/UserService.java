@@ -5,6 +5,7 @@ import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -82,6 +83,22 @@ public class UserService {
     if (!isAdmin(userId, channelId)) {
       throw new UnauthorizedException("You don't have permission to perform this action");
     }
+  }
+
+  public List<User> getUsersWithNoDmWithUser(String userId) {
+    User activeUser =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+    List<User> verifiedUsers = userRepository.findByVerified(true);
+
+    System.out.println("Dms ids: " + activeUser.getDirectMessageIds());
+
+    return verifiedUsers.stream()
+        .filter(user -> !user.getId().equals(userId))
+        .filter(user -> !activeUser.getDirectMessageIds().contains(user.getId()))
+        .collect(Collectors.toList());
   }
 
   public User removeChannelFromUser(String userId, String channelId) {

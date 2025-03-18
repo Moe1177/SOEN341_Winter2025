@@ -1,10 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
-import { Button } from "@/Components/ui/button";
+import React, { useRef, useState, KeyboardEvent } from "react";
 import { Textarea } from "@/Components/ui/textarea";
+import { Button } from "@/Components/ui/button";
 import { Send } from "lucide-react";
 
 interface MessageInputProps {
@@ -14,18 +12,18 @@ interface MessageInputProps {
 /**
  * MessageInput component allows the user to type and send messages. It automatically sends the message when the user
  * presses the "Enter" key or presses the button to send the message.
- * 
+ *
  * @param {Object} props - The component props.
- * @param {(message: string)} props.onSendMessageAction - Callback function to handle sending the message. 
+ * @param {(message: string)} props.onSendMessageAction - Callback function to handle sending the message.
  * This function is called with the message text when the user sends a message.
- * 
+ *
  * @returns {JSX.Element} The rendered MessageInput component, which includes a text area for typing and a send button.
  */
 export function MessageInput({ onSendMessageAction }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -33,39 +31,36 @@ export function MessageInput({ onSendMessageAction }: MessageInputProps) {
   };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      onSendMessageAction(message);
+    const trimmedMessage = message.trim();
+    if (trimmedMessage) {
+      onSendMessageAction(trimmedMessage);
       setMessage("");
 
-      // Focus back on textarea after sending
+      // Keep focus on the textarea after sending
       if (textareaRef.current) {
-        textareaRef.current.focus();
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
       }
     }
   };
 
   return (
-    <div className="p-3 border-t">
-      <div className="flex items-end gap-2 bg-muted/30 rounded-lg border p-2">
+    <div className="p-4 border-t border-border bg-card/50">
+      <div className="flex items-end gap-2 bg-background rounded-lg p-1 shadow-sm border border-border">
         <Textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          className="min-h-10 border-0 focus-visible:ring-0 resize-none bg-transparent"
-          rows={1}
-          style={{
-            maxHeight: "150px",
-            height: "auto",
-          }}
+          className="flex-1 min-h-10 max-h-40 resize-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 py-2 text-foreground placeholder:text-muted-foreground"
         />
-
         <Button
-          size="icon"
-          className="h-8 w-8 ml-1 shrink-0"
           onClick={handleSendMessage}
+          size="sm"
           disabled={!message.trim()}
+          className={`h-9 w-9 p-0 rounded-full ${message.trim() ? "bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"}`}
         >
           <Send className="h-4 w-4" />
         </Button>

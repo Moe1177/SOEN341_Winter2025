@@ -12,12 +12,12 @@ interface ConversationHeaderProps {
 /**
  * ConversationHeader component that displays the header of a conversation.
  * It handles both individual conversations and channels.
- * 
+ *
  * @param {Object} props - The component props.
  * @param {Conversation} props.conversation - The conversation object, either a user or a channel.
  * @param {Receiver | null} props.receiver - The receiver object for individual conversations if not a channel.
  * @param {Function | undefined} props.onViewChannelInvite - Callback function to trigger when viewing channel invite (only for group conversations).
- * 
+ *
  * @returns {JSX.Element} The rendered ConversationHeader component.
  */
 export function ConversationHeader({
@@ -36,11 +36,6 @@ export function ConversationHeader({
           <>
             <Hash className="h-5 w-5 mr-2" />
             <span className="font-medium">{channel?.name}</span>
-            {channel?.members && (
-              <span className="text-xs text-muted-foreground ml-2">
-                {channel.members.length} members
-              </span>
-            )}
           </>
         ) : (
           <>

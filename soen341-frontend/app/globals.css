@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -30,38 +30,36 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
+    --background: 222 40% 15%; /* Lighter navy for better readability */
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 222 40% 17%; /* Slightly lighter than background */
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 222 40% 17%; /* Matches card */
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    --primary: 270 70% 65%; /* Lighter purple for better visibility */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 22%; /* Lighter secondary for better contrast */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 217 33% 22%; /* Matches secondary */
+    --muted-foreground: 215 20% 80%; /* Much lighter for better readability */
+    --accent: 250 70% 70%; /* Lighter accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 80% 50%; /* More visible destructive */
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --border: 217 33% 25%; /* More visible border */
+    --input: 217 33% 22%; /* Matches secondary */
+    --ring: 270 70% 65%; /* Matches primary */
+    --chart-1: 270 70% 65%; /* Purple */
+    --chart-2: 250 70% 70%; /* Blue-purple */
+    --chart-3: 220 70% 70%; /* Blue */
+    --chart-4: 280 65% 70%; /* Lavender */
+    --chart-5: 290 70% 65% /* Violet */;
   }
 }
-
-
 
 @layer base {
   * {
@@ -83,16 +81,15 @@ body {
   font-family: Inter;
 }
 
-
 @layer utilities {
-  .btn_dark_purple{
-    @apply  bg-purple-900 px-10 py-4 text-white transition-all hover:bg-black
+  .btn_dark_purple {
+    @apply bg-purple-900 px-10 py-4 text-white transition-all hover:bg-black;
   }
-  .btn_dark_green_outline  {
-    @apply border-gray-20 bg-green-90 px-8 py-5 text-white
+  .btn_dark_green_outline {
+    @apply border-gray-20 bg-green-90 px-8 py-5 text-white;
   }
-  .purple_icon{
-    @apply rounded-full p-4 lg:p-7 bg-purple-900
+  .purple_icon {
+    @apply rounded-full p-4 lg:p-7 bg-purple-900;
   }
 
   .max-container {
@@ -184,19 +181,19 @@ body {
     @apply text-[16px] font-[700];
   }
 
-  .About_title{
-    @apply 2xl:text-[72px] sm:text-[64px] text-[50px] text-white font-extrabold ;
+  .About_title {
+    @apply 2xl:text-[72px] sm:text-[64px] text-[50px] text-white font-extrabold;
   }
 
   .about__image-container {
     @apply xl:flex-[1] flex justify-end items-end w-full xl:h-screen;
   }
 
-  .about_subtitle{
+  .about_subtitle {
     @apply text-[27px] text-purple-500 font-light mt-20;
   }
 
-  .Signup_subtitle{
+  .Signup_subtitle {
     @apply text-[27px] text-purple-500 font-light mt-20;
   }
 
@@ -213,7 +210,7 @@ body {
     @apply 2xl:text-[72px] sm:text-[64px] text-[50px] text-white font-extrabold;
   }
 
-  .description{
+  .description {
     @apply text-[23px] text-purple-500 font-light mt-5;
   }
 

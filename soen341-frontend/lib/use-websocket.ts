@@ -79,7 +79,7 @@ const useChat = (
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId, userId, token]);
 
-  // ✅ Send Group Message
+  // Send Group Message
   const sendGroupMessage = (content: string) => {
     if (client && client.connected) {
       client.publish({
@@ -95,7 +95,7 @@ const useChat = (
     }
   };
 
-  // ✅ Send Direct Message
+  // Send Direct Message
   const sendDirectMessage = (content: string, receiverId: string) => {
     if (client && client.connected) {
       client.publish({
