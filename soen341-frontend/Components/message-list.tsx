@@ -3,12 +3,16 @@
 import { useEffect, useRef } from "react";
 import type { User, WebSocketMessage } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
-import { ScrollArea } from "@/Components/ui/scroll-area";
 
 interface MessageListProps {
   messages: WebSocketMessage[];
   currentUser: User | null;
   users: Record<string, User>;
+}
+
+interface MessageGroup {
+  date: string;
+  messages: WebSocketMessage[];
 }
 
 /**
@@ -27,151 +31,156 @@ export function MessageList({
   currentUser,
   users,
 }: MessageListProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString([], {
+  const formatMessageTime = (date: Date) => {
+    return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  const formatDate = (date: Date) => {
-    const messageDate = new Date(date);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (messageDate.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    } else {
-      return messageDate.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-      });
-    }
-  };
-
   // Group messages by date
-  const groupedMessages: { [key: string]: WebSocketMessage[] } = {};
-  messages.forEach((message) => {
+  const groupedMessages = messages.reduce((groups: MessageGroup[], message) => {
     // Ensure timestamp is a Date object
     const timestamp =
       message.timestamp instanceof Date
         ? message.timestamp
         : new Date(message.timestamp);
 
-    const dateKey = formatDate(timestamp);
-    if (!groupedMessages[dateKey]) {
-      groupedMessages[dateKey] = [];
+    // Get local date string for the user's timezone
+    const localDate = new Date(
+      timestamp.getFullYear(),
+      timestamp.getMonth(),
+      timestamp.getDate()
+    )
+      .toISOString()
+      .split("T")[0];
+
+    // Find existing group or create new one
+    let group = groups.find((g) => g.date === localDate);
+    if (!group) {
+      group = { date: localDate, messages: [] };
+      groups.push(group);
     }
-    groupedMessages[dateKey].push({
+
+    // Add message to group
+    group.messages.push({
       ...message,
       timestamp: timestamp, // Ensure timestamp is a Date
     });
-  });
+
+    return groups;
+  }, []);
+
+  const formatMessageDate = (dateStr: string) => {
+    // Parse the date in local timezone
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const messageDate = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+
+    // Get today and yesterday dates, ignoring time
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Compare dates (ignoring time)
+    if (messageDate.getTime() === today.getTime()) {
+      return "Today";
+    } else if (messageDate.getTime() === yesterday.getTime()) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  };
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-      {Object.entries(groupedMessages).map(([date, dateMessages]) => (
-        <div key={date}>
-          <div className="flex items-center my-4">
-            <div className="flex-grow h-px bg-border"></div>
-            <div className="mx-4 text-xs font-medium text-muted-foreground">
-              {date}
+    <div className="flex-1 p-4 overflow-y-auto" ref={messagesEndRef}>
+      <div className="space-y-8">
+        {groupedMessages.map((group) => (
+          <div key={group.date} className="space-y-6">
+            <div className="sticky top-0 z-10 flex justify-center">
+              <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
+                {formatMessageDate(group.date)}
+              </div>
             </div>
-            <div className="flex-grow h-px bg-border"></div>
-          </div>
 
-          {dateMessages.map((message, index) => {
-            const isCurrentUser =
-              currentUser && message.senderId === currentUser.id;
-            const showAvatar =
-              index === 0 || dateMessages[index - 1].id !== message.id;
+            {group.messages.map((message) => {
+              const isCurrentUser = message.senderId === currentUser?.id;
+              const sender = users[message.senderId] || {
+                username: message.senderUsername,
+                id: message.id,
+              };
+              const avatarChar = sender.username?.[0] || "?";
 
-            const sender = users[message.senderId] || {
-              username: message.senderUsername,
-              id: message.id,
-            };
+              // Generate a unique key if message.id is not available
+              const messageKey =
+                message.id ||
+                `${message.senderId}-${message.timestamp.getTime()}`;
 
-            return (
-              <div
-                key={message.id || index} // Fallback to index if id is not available
-                className={`flex items-start mb-6 ${
-                  isCurrentUser ? "justify-end" : ""
-                }`}
-              >
-                {!isCurrentUser && showAvatar && (
-                  <Avatar className="h-8 w-8 mr-2 mt-0.5">
-                    <AvatarFallback>
-                      {sender.username
-                        ? sender.username.charAt(0).toUpperCase()
-                        : "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-
-                {!isCurrentUser && !showAvatar && <div className="w-8 mr-2" />}
-
+              return (
                 <div
-                  className={`max-w-[70%] ${
-                    isCurrentUser ? "order-2" : "order-1"
-                  }`}
+                  key={messageKey}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                 >
-                  {showAvatar && !isCurrentUser && (
-                    <div className="flex items-center mb-1">
-                      <span className="font-medium text-sm">
-                        {sender.username || "Unknown User"}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {formatTime(message.timestamp)}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="relative">
-                    <div
-                      className={`px-3 py-2 rounded-lg ${
-                        isCurrentUser
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-
-                    {isCurrentUser && (
-                      <div className="absolute right-0 -bottom-5 text-xs text-muted-foreground">
-                        {formatTime(message.timestamp)}
+                  <div
+                    className={`flex max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
+                  >
+                    {!isCurrentUser && (
+                      <div className="flex-shrink-0 mr-3">
+                        <Avatar className="h-8 w-8 border border-border">
+                          <AvatarFallback className="bg-secondary text-foreground text-sm">
+                            {avatarChar}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
                     )}
+                    <div>
+                      {!isCurrentUser && (
+                        <div className="mb-1 ml-1 flex items-center">
+                          <span className="text-sm font-medium">
+                            {sender?.username || "Unknown"}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {formatMessageTime(message.timestamp)}
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className={`${
+                          isCurrentUser
+                            ? "bg-primary text-primary-foreground rounded-l-xl rounded-tr-xl"
+                            : "bg-secondary text-secondary-foreground rounded-r-xl rounded-tl-xl"
+                        } px-4 py-2.5 shadow-sm`}
+                      >
+                        <div className="whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      </div>
+                      {isCurrentUser && (
+                        <div className="mt-1 mr-1 flex justify-end">
+                          <span className="text-xs text-muted-foreground">
+                            {formatMessageTime(message.timestamp)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {isCurrentUser && showAvatar && (
-                  <Avatar className="h-8 w-8 ml-2 mt-0.5 order-3">
-                    <AvatarFallback>
-                      {currentUser?.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-
-                {isCurrentUser && !showAvatar && (
-                  <div className="w-8 ml-2 order-3" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </ScrollArea>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

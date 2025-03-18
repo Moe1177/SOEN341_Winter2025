@@ -4,14 +4,7 @@ import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Crown, ShieldAlert } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/Components/ui/dialog";
+import { ConfirmDialog } from "@/Components/ui/confirm-dialog";
 
 // Toast Component
 const Toast = ({
@@ -37,7 +30,7 @@ const Toast = ({
 
   if (!isVisible) return null;
 
-  const bgColor = type === "success" ? "bg-green-500" : "bg-red-500";
+  const bgColor = type === "success" ? "bg-primary" : "bg-destructive";
 
   return (
     <div
@@ -55,6 +48,7 @@ interface ChannelMembersListProps {
   channel: Channel | null;
   currentUser: User | null;
   usersMap: Record<string, User>;
+  setUsersMap: React.Dispatch<React.SetStateAction<Record<string, User>>>;
   token: string;
   onMembersUpdated: () => void;
 }
@@ -69,6 +63,7 @@ export function ChannelMembersList({
   channel,
   currentUser,
   usersMap,
+  setUsersMap,
   token,
   onMembersUpdated,
 }: ChannelMembersListProps) {
@@ -249,10 +244,7 @@ export function ChannelMembersList({
         isVisible: true,
       });
 
-      // Call onMembersUpdated to refresh channel data
-      onMembersUpdated();
-
-      // Update local state to show immediate feedback
+      // First update local state to show immediate feedback
       setGroupedMembers((prevState) => {
         // Find the user in onlineMembers or offlineMembers
         const user = [
@@ -288,6 +280,24 @@ export function ChannelMembersList({
           offlineMembers: newOfflineMembers,
         };
       });
+
+      // Update the usersMap with the new admin status
+      if (usersMap[userToPromote]) {
+        const updatedUsersMap = { ...usersMap };
+        updatedUsersMap[userToPromote] = {
+          ...updatedUsersMap[userToPromote],
+          adminsForWhichChannels: [
+            ...(updatedUsersMap[userToPromote].adminsForWhichChannels || []),
+            channel.id,
+          ],
+        };
+        // Update the usersMap state through the parent component
+        console.log("Updating usersMap with new admin status");
+        setUsersMap(updatedUsersMap);
+      }
+
+      // Then call onMembersUpdated to refresh channel data
+      await onMembersUpdated();
     } catch (error) {
       console.error("Error promoting user:", error);
       // Show error toast
@@ -318,45 +328,54 @@ export function ChannelMembersList({
     return (
       <div
         key={member.id}
-        className={`flex items-center py-1 px-2 rounded-md hover:bg-muted/50 group ${
-          isCurrentMember ? "bg-muted/30" : ""
-        }`}
+        className={`flex items-center py-2 px-3 rounded-md transition-colors ${
+          isCurrentMember ? "bg-secondary/20" : "hover:bg-secondary/40"
+        } ${canPromote ? "cursor-pointer" : ""} group`}
+        onClick={canPromote ? () => initiatePromoteUser(member.id) : undefined}
       >
         <div className="relative mr-2">
-          <Avatar className="h-6 w-6">
-            <AvatarFallback className="text-xs">
-              {member.username.charAt(0)}
+          <Avatar className="h-7 w-7 border border-border">
+            <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+              {member.username.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span
-            className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
+            className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background ${
               member.status === "ONLINE" ? "bg-green-500" : "bg-gray-500"
             }`}
           />
         </div>
         <div className="flex-1 truncate">
-          <div className="text-sm flex items-center">
-            {member.username}
-            {isAdmin && <Crown className="h-2.5 w-2.5 ml-1 text-amber-500" />}
+          <div className="text-sm flex items-center text-foreground">
+            <span className="font-medium truncate">{member.username}</span>
+            {isAdmin && <Crown className="h-3 w-3 ml-1.5 text-primary" />}
             {isCurrentMember && (
-              <span className="text-xs ml-1 text-muted-foreground">(you)</span>
+              <span className="text-xs ml-1.5 text-muted-foreground">
+                (you)
+              </span>
             )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {member.status === "ONLINE" ? "Online" : "Offline"}
           </div>
         </div>
         {canPromote && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="ml-1 h-6 py-0 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center"
+            className="ml-1 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-primary hover:text-primary-foreground"
             disabled={isPromoting !== null}
-            onClick={() => initiatePromoteUser(member.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              initiatePromoteUser(member.id);
+            }}
+            title="Promote to admin"
           >
             {isPromoting === member.id ? (
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-r-transparent border-amber-500 mr-3" />
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-r-transparent" />
             ) : (
-              <Crown className="h-3 w-3 text-amber-500" />
+              <Crown className="h-3 w-3" />
             )}
-            <span className="text-xs ml-2">Promote</span>
           </Button>
         )}
       </div>
@@ -364,124 +383,109 @@ export function ChannelMembersList({
   };
 
   return (
-    <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20 border-l">
-      <div className="p-2 flex items-center justify-between border-b">
-        <div className="font-semibold text-sm">Members</div>
-      </div>
-
-      {isCurrentUserAdmin && (
-        <div className="px-3 py-1 text-xs text-muted-foreground border-b flex items-center">
-          <Crown className="h-3 w-3 mr-1 text-amber-500" />
-          <span className="ml-2">You can promote members to admin</span>
+    <>
+      <div className="p-4 h-full flex flex-col bg-background border-l border-border">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Channel Members</h3>
+          {channel && (
+            <div className="text-sm text-muted-foreground">
+              {groupedMembers.admins.length +
+                groupedMembers.onlineMembers.length +
+                groupedMembers.offlineMembers.length}{" "}
+              members
+            </div>
+          )}
         </div>
-      )}
 
-      <ScrollArea className="flex-1">
-        <div className="py-2">
-          {/* ADMINS SECTION */}
-          {groupedMembers.admins.length > 0 && (
-            <div className="mb-2">
-              <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
-                Admins — {groupedMembers.admins.length}
-              </div>
-              <div className="space-y-0.5">
-                {groupedMembers.admins.map((admin) =>
-                  renderMemberItem(admin, true)
-                )}
-              </div>
+        {/* Admin Promotion Note */}
+        {currentUser &&
+          channel &&
+          currentUser.adminsForWhichChannels?.includes(channel.id) && (
+            <div className="mb-4 p-2 bg-background border border-border rounded-md text-sm flex items-center">
+              <Crown className="h-4 w-4 mr-2 text-primary" />
+              <span className="text-muted-foreground">
+                You can promote members to admin
+              </span>
             </div>
           )}
 
-          {/* ONLINE SECTION */}
-          {groupedMembers.onlineMembers.length > 0 && (
-            <div className="mb-2">
-              <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
-                Online — {groupedMembers.onlineMembers.length}
-              </div>
-              <div className="space-y-0.5">
-                {groupedMembers.onlineMembers.map((member) =>
-                  renderMemberItem(member, false)
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* OFFLINE SECTION */}
-          {groupedMembers.offlineMembers.length > 0 && (
-            <div>
-              <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
-                Offline — {groupedMembers.offlineMembers.length}
-              </div>
-              <div className="space-y-0.5 opacity-70">
-                {groupedMembers.offlineMembers.map((member) =>
-                  renderMemberItem(member, false)
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* NO MEMBERS MESSAGE */}
-          {groupedMembers.admins.length === 0 &&
-            groupedMembers.onlineMembers.length === 0 &&
-            groupedMembers.offlineMembers.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                <ShieldAlert className="h-8 w-8 mb-2 opacity-50" />
-                <p className="text-sm">No members found</p>
+        <ScrollArea className="flex-1">
+          <div className="py-2">
+            {/* ADMINS SECTION */}
+            {groupedMembers.admins.length > 0 && (
+              <div className="mb-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
+                  Admins — {groupedMembers.admins.length}
+                </div>
+                <div className="space-y-0.5">
+                  {groupedMembers.admins.map((admin) =>
+                    renderMemberItem(admin, true)
+                  )}
+                </div>
               </div>
             )}
-        </div>
-      </ScrollArea>
 
-      {/* Use the proper Dialog component */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Promote to Admin</DialogTitle>
-            <DialogDescription className="pt-2">
-              Are you sure you want to promote{" "}
-              <span className="font-semibold">
-                {(userToPromote && usersMap[userToPromote]?.username) ||
-                  "this user"}
-              </span>{" "}
-              to an admin?
-            </DialogDescription>
-          </DialogHeader>
+            {/* ONLINE SECTION */}
+            {groupedMembers.onlineMembers.length > 0 && (
+              <div className="mb-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
+                  Online — {groupedMembers.onlineMembers.length}
+                </div>
+                <div className="space-y-0.5">
+                  {groupedMembers.onlineMembers.map((member) =>
+                    renderMemberItem(member, false)
+                  )}
+                </div>
+              </div>
+            )}
 
-          <div className="my-3 text-muted-foreground">
-            <ul className="pl-5 list-disc text-xs space-y-1">
-              <li>Admins can invite new users to the channel</li>
-              <li>Admins can promote other users to admin</li>
-              <li>This action cannot be undone</li>
-            </ul>
+            {/* OFFLINE SECTION */}
+            {groupedMembers.offlineMembers.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
+                  Offline — {groupedMembers.offlineMembers.length}
+                </div>
+                <div className="space-y-0.5 opacity-70">
+                  {groupedMembers.offlineMembers.map((member) =>
+                    renderMemberItem(member, false)
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* NO MEMBERS MESSAGE */}
+            {groupedMembers.admins.length === 0 &&
+              groupedMembers.onlineMembers.length === 0 &&
+              groupedMembers.offlineMembers.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                  <ShieldAlert className="h-8 w-8 mb-2 opacity-50" />
+                  <p className="text-sm">No members found</p>
+                </div>
+              )}
           </div>
+        </ScrollArea>
+      </div>
 
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-              className="mr-2"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handlePromoteUser}
-              className="bg-amber-500 hover:bg-amber-600"
-            >
-              <Crown className="h-3 w-3 mr-2" />
-              Promote
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Replace Dialog with ConfirmDialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={handlePromoteUser}
+        title="Promote to Admin"
+        description={`Are you sure you want to promote ${userToPromote && usersMap[userToPromote] ? usersMap[userToPromote].username : "this user"} to admin? This will give them full control over the channel.`}
+        confirmLabel="Promote"
+        cancelLabel="Cancel"
+        variant="default"
+      />
 
-      {/* Toast Notification */}
+      {/* Toast for notifications */}
       <Toast
         message={toast.message}
         type={toast.type}
         isVisible={toast.isVisible}
         onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
       />
-    </div>
+    </>
   );
 }
 

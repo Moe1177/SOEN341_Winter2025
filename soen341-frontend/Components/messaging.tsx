@@ -214,7 +214,7 @@ export function Messaging() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar Navigation */}
       <Sidebar
         channels={channels}
@@ -225,10 +225,9 @@ export function Messaging() {
         onCreateDirectMessage={() => setShowCreateDM(true)}
         onViewChannelInvite={handleViewChannelInvite}
         currentUser={currentUser}
-        fetchChannels={fetchChannels}
       />
 
-      <div className="flex flex-col flex-1 overflow-hidden border-l">
+      <div className="flex flex-col flex-1 overflow-hidden border-l border-border">
         {activeConversationId && (
           <>
             <ConversationHeader
@@ -265,6 +264,7 @@ export function Messaging() {
             channel={getChannelById(activeConversationId)}
             currentUser={currentUser}
             usersMap={usersMap}
+            setUsersMap={setUsersMap}
             token={token}
             onMembersUpdated={fetchChannels}
           />

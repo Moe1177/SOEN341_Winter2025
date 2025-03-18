@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import type { User, Channel } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Hash, Plus, Settings, MessageSquare } from "lucide-react";
-import { Input } from "@/Components/ui/input";
 
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
@@ -25,21 +24,11 @@ interface SidebarProps {
   onCreateDirectMessage: () => void;
   onViewChannelInvite: (channel: Channel) => void;
   currentUser: User | null;
-  fetchChannels: () => void;
+  fetchChannels?: () => void;
 }
 
 /**
  * Sidebar component that displays a list of channels and direct messages, allowing users to select or create new conversations.
- *
- * @param {Object} props - The props for the Sidebar component.
- * @param {Array} props.channels - List of channels in the workspace.
- * @param {Array} props.directMessages - List of direct message conversations.
- * @param {string} props.activeConversationId - The ID of the currently active conversation (channel or direct message).
- * @param {function} props.onConversationSelect - Callback when a conversation (channel or direct message) is selected.
- * @param {function} props.onCreateChannel - Callback when creating a new channel.
- * @param {function} props.onCreateDirectMessage - Callback when creating a new direct message conversation.
- * @param {function} props.onViewChannelInvite - Callback to view or manage channel invites.
- * @param {Object} props.currentUser - Information about the currently logged-in user.
  */
 export function Sidebar({
   channels,
@@ -50,234 +39,175 @@ export function Sidebar({
   onCreateDirectMessage,
   onViewChannelInvite,
   currentUser,
-  fetchChannels,
 }: SidebarProps) {
-  const [inviteCode, setInviteCode] = useState("");
-  const [authToken, setAuthToken] = useState<string>("");
+  // Helper function to check if current user is an admin of the channel
+  const currentUserIsAdmin = (channel: Channel): boolean => {
+    if (!currentUser || !channel.members) return false;
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAuthToken(localStorage.getItem("authToken") || "");
-    }
-  }, []);
-
-  const handleJoinChannel = async () => {
-    if (!inviteCode.trim()) {
-      alert("Please enter a valid invite code.");
-      return;
-    }
-
-    if (!currentUser) {
-      alert("You must be logged in to join a channel.");
-      return;
-    }
-
-    try {
-      console.log("Joining channel with invite code:", inviteCode);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/join?inviteCode=${inviteCode}&userId=${currentUser.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        console.error("Failed to join channel:", response.body);
-        throw new Error(
-          "Failed to join channel. Please check the invite code."
-        );
-      }
-
-      const updatedChannel = await response.json();
-      fetchChannels();
-      alert(`Joined channel: ${updatedChannel.name}`);
-      setInviteCode("");
-    } catch (error) {
-      console.error("Error joining channel:", error);
-      alert("Error joining channel. Please try again.");
-    }
+    return (
+      channel.creatorId === currentUser.id ||
+      (currentUser.adminsForWhichChannels &&
+        currentUser.adminsForWhichChannels.includes(channel.id))
+    );
   };
 
   return (
-    <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20">
-      <div className="p-3 flex items-center justify-between border-b">
-        <div className="font-semibold">Workspace</div>
+    <div className="w-64 flex-shrink-0 flex flex-col h-full bg-card border-r border-border">
+      <div className="p-3 flex items-center justify-between border-b border-border">
+        <h2 className="font-semibold text-sm text-foreground">Dialogos Chat</h2>
+        <Button variant="ghost" size="icon" className="h-7 w-7">
+          <Settings className="h-4 w-4 text-muted-foreground" />
+        </Button>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2">
-          <div className="flex items-center justify-between px-2 py-1.5">
-            <div className="text-xs font-semibold text-muted-foreground">
-              CHANNELS
+        <div className="p-3">
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs uppercase font-semibold tracking-wider text-muted-foreground flex items-center">
+                Channels
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 rounded-full hover:bg-secondary"
+                onClick={onCreateChannel}
+              >
+                <Plus className="h-3 w-3 text-muted-foreground" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={onCreateChannel}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </div>
 
-          {channels.length > 0 ? (
-            channels.map((channel) => (
-              <div key={channel.id} className="flex items-center group">
+            <div className="space-y-1.5">
+              {channels.map((channel) => (
                 <Button
+                  key={channel.id}
                   variant={
                     activeConversationId === channel.id ? "secondary" : "ghost"
                   }
-                  className="w-full justify-start mb-1 px-2 font-normal relative"
+                  className={`w-full justify-start px-2 py-1.5 h-auto font-normal group relative 
+                    ${activeConversationId === channel.id ? "bg-secondary" : "hover:bg-secondary/50"}`}
                   onClick={() => onConversationSelect(channel.id, true)}
                 >
-                  <Hash className="mr-2 h-4 w-4" />
-                  <span className="flex-1 truncate">
-                    {channel.name || "Unnamed Channel"}
-                  </span>
-                  {channel.members && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      {channel.members.length}
-                    </span>
-                  )}
+                  <Hash className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="truncate text-sm">{channel.name}</span>
                   {/* {channel.unreadCount && channel.unreadCount > 0 && (
-                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
                       {channel.unreadCount}
                     </span>
                   )} */}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => onViewChannelInvite(channel)}
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ))
-          ) : (
-            <div className="px-2 py-3 text-sm text-muted-foreground flex flex-col items-center">
-              <Hash className="h-8 w-8 mb-1 opacity-50" />
-              <p>No channels yet</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={onCreateChannel}
-              >
-                Create a channel
-              </Button>
-            </div>
-          )}
-          <div className="flex items-center space-x-2 px-2 py-2">
-            <Input
-              type="text"
-              placeholder="Enter invite code"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleJoinChannel} variant="default">
-              Join
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between px-2 py-1.5 mt-4">
-            <div className="text-xs font-semibold text-muted-foreground">
-              DIRECT MESSAGES
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={onCreateDirectMessage}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-
-          {directMessages.length > 0 ? (
-            directMessages.map((dm) => (
-              <Button
-                key={dm.id}
-                variant={activeConversationId === dm.id ? "secondary" : "ghost"}
-                className="w-full justify-start mb-1 px-2 font-normal relative h-auto py-1.5"
-                onClick={() => onConversationSelect(dm.id, false)}
-              >
-                <div className="flex items-center w-full">
-                  <span className="relative mr-2 flex-shrink-0">
-                    <Avatar className="h-5 w-5">
-                      <AvatarFallback>
-                        {dm.participant?.username
-                          ? dm.participant.username.charAt(0)
-                          : "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background ${
-                        dm.participant?.status === "ONLINE"
-                          ? "bg-green-500"
-                          : "bg-gray-500"
-                      }`}
-                    />
-                  </span>
-                  <span className="flex-1 truncate text-left">
-                    {dm.participant?.username || "Unknown User"}
-                  </span>
-                  {dm.unreadCount && dm.unreadCount > 0 && (
-                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1 flex-shrink-0">
-                      {dm.unreadCount}
-                    </span>
+                  {currentUserIsAdmin(channel) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewChannelInvite(channel);
+                      }}
+                    >
+                      <Settings className="h-3 w-3 text-muted-foreground" />
+                    </Button>
                   )}
-                </div>
-              </Button>
-            ))
-          ) : (
-            <div className="px-2 py-3 text-sm text-muted-foreground flex flex-col items-center">
-              <MessageSquare className="h-8 w-8 mb-1 opacity-50" />
-              <p>No DMs yet</p>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs uppercase font-semibold tracking-wider text-muted-foreground flex items-center">
+                Direct Messages
+              </div>
               <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 rounded-full hover:bg-secondary"
                 onClick={onCreateDirectMessage}
               >
-                Start a conversation
+                <Plus className="h-3 w-3 text-muted-foreground" />
               </Button>
             </div>
-          )}
+
+            <div className="space-y-1.5">
+              {directMessages.length > 0 ? (
+                directMessages.map((dm) => (
+                  <Button
+                    key={dm.id}
+                    variant={
+                      activeConversationId === dm.id ? "secondary" : "ghost"
+                    }
+                    className={`w-full justify-start px-2 py-1.5 h-auto font-normal group relative 
+                    ${activeConversationId === dm.id ? "bg-secondary" : "hover:bg-secondary/50"}`}
+                    onClick={() => onConversationSelect(dm.id, false)}
+                  >
+                    <div className="flex items-center w-full">
+                      <span className="relative mr-2 flex-shrink-0">
+                        <Avatar className="h-5 w-5 border border-border">
+                          <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+                            {dm.participant?.username
+                              ? dm.participant.username.charAt(0)
+                              : "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span
+                          className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-card ${
+                            dm.participant?.status === "ONLINE"
+                              ? "bg-green-500"
+                              : "bg-gray-500"
+                          }`}
+                        />
+                      </span>
+                      <span className="flex-1 truncate text-left text-sm">
+                        {dm.participant?.username || "Unknown User"}
+                      </span>
+                      {dm.unreadCount && dm.unreadCount > 0 && (
+                        <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1.5 flex-shrink-0">
+                          {dm.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                  </Button>
+                ))
+              ) : (
+                <div className="px-2 py-3 text-sm text-muted-foreground flex flex-col items-center">
+                  <MessageSquare className="h-8 w-8 mb-1 opacity-50" />
+                  <p className="text-sm mb-2">No DMs yet</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 text-xs border-border bg-secondary/50 hover:bg-secondary"
+                    onClick={onCreateDirectMessage}
+                  >
+                    Start a conversation
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </ScrollArea>
 
-      {currentUser ? (
-        <div className="p-3 border-t flex items-center">
-          <Avatar className="h-8 w-8 mr-2">
-            <AvatarFallback>
-              {currentUser.username ? currentUser.username.charAt(0) : "?"}
+      {currentUser && (
+        <div className="p-3 border-t border-border flex items-center">
+          <Avatar className="h-6 w-6 mr-2 border border-border">
+            <AvatarFallback className="text-xs bg-primary/20 text-primary">
+              {currentUser.username.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 truncate">
-            <div className="text-sm font-medium">
-              {currentUser.username || "Anonymous"}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate">
+              {currentUser.username}
             </div>
             <div className="text-xs text-muted-foreground flex items-center">
-              <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5"></span>
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  currentUser.status === "ONLINE"
+                    ? "bg-green-500"
+                    : "bg-gray-500"
+                } mr-1`}
+              />
               {currentUser.status === "ONLINE" ? "Online" : "Offline"}
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="p-3 border-t flex items-center">
-          <Avatar className="h-8 w-8 mr-2">
-            <AvatarFallback>?</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 truncate">
-            <div className="text-sm font-medium">Loading user...</div>
-            <div className="text-xs text-muted-foreground">Connecting...</div>
           </div>
         </div>
       )}
