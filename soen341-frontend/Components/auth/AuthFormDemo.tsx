@@ -4,6 +4,7 @@ import Toast from "./Toast";
 import SigninForm from "./SigninForm";
 import SignupForm from "./SignupForm";
 import VerificationForm from "./VerificationForm";
+import { ThreeDCardDemo } from "@/Components/ThreeDCardDemo";
 
 export default function AuthFormDemo() {
   const [authState, setAuthState] = useState<"signin" | "signup" | "verify">(
@@ -29,7 +30,15 @@ export default function AuthFormDemo() {
   };
 
   return (
-    <div className="rounded-none md:rounded-2xl p-4 sm:p-6 md:p-10 shadow-input bg-white dark:bg-black min-h-[450px] flex flex-col w-full max-w-[450px] mx-auto">
+    <div className="rounded-xl p-6 sm:p-7 md:p-8 shadow-xl bg-[#0e1230]/90 backdrop-blur-md border border-[#36327e]/30 min-h-[480px] flex flex-col w-full max-w-[450px] mx-auto">
+      {/* Small welcome message only visible on mobile/tablet in lg:hidden screens */}
+      <div className="flex lg:hidden justify-center mb-7">
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-white">Welcome to Dialogos</h3>
+          <p className="text-sm text-gray-300 mt-1">The Future of Digital Communication</p>
+        </div>
+      </div>
+
       <Toast
         message={toast.message}
         visible={toast.visible}
@@ -38,28 +47,30 @@ export default function AuthFormDemo() {
       />
 
       {authState !== "verify" && (
-        <div className="flex justify-center mb-4 sm:mb-6">
-          <button
-            className={`px-4 sm:px-6 py-2 font-medium rounded-l-lg transition-all text-sm sm:text-base ${
-              authState === "signin"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 dark:bg-gray-700"
-            }`}
-            onClick={() => setAuthState("signin")}
-          >
-            Sign In
-          </button>
+        <div className="flex justify-center mb-7">
+          <div className="flex w-full max-w-[300px] bg-[#1c1f45]/60 backdrop-blur-sm rounded-lg p-1 border border-[#36327e]/30">
+            <button
+              className={`flex-1 py-2.5 font-medium rounded-lg transition-all text-sm ${
+                authState === "signin"
+                  ? "bg-blue-600 text-white"
+                  : "bg-transparent text-gray-300"
+              }`}
+              onClick={() => setAuthState("signin")}
+            >
+              Sign In
+            </button>
 
-          <button
-            className={`px-4 sm:px-6 py-2 font-medium rounded-r-lg transition-all text-sm sm:text-base ${
-              authState === "signup"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 dark:bg-gray-700"
-            }`}
-            onClick={() => setAuthState("signup")}
-          >
-            Sign Up
-          </button>
+            <button
+              className={`flex-1 py-2.5 font-medium rounded-lg transition-all text-sm ${
+                authState === "signup"
+                  ? "bg-blue-600 text-white"
+                  : "bg-transparent text-gray-300"
+              }`}
+              onClick={() => setAuthState("signup")}
+            >
+              Sign Up
+            </button>
+          </div>
         </div>
       )}
 

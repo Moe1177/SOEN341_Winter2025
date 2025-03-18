@@ -110,50 +110,47 @@ function SigninForm({ showToast }: SigninFormProps) {
   };
 
   return (
-    <form className="space-y-6 w-[350px] mx-auto" onSubmit={handleSubmitSignIn}>
-      {error && (
-        <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
+    <div className="w-full max-w-sm mx-auto">
+      <form className="space-y-5" onSubmit={handleSubmitSignIn}>
+        {error && (
+          <div className="p-3 bg-red-500/20 border border-red-500/30 text-red-200 rounded-md text-sm">
+            {error}
+          </div>
+        )}
 
-      <LabelInputContainer>
-        <Label htmlFor="username">
-          Username <span className="text-red-500">*</span>
-          <span className="hidden group-hover:block absolute text-xs bg-black text-white rounded-md p-1 ml-2">
-            This field is required
-          </span>
-        </Label>
-        <div className="relative group">
+        <LabelInputContainer>
+          <Label htmlFor="username" className="text-white text-sm mb-1.5">
+            Username <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="username"
             placeholder="Enter your username"
             type="text"
-            className="w-full"
+            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onBlur={() => handleBlur("username")}
           />
           {touchedFields.username && !username && (
-            <p className="text-red-500 text-sm">Username is required.</p>
+            <p className="text-red-400 text-xs mt-1">Username is required.</p>
           )}
-        </div>
-      </LabelInputContainer>
+        </LabelInputContainer>
 
-      <LabelInputContainer>
-        <Label htmlFor="password">
-          Password <span className="text-red-500">*</span>
-          <span className="hidden group-hover:block absolute text-xs bg-black text-white rounded-md p-1 ml-2">
-            This field is required
-          </span>
-        </Label>
-        <div className="relative group">
+        <LabelInputContainer>
+          <div className="flex justify-between items-center mb-1.5">
+            <Label htmlFor="password" className="text-white text-sm">
+              Password <span className="text-red-400">*</span>
+            </Label>
+            <a href="#" className="text-blue-400 hover:text-blue-300 text-xs">
+              Forgot password?
+            </a>
+          </div>
           <Input
             id="password"
             placeholder="••••••••"
             type="password"
-            className="w-full"
+            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
             required
             minLength={6}
             value={password}
@@ -161,19 +158,19 @@ function SigninForm({ showToast }: SigninFormProps) {
             onBlur={() => handleBlur("password")}
           />
           {touchedFields.password && !password && (
-            <p className="text-red-500 text-sm">Password is required.</p>
+            <p className="text-red-400 text-xs mt-1">Password is required.</p>
           )}
-        </div>
-      </LabelInputContainer>
+        </LabelInputContainer>
 
-      <button
-        className="bg-gradient-to-br from-black to-neutral-600 dark:from-zinc-900 dark:to-zinc-900 block w-full text-white rounded-md h-12 font-medium shadow-input disabled:opacity-50"
-        type="submit"
-        disabled={!username || !password || isLoading}
-      >
-        {isLoading ? "Signing In..." : "Sign In →"}
-      </button>
-    </form>
+        <button
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 block w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6"
+          type="submit"
+          disabled={!username || !password || isLoading}
+        >
+          {isLoading ? "Signing In..." : "Sign In →"}
+        </button>
+      </form>
+    </div>
   );
 }
 
