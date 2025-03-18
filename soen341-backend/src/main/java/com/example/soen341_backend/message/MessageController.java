@@ -26,7 +26,7 @@ public class MessageController {
   public List<Message> getChannelMessages(
       @PathVariable String channelId, HttpServletRequest request) {
     // Extract userId from JWT token
-    String username = getUserIdFromRequest(request);
+    String username = getUserUsernameFromRequest(request);
     return messageService.getChannelMessages(channelId, username);
   }
 
@@ -34,14 +34,14 @@ public class MessageController {
   public List<Message> getDirectMessages(
       @RequestParam String otherUserId, HttpServletRequest request) {
     // Extract userId from JWT token
-    String username = getUserIdFromRequest(request);
+    String username = getUserUsernameFromRequest(request);
     return messageService.getDirectMessages(username, otherUserId);
   }
 
   @PostMapping("/channel")
   public Message sendChannelMessage(@RequestBody Message message, HttpServletRequest request) {
     // Extract userId from JWT token
-    String username = getUserIdFromRequest(request);
+    String username = getUserUsernameFromRequest(request);
     return messageService.sendChannelMessage(message, username);
   }
 
@@ -49,14 +49,14 @@ public class MessageController {
   public Message sendDirectMessage(
       @RequestBody Message message, @RequestParam String recipientId, HttpServletRequest request) {
     // Extract senderId from JWT token
-    String senderUsername = getUserIdFromRequest(request);
+    String senderUsername = getUserUsernameFromRequest(request);
     return messageService.sendDirectMessage(message, senderUsername, recipientId);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> deleteMessage(@PathVariable String id, HttpServletRequest request) {
     // Extract userId from JWT token
-    String username = getUserIdFromRequest(request);
+    String username = getUserUsernameFromRequest(request);
     messageService.deleteMessage(id, username);
     return ResponseEntity.ok().build();
   }
@@ -65,13 +65,13 @@ public class MessageController {
   public ResponseEntity<?> editMessage(
       @PathVariable String id, Message newMessage, HttpServletRequest request) {
     // Extract userId from JWT token
-    String username = getUserIdFromRequest(request);
+    String username = getUserUsernameFromRequest(request);
     messageService.editMessage(id, username, newMessage);
     return ResponseEntity.ok().build();
   }
 
   // Helper method to extract the username from JWT token in the request
-  private String getUserIdFromRequest(HttpServletRequest request) {
+  private String getUserUsernameFromRequest(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
     if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
       String token = bearerToken.substring(7);

@@ -3,44 +3,15 @@ import { User, Channel } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
-import { Crown, ShieldAlert, X } from "lucide-react";
-
-// Confirmation Dialog Component
-const ConfirmationDialog = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">{title}</h3>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">{message}</p>
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={onConfirm}>Confirm</Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { Crown, ShieldAlert } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/Components/ui/dialog";
 
 // Toast Component
 const Toast = ({
@@ -215,6 +186,12 @@ export function ChannelMembersList({
 
   // Initiate promotion with confirmation
   const initiatePromoteUser = (userId: string) => {
+    console.log(
+      "Initiating promotion for user:",
+      userId,
+      "User exists in map:",
+      !!usersMap[userId]
+    );
     setUserToPromote(userId);
     setShowConfirmDialog(true);
   };
@@ -244,16 +221,13 @@ export function ChannelMembersList({
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/${channel.id}/promote`,
+        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/promote?channelId=${channel.id}&userId=${userToPromote}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            userId: userToPromote,
-          }),
         }
       );
 
@@ -346,9 +320,7 @@ export function ChannelMembersList({
         key={member.id}
         className={`flex items-center py-1 px-2 rounded-md hover:bg-muted/50 group ${
           isCurrentMember ? "bg-muted/30" : ""
-        } ${canPromote ? "cursor-pointer" : ""}`}
-        onClick={canPromote ? () => initiatePromoteUser(member.id) : undefined}
-        title={canPromote ? "Click to promote to admin" : undefined}
+        }`}
       >
         <div className="relative mr-2">
           <Avatar className="h-6 w-6">
@@ -372,28 +344,20 @@ export function ChannelMembersList({
           </div>
         </div>
         {canPromote && (
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
-              disabled={isPromoting !== null}
-              onClick={(e) => {
-                e.stopPropagation();
-                initiatePromoteUser(member.id);
-              }}
-              title="Promote to admin"
-            >
-              {isPromoting === member.id ? (
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-r-transparent border-amber-500" />
-              ) : (
-                <Crown className="h-2.5 w-2.5 text-muted-foreground hover:text-amber-500" />
-              )}
-            </Button>
-            <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 rounded bg-secondary text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Promote to admin
-            </div>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-1 h-6 py-0 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center"
+            disabled={isPromoting !== null}
+            onClick={() => initiatePromoteUser(member.id)}
+          >
+            {isPromoting === member.id ? (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-r-transparent border-amber-500 mr-3" />
+            ) : (
+              <Crown className="h-3 w-3 text-amber-500" />
+            )}
+            <span className="text-xs ml-2">Promote</span>
+          </Button>
         )}
       </div>
     );
@@ -403,15 +367,12 @@ export function ChannelMembersList({
     <div className="w-64 flex-shrink-0 flex flex-col h-full bg-muted/20 border-l">
       <div className="p-2 flex items-center justify-between border-b">
         <div className="font-semibold text-sm">Members</div>
-        <div className="text-xs text-muted-foreground">
-          {channel.members?.length || 0}
-        </div>
       </div>
 
       {isCurrentUserAdmin && (
         <div className="px-3 py-1 text-xs text-muted-foreground border-b flex items-center">
           <Crown className="h-3 w-3 mr-1 text-amber-500" />
-          <span>You can promote members to admin</span>
+          <span className="ml-2">You can promote members to admin</span>
         </div>
       )}
 
@@ -471,14 +432,47 @@ export function ChannelMembersList({
         </div>
       </ScrollArea>
 
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onConfirm={handlePromoteUser}
-        title="Promote to Admin"
-        message={`Are you sure you want to promote ${(userToPromote && usersMap[userToPromote]?.username) || "this user"} to an admin? Admins can invite users, promote other users, and manage the channel.`}
-      />
+      {/* Use the proper Dialog component */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Promote to Admin</DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to promote{" "}
+              <span className="font-semibold">
+                {(userToPromote && usersMap[userToPromote]?.username) ||
+                  "this user"}
+              </span>{" "}
+              to an admin?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-3 text-muted-foreground">
+            <ul className="pl-5 list-disc text-xs space-y-1">
+              <li>Admins can invite new users to the channel</li>
+              <li>Admins can promote other users to admin</li>
+              <li>This action cannot be undone</li>
+            </ul>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePromoteUser}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              <Crown className="h-3 w-3 mr-2" />
+              Promote
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Toast Notification */}
       <Toast
