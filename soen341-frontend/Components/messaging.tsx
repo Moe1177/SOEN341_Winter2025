@@ -12,6 +12,7 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 import { ChannelMembersList } from "./channel-members-list";
+import { Menu, X, Users } from "lucide-react";
 
 // Import custom hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -70,6 +71,10 @@ export function Messaging() {
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [showChannelMembers, setShowChannelMembers] = useState<boolean>(true);
+  
+  // Mobile sidebar state
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [showMobileMembers, setShowMobileMembers] = useState(false);
 
   // Get active DM info
   const activeDM = isActiveChannelConversation
@@ -105,6 +110,9 @@ export function Messaging() {
         isActiveChannelConversation ? "channel" : "DM"
       }: ${activeConversationId}`
     );
+    // Close mobile sidebar when conversation changes
+    setShowMobileSidebar(false);
+    setShowMobileMembers(false);
   }, [activeConversationId, isActiveChannelConversation]);
 
   // Create a map of users for easy lookup
@@ -213,39 +221,89 @@ export function Messaging() {
     return undefined;
   };
 
+  // Toggle mobile sidebar
+  const toggleMobileSidebar = () => {
+    setShowMobileSidebar(!showMobileSidebar);
+    if (showMobileMembers) setShowMobileMembers(false);
+  };
+
+  // Toggle mobile members
+  const toggleMobileMembers = () => {
+    setShowMobileMembers(!showMobileMembers);
+    if (showMobileSidebar) setShowMobileSidebar(false);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      {/* Sidebar Navigation */}
-      <Sidebar
-        channels={channels}
-        directMessages={directMessages}
-        activeConversationId={activeConversationId}
-        onConversationSelect={handleConversationSelect}
-        onCreateChannel={() => setShowCreateChannel(true)}
-        onCreateDirectMessage={() => setShowCreateDM(true)}
-        onViewChannelInvite={handleViewChannelInvite}
-        currentUser={currentUser}
-      />
+      {/* Mobile overlay when sidebar or members list is open */}
+      {(showMobileSidebar || showMobileMembers) && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => {
+            setShowMobileSidebar(false);
+            setShowMobileMembers(false);
+          }}
+        />
+      )}
+      
+      {/* Desktop Sidebar - Always visible on md+ screens */}
+      <div className={`${showMobileSidebar ? 'fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-background' : 'hidden'} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-border`}>
+        <Sidebar
+          channels={channels}
+          directMessages={directMessages}
+          activeConversationId={activeConversationId}
+          onConversationSelect={handleConversationSelect}
+          onCreateChannel={() => setShowCreateChannel(true)}
+          onCreateDirectMessage={() => setShowCreateDM(true)}
+          onViewChannelInvite={handleViewChannelInvite}
+          currentUser={currentUser}
+        />
+      </div>
 
       <div className="flex flex-col flex-1 overflow-hidden border-l border-border">
         {activeConversationId && (
           <>
-            <ConversationHeader
-              conversation={
-                isActiveChannelConversation
-                  ? getChannelById(activeConversationId)!
-                  : getActiveDirectMessage(activeConversationId)!
-              }
-              receiver={getActiveUser()}
-              onViewChannelInvite={
-                isActiveChannelConversation
-                  ? () =>
-                      handleViewChannelInvite(
-                        getChannelById(activeConversationId)!
-                      )
-                  : undefined
-              }
-            />
+            <div className="flex items-center p-2 border-b border-border">
+              {/* Mobile hamburger menu */}
+              <button 
+                className="p-2 mr-2 rounded-md hover:bg-secondary md:hidden"
+                onClick={toggleMobileSidebar}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            
+              <ConversationHeader
+                conversation={
+                  isActiveChannelConversation
+                    ? getChannelById(activeConversationId)!
+                    : getActiveDirectMessage(activeConversationId)!
+                }
+                receiver={getActiveUser()}
+                onViewChannelInvite={
+                  isActiveChannelConversation
+                    ? () =>
+                        handleViewChannelInvite(
+                          getChannelById(activeConversationId)!
+                        )
+                    : undefined
+                }
+              />
+              
+              {/* Mobile members toggle button - only for channels */}
+              {isActiveChannelConversation && (
+                <button 
+                  className="p-2 ml-2 rounded-md hover:bg-secondary md:hidden"
+                  onClick={toggleMobileMembers}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+            
             <MessageList
               messages={filteredMessages}
               currentUser={currentUser}
@@ -256,10 +314,20 @@ export function Messaging() {
         )}
       </div>
 
-      {/* Channel Members List - only shown for channels */}
-      {showChannelMembers &&
-        isActiveChannelConversation &&
-        activeConversationId && (
+      {/* Mobile Members List - only shown for channels when toggled */}
+      {showMobileMembers && isActiveChannelConversation && activeConversationId && (
+        <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-background overflow-y-auto border-l border-border">
+          <div className="p-4 border-b border-border flex justify-between items-center">
+            <h3 className="font-medium">Channel Members</h3>
+            <button 
+              className="p-1 rounded-md hover:bg-secondary"
+              onClick={() => setShowMobileMembers(false)}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
           <ChannelMembersList
             channel={getChannelById(activeConversationId)}
             currentUser={currentUser}
@@ -268,6 +336,23 @@ export function Messaging() {
             token={token}
             onMembersUpdated={fetchChannels}
           />
+        </div>
+      )}
+
+      {/* Desktop Members List - only shown for channels */}
+      {showChannelMembers &&
+        isActiveChannelConversation &&
+        activeConversationId && (
+          <div className="hidden md:block w-64 flex-shrink-0 overflow-y-auto border-l border-border">
+            <ChannelMembersList
+              channel={getChannelById(activeConversationId)}
+              currentUser={currentUser}
+              usersMap={usersMap}
+              setUsersMap={setUsersMap}
+              token={token}
+              onMembersUpdated={fetchChannels}
+            />
+          </div>
         )}
 
       {/* Dialogs */}

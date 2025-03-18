@@ -29,7 +29,7 @@ export default function AuthFormDemo() {
   };
 
   return (
-    <div className="rounded-none md:rounded-2xl p-6 md:p-10 shadow-input bg-white dark:bg-black min-h-[450px] flex flex-col">
+    <div className="rounded-none md:rounded-2xl p-4 sm:p-6 md:p-10 shadow-input bg-white dark:bg-black min-h-[450px] flex flex-col w-full max-w-[450px] mx-auto">
       <Toast
         message={toast.message}
         visible={toast.visible}
@@ -38,9 +38,9 @@ export default function AuthFormDemo() {
       />
 
       {authState !== "verify" && (
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4 sm:mb-6">
           <button
-            className={`px-6 py-2 font-medium rounded-l-lg transition-all ${
+            className={`px-4 sm:px-6 py-2 font-medium rounded-l-lg transition-all text-sm sm:text-base ${
               authState === "signin"
                 ? "bg-blue-500 text-white"
                 : "bg-gray-200 dark:bg-gray-700"
@@ -51,7 +51,7 @@ export default function AuthFormDemo() {
           </button>
 
           <button
-            className={`px-6 py-2 font-medium rounded-r-lg transition-all ${
+            className={`px-4 sm:px-6 py-2 font-medium rounded-r-lg transition-all text-sm sm:text-base ${
               authState === "signup"
                 ? "bg-blue-500 text-white"
                 : "bg-gray-200 dark:bg-gray-700"

@@ -9,14 +9,14 @@ import React from 'react'
  */
 const Features = () => {
   return (
-    <section className="flex flex-col items-center justify-center overflow-hidden  py-5 ">
-      <div className="max-container padding-container relative w-full flex justify-center">
-
-        <div className="z-23 flex w-full flex-col items-left text-left lg:w-[100%] ">
-          <div className='relative'>
-            <h2 className="bold-40 lg:bold-64 text-white">Our Features</h2>
-          </div>
-          <ul className="mt-10 grid gap-20 md:grid-cols-2 lg:mg-20 lg:gap-20">
+    <section className="flex flex-col items-center justify-center overflow-hidden py-5 px-5 sm:px-8">
+      <div className="max-container w-full">
+        <div className="w-full">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-[64px] leading-tight text-white font-bold text-center md:text-left mb-10">
+            Our Features
+          </h2>
+          
+          <ul className="grid gap-y-12 gap-x-6 sm:gap-x-10 md:gap-x-16 grid-cols-1 md:grid-cols-2">
             {FEATURES.map((feature) => (
               <FeatureItem 
                 key={feature.title}
@@ -39,21 +39,26 @@ type FeatureItem = {
 }
 
 const FeatureItem = ({ title, icon, description }: FeatureItem) => {
-
   return (
-    <div className='hero2' >
-    <li className="flex w-full flex-1 flex-col items-start">
-      <div className="purple_icon">
-        <Image src={icon} alt="map" width={28} height={28} />
+    <li className="flex flex-col items-center md:items-start text-center md:text-left">
+      <div className="bg-purple-900 rounded-full p-4 md:p-6 mb-4 flex items-center justify-center">
+        <Image 
+          src={icon} 
+          alt={title} 
+          width={28} 
+          height={28} 
+          className="w-6 h-6 md:w-7 md:h-7"
+        />
       </div>
-      <h2 className="bold-20 lg:bold-32 mt-10 capitalize text-white">
+      
+      <h3 className="text-xl sm:text-2xl lg:text-[32px] font-bold text-white mb-2 sm:mb-3">
         {title}
-      </h2>
-      <p className="description">
+      </h3>
+      
+      <p className="text-base sm:text-lg md:text-xl lg:text-[23px] text-purple-500">
         {description}
       </p>
     </li>
-    </div>
   )
 }
 

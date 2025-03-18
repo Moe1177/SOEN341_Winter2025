@@ -46,23 +46,23 @@ export function MessageInput({ onSendMessageAction }: MessageInputProps) {
   };
 
   return (
-    <div className="p-4 border-t border-border bg-card/50">
-      <div className="flex items-end gap-2 bg-background rounded-lg p-1 shadow-sm border border-border">
+    <div className="p-2 sm:p-4 border-t border-border bg-card/50">
+      <div className="flex items-end gap-1 sm:gap-2 bg-background rounded-lg p-1 shadow-sm border border-border">
         <Textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          className="flex-1 min-h-10 max-h-40 resize-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 py-2 text-foreground placeholder:text-muted-foreground"
+          className="flex-1 min-h-8 sm:min-h-10 max-h-32 sm:max-h-40 text-sm sm:text-base resize-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 sm:px-3 py-1.5 sm:py-2 text-foreground placeholder:text-muted-foreground"
         />
         <Button
           onClick={handleSendMessage}
           size="sm"
           disabled={!message.trim()}
-          className={`h-9 w-9 p-0 rounded-full ${message.trim() ? "bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"}`}
+          className={`h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full ${message.trim() ? "bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"}`}
         >
-          <Send className="h-4 w-4" />
+          <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       </div>
     </div>

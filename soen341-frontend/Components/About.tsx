@@ -8,25 +8,26 @@ import Image from 'next/image'
  */
 const About = () => {
     return (
-        <div className="hero">
-          <div className="flex-1 pt-36 padding-x">
-            
-            <h1 className="hero__title">
+        <div className="hero flex flex-col-reverse md:flex-row px-5 sm:px-8">
+          <div className="flex-1 pt-8 md:pt-36 pb-10 md:pb-0">
+            <h1 className="hero__title text-3xl sm:text-4xl lg:text-5xl xl:text-[64px] leading-tight">
             About Us
             </h1>
     
-            <p className="about_subtitle">
+            <p className="about_subtitle text-lg sm:text-xl md:text-2xl lg:text-[27px] mt-4 mb-8 md:mt-5 md:mb-0">
             At [App Name], our goal is to make messaging simple, secure, and enjoyable. We connect people—whether friends, family, or colleagues—through a user-friendly platform built with privacy in mind. Explore our 'Features' section to discover how we are making communication smoother and more efficient for everyone
             </p>
-          
-            
           </div>
-          <div className="about__image-container">
-            <div className="hero__image">
-              <Image src="/undraw_social-networking_v4z1.svg" alt="hero" fill className="object-contain" />
+          
+          <div className="flex items-center justify-center w-full md:w-1/2 py-4 md:py-0">
+            <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-full aspect-square md:aspect-auto md:h-[590px]">
+              <Image 
+                src="/undraw_social-networking_v4z1.svg" 
+                alt="About illustration" 
+                fill 
+                className="object-contain" 
+              />
             </div>
-    
-            <div className="hero__image-overlay" />
           </div>
         </div>
       );

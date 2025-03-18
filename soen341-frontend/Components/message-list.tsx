@@ -104,12 +104,12 @@ export function MessageList({
   };
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto" ref={messagesEndRef}>
-      <div className="space-y-8">
+    <div className="flex-1 p-2 sm:p-4 overflow-y-auto" ref={messagesEndRef}>
+      <div className="space-y-4 sm:space-y-8">
         {groupedMessages.map((group) => (
-          <div key={group.date} className="space-y-6">
+          <div key={group.date} className="space-y-3 sm:space-y-6">
             <div className="sticky top-0 z-10 flex justify-center">
-              <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
+              <div className="bg-primary/10 text-primary px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 {formatMessageDate(group.date)}
               </div>
             </div>
@@ -130,15 +130,15 @@ export function MessageList({
               return (
                 <div
                   key={messageKey}
-                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-2 sm:mb-3`}
                 >
                   <div
-                    className={`flex max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
+                    className={`flex max-w-[85%] sm:max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
                   >
                     {!isCurrentUser && (
-                      <div className="flex-shrink-0 mr-3">
-                        <Avatar className="h-8 w-8 border border-border">
-                          <AvatarFallback className="bg-secondary text-foreground text-sm">
+                      <div className="flex-shrink-0 mr-2 sm:mr-3">
+                        <Avatar className="h-6 w-6 sm:h-8 sm:w-8 border border-border">
+                          <AvatarFallback className="bg-secondary text-foreground text-xs sm:text-sm">
                             {avatarChar}
                           </AvatarFallback>
                         </Avatar>
@@ -147,10 +147,10 @@ export function MessageList({
                     <div>
                       {!isCurrentUser && (
                         <div className="mb-1 ml-1 flex items-center">
-                          <span className="text-sm font-medium">
+                          <span className="text-xs sm:text-sm font-medium">
                             {sender?.username || "Unknown"}
                           </span>
-                          <span className="text-xs text-muted-foreground ml-2">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground ml-2">
                             {formatMessageTime(message.timestamp)}
                           </span>
                         </div>
@@ -160,15 +160,15 @@ export function MessageList({
                           isCurrentUser
                             ? "bg-primary text-primary-foreground rounded-l-xl rounded-tr-xl"
                             : "bg-secondary text-secondary-foreground rounded-r-xl rounded-tl-xl"
-                        } px-4 py-2.5 shadow-sm`}
+                        } px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm text-sm sm:text-base`}
                       >
-                        <div className="whitespace-pre-wrap">
+                        <div className="whitespace-pre-wrap break-words">
                           {message.content}
                         </div>
                       </div>
                       {isCurrentUser && (
                         <div className="mt-1 mr-1 flex justify-end">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
                             {formatMessageTime(message.timestamp)}
                           </span>
                         </div>
