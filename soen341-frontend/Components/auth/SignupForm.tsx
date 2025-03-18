@@ -117,44 +117,36 @@ function SignupForm({
   };
 
   return (
-    <form className="space-y-6 w-[350px] mx-auto" onSubmit={handleSubmit}>
-      <LabelInputContainer>
-        <Label htmlFor="username">
-          User Name <span className="text-red-500">*</span>
-          <span className="hidden group-hover:block absolute text-xs bg-black text-white rounded-md p-1 ml-2">
-            This field is required
-          </span>
-        </Label>
-        <div className="relative group">
+    <div className="w-full max-w-sm mx-auto">
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <LabelInputContainer>
+          <Label htmlFor="username" className="text-white text-sm mb-1.5">
+            User Name <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="username"
             placeholder="JohnDoe"
             type="text"
-            className="w-full"
+            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
             required
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             onBlur={() => handleBlur("userName")}
           />
           {touchedFields.userName && !userName && (
-            <p className="text-red-500 text-sm">User Name is required.</p>
+            <p className="text-red-400 text-xs mt-1">User Name is required.</p>
           )}
-        </div>
-      </LabelInputContainer>
+        </LabelInputContainer>
 
-      <LabelInputContainer>
-        <Label htmlFor="email">
-          Email Address <span className="text-red-500">*</span>
-          <span className="hidden group-hover:block absolute text-xs bg-black text-white rounded-md p-1 ml-2">
-            This field is required
-          </span>
-        </Label>
-        <div className="relative group">
+        <LabelInputContainer>
+          <Label htmlFor="email" className="text-white text-sm mb-1.5">
+            Email Address <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="email"
             placeholder="your-email@example.com"
             type="email"
-            className="w-full"
+            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
             required
             value={email}
             onChange={(e) => {
@@ -164,25 +156,22 @@ function SignupForm({
             onBlur={() => handleBlur("email")}
           />
           {touchedFields.email && !email && (
-            <p className="text-red-500 text-sm">Email is required.</p>
+            <p className="text-red-400 text-xs mt-1">Email is required.</p>
           )}
-        </div>
-        {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
-      </LabelInputContainer>
+          {emailError && (
+            <p className="text-red-400 text-xs mt-1">{emailError}</p>
+          )}
+        </LabelInputContainer>
 
-      <LabelInputContainer>
-        <Label htmlFor="password">
-          Password <span className="text-red-500">*</span>
-          <span className="hidden group-hover:block absolute text-xs bg-black text-white rounded-md p-1 ml-2">
-            This field is required
-          </span>
-        </Label>
-        <div className="relative group">
+        <LabelInputContainer>
+          <Label htmlFor="password" className="text-white text-sm mb-1.5">
+            Password <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="password"
             placeholder="••••••••"
             type="password"
-            className="w-full"
+            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
             required
             minLength={6}
             value={password}
@@ -190,19 +179,21 @@ function SignupForm({
             onBlur={() => handleBlur("password")}
           />
           {touchedFields.password && !password && (
-            <p className="text-red-500 text-sm">Password is required.</p>
+            <p className="text-red-400 text-xs mt-1">Password is required.</p>
           )}
-        </div>
-      </LabelInputContainer>
+        </LabelInputContainer>
 
-      <button
-        className="bg-gradient-to-br from-black to-neutral-600 dark:from-zinc-900 dark:to-zinc-900 block w-full text-white rounded-md h-12 font-medium shadow-input disabled:opacity-50"
-        type="submit"
-        disabled={!userName || !email || !password || !!emailError || isLoading}
-      >
-        {isLoading ? "Processing..." : "Sign Up →"}
-      </button>
-    </form>
+        <button
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 block w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6"
+          type="submit"
+          disabled={
+            !userName || !email || !password || !!emailError || isLoading
+          }
+        >
+          {isLoading ? "Processing..." : "Sign Up →"}
+        </button>
+      </form>
+    </div>
   );
 }
 

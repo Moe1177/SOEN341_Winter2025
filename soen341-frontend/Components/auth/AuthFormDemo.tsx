@@ -30,12 +30,14 @@ export default function AuthFormDemo() {
   };
 
   return (
-    <div className="rounded-xl p-6 sm:p-7 md:p-8 shadow-xl bg-[#0e1230]/90 backdrop-blur-md border border-[#36327e]/30 min-h-[480px] flex flex-col w-full max-w-[450px] mx-auto">
+    <div className="rounded-xl p-6 sm:p-7 md:p-8 shadow-xl bg-[#0e1230]/90 backdrop-blur-md border border-[#36327e]/30 min-h-[480px] flex flex-col w-full max-w-[450px] mx-auto overflow-hidden">
       {/* Small welcome message only visible on mobile/tablet in lg:hidden screens */}
       <div className="flex lg:hidden justify-center mb-7">
         <div className="text-center">
           <h3 className="text-2xl font-bold text-white">Welcome to Dialogos</h3>
-          <p className="text-sm text-gray-300 mt-1">The Future of Digital Communication</p>
+          <p className="text-sm text-gray-300 mt-1">
+            The Future of Digital Communication
+          </p>
         </div>
       </div>
 
@@ -74,7 +76,7 @@ export default function AuthFormDemo() {
         </div>
       )}
 
-      <div className="flex-grow">
+      <div className="flex-grow flex justify-center">
         {authState === "signup" && (
           <SignupForm
             setAuthState={setAuthState}
