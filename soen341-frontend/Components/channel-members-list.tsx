@@ -221,9 +221,9 @@ export function ChannelMembersList({
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/promote?channelId=${channel.id}&userId=${userToPromote}`,
+        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/promote?channelId=${channel.id}&userIdToPromote=${userToPromote}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

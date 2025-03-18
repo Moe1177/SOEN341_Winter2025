@@ -50,16 +50,16 @@ public class ChannelController {
     return channelService.addUserToChannel(channelId, userId);
   }
 
-  @PostMapping("/promote")
+  @PutMapping("/promote")
   public ResponseEntity<?> promoteChannelAdmin(
       @RequestParam String channelId,
       @RequestParam String userIdToPromote,
       HttpServletRequest request) {
     String adminUsername = getUserUsernameFromRequest(request);
 
-    return channelService.promoteUserToAdmin(channelId, userIdToPromote, adminUsername)
-        ? ResponseEntity.badRequest().build()
-        : ResponseEntity.ok().build();
+    channelService.promoteUserToAdmin(channelId, userIdToPromote, adminUsername);
+
+    return ResponseEntity.ok().build();
   }
 
   @DeleteMapping("/{channelId}/users/{userId}")
