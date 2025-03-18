@@ -20,9 +20,9 @@ interface MessageInputProps {
  *
  * @returns {JSX.Element} The rendered MessageInput component, which includes a text area for typing and a send button.
  */
-export function MessageInput({ 
-  onSendMessageAction, 
-  channelName = "general" 
+export function MessageInput({
+  onSendMessageAction,
+  channelName = "general",
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -52,19 +52,23 @@ export function MessageInput({
 
   return (
     <div className="px-4 pb-4 pt-2 bg-transparent relative z-10">
-      <div className="relative flex items-center rounded-lg bg-[#1c1f45]/60 backdrop-blur-sm border border-[#36327e]/50 shadow-md">
-        <button className="p-2 text-gray-400 hover:text-gray-200 transition-colors">
-          <Plus className="h-5 w-5" />
+      <div className="relative flex items-center rounded-lg bg-[#1c1f45]/60 backdrop-blur-sm border border-[#36327e]/50 shadow-md h-[44px]">
+        <button className="p-2 mx-1 text-gray-400 hover:text-gray-200 transition-colors rounded-full">
+          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
+            <Plus className="h-5 w-5" />
+          </div>
         </button>
-        
-        <div className="flex-1 relative">
+
+        <div className="flex-1 relative flex items-center h-full">
           {/* Left-aligned but vertically centered placeholder */}
           {!message && !isFocused && (
-            <div className="absolute inset-0 flex items-center pointer-events-none pl-3">
-              <span className="text-gray-400 text-sm">Message #{channelName}</span>
+            <div className="absolute inset-0 flex items-center pointer-events-none pl-3 z-10">
+              <span className="text-gray-400 text-sm">
+                Message #{channelName}
+              </span>
             </div>
           )}
-          
+
           <Textarea
             ref={textareaRef}
             value={message}
@@ -73,17 +77,19 @@ export function MessageInput({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder=""
-            className="min-h-[40px] max-h-[120px] py-2 px-3 resize-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-white placeholder:text-transparent"
+            className="absolute inset-0 pl-3 pr-10 resize-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-white placeholder:text-transparent pt-[13px]"
           />
-          
+
           <Button
             onClick={handleSendMessage}
             size="sm"
             disabled={!message.trim()}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 rounded-full 
-              ${message.trim() 
-                ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                : "bg-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2b3169]/60"}`}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 rounded-full z-20
+              ${
+                message.trim()
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-white/10 hover:bg-white/15 text-gray-300"
+              }`}
           >
             <Send className="h-4 w-4" />
           </Button>

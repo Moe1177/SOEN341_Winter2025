@@ -1,4 +1,3 @@
-// Allow users to communicate directly or in channels
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,7 +13,6 @@ import { ChannelInviteDialog } from "./channel-invite-dialog";
 import { ChannelMembersList } from "./channel-members-list";
 import { Menu, X, Users, MessageSquare } from "lucide-react";
 
-// Import custom hooks
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
@@ -68,7 +66,7 @@ export function Messaging() {
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
   const [showChannelMembers, setShowChannelMembers] = useState<boolean>(true);
-  
+
   // Mobile sidebar state
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showMobileMembers, setShowMobileMembers] = useState(false);
@@ -232,19 +230,13 @@ export function Messaging() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a] text-white">
-      {/* Aurora effect overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-800/20 via-blue-900/15 to-indigo-900/15 pointer-events-none"></div>
-      
-      {/* Stars effect */}
       <div className="stars-bg"></div>
-      
-      {/* Cosmic glow effects */}
       <div className="cosmic-glow"></div>
       <div className="cosmic-glow-2"></div>
-      
-      {/* Mobile overlay when sidebar or members list is open */}
+
       {(showMobileSidebar || showMobileMembers) && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => {
             setShowMobileSidebar(false);
@@ -252,9 +244,10 @@ export function Messaging() {
           }}
         />
       )}
-      
-      {/* Desktop Sidebar - Always visible on md+ screens */}
-      <div className={`${showMobileSidebar ? 'fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md' : 'hidden'} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-[#36327e]/50 relative z-10`}>
+
+      <div
+        className={`${showMobileSidebar ? "fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md" : "hidden"} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-[#36327e]/50 relative z-10`}
+      >
         <Sidebar
           channels={channels}
           directMessages={directMessages}
@@ -268,19 +261,17 @@ export function Messaging() {
         />
       </div>
 
-      <div className="flex flex-col flex-1 overflow-hidden relative z-10">
-        {/* Header is always visible */}
-        <div className="flex items-center p-3 border-b border-[#36327e]/50 bg-[#0e1230]/80 backdrop-blur-md">
-          {/* Mobile hamburger menu - Always visible */}
-          <button 
-            className="p-2 mr-2 rounded-md hover:bg-[#1c1f45]/60 md:hidden"
-            onClick={toggleMobileSidebar}
-          >
-            <Menu className="h-5 w-5 text-white" />
-          </button>
-        
-          {activeConversationId ? (
-            <>
+      <div className="flex-1 flex flex-col relative z-10">
+        {activeConversationId && (
+          <div className="md:bg-transparent bg-[#0e1234]/90 border-b border-[#36327e]/50 md:border-0">
+            <div className="flex md:hidden items-center h-12">
+              <button
+                onClick={toggleMobileSidebar}
+                className="p-3 text-white hover:text-gray-200"
+              >
+                <Menu size={20} />
+              </button>
+
               <ConversationHeader
                 conversation={
                   isActiveChannelConversation
@@ -297,56 +288,58 @@ export function Messaging() {
                     : undefined
                 }
               />
-              
-              {/* Mobile channel/user name display */}
-              {isActiveChannelConversation ? (
-                <>
-                  {/* Mobile channel name display */}
-                  <div className="md:hidden flex items-center mx-2 px-2 py-1 bg-[#1c1f45]/60 rounded-md">
-                    <span className="text-sm font-medium text-white truncate max-w-[120px]">
-                      #{getChannelById(activeConversationId)?.name || "channel"}
-                    </span>
-                  </div>
-                  
-                  <button 
-                    className="p-2 ml-2 rounded-md hover:bg-[#1c1f45]/60 md:hidden"
-                    onClick={toggleMobileMembers}
-                  >
-                    <Users className="h-5 w-5 text-white" />
-                  </button>
-                </>
-              ) : (
-                /* Direct message username display for mobile */
-                <div className="md:hidden flex items-center mx-2 px-2 py-1 bg-[#1c1f45]/60 rounded-md">
-                  <span className="text-sm font-medium text-white truncate max-w-[120px]">
-                    @{getActiveUser()?.username || "user"}
-                  </span>
-                </div>
+
+              {isActiveChannelConversation && (
+                <button
+                  onClick={toggleMobileMembers}
+                  className="p-3 text-white hover:text-gray-200"
+                >
+                  <Users size={20} />
+                </button>
               )}
-            </>
-          ) : (
-            <h1 className="font-semibold text-white">Dialogos Chat</h1>
-          )}
-        </div>
-        
+            </div>
+          </div>
+        )}
+
         {activeConversationId ? (
-          <>
-            <MessageList
-              messages={filteredMessages}
-              currentUser={currentUser}
-              users={usersMap}
-            />
-            <MessageInput 
-              onSendMessageAction={handleSendMessage} 
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="hidden md:flex items-center pl-4 pr-2 py-2">
+              <ConversationHeader
+                conversation={
+                  isActiveChannelConversation
+                    ? getChannelById(activeConversationId)!
+                    : getActiveDirectMessage(activeConversationId)!
+                }
+                receiver={getActiveUser()}
+                onViewChannelInvite={
+                  isActiveChannelConversation
+                    ? () =>
+                        handleViewChannelInvite(
+                          getChannelById(activeConversationId)!
+                        )
+                    : undefined
+                }
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#36327e] scrollbar-track-transparent">
+              <MessageList
+                messages={filteredMessages}
+                currentUser={currentUser}
+                users={usersMap}
+              />
+            </div>
+
+            <MessageInput
+              onSendMessageAction={handleSendMessage}
               channelName={
-                isActiveChannelConversation && activeConversationId
+                isActiveChannelConversation
                   ? getChannelById(activeConversationId)?.name || "channel"
-                  : getActiveUser()?.username || "conversation"
+                  : getActiveUser()?.username || "user"
               }
             />
-          </>
+          </div>
         ) : (
-          // Welcome page when no conversation is selected
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             <div className="bg-[#0e1230]/70 rounded-xl p-8 max-w-md backdrop-blur-md border border-[#36327e]/40 shadow-lg">
               <MessageSquare className="w-16 h-16 mx-auto mb-4 text-blue-400" />
@@ -354,7 +347,8 @@ export function Messaging() {
                 Welcome, {currentUser?.username || "User"}!
               </h2>
               <p className="text-gray-300 mb-6">
-                Select a channel or direct message to start chatting
+                Select an existing channel or direct message to start chatting,
+                or start chatting by creating a new channel or direct message.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
@@ -375,30 +369,30 @@ export function Messaging() {
         )}
       </div>
 
-      {/* Mobile Members List - only shown for channels when toggled */}
-      {showMobileMembers && isActiveChannelConversation && activeConversationId && (
-        <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md overflow-y-auto border-l border-[#36327e]/50">
-          <div className="p-4 border-b border-[#36327e]/50 flex justify-between items-center">
-            <h3 className="font-medium text-white">Channel Members</h3>
-            <button 
-              className="p-1 rounded-md hover:bg-[#1c1f45]/60"
-              onClick={() => setShowMobileMembers(false)}
-            >
-              <X className="h-5 w-5 text-white" />
-            </button>
+      {showMobileMembers &&
+        isActiveChannelConversation &&
+        activeConversationId && (
+          <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md overflow-y-auto border-l border-[#36327e]/50">
+            <div className="p-4 border-b border-[#36327e]/50 flex justify-between items-center">
+              <h3 className="font-medium text-white">Channel Members</h3>
+              <button
+                className="p-1 rounded-md hover:bg-[#1c1f45]/60"
+                onClick={() => setShowMobileMembers(false)}
+              >
+                <X className="h-5 w-5 text-white" />
+              </button>
+            </div>
+            <ChannelMembersList
+              channel={getChannelById(activeConversationId)}
+              currentUser={currentUser}
+              usersMap={usersMap}
+              setUsersMap={setUsersMap}
+              token={token}
+              onMembersUpdated={fetchChannels}
+            />
           </div>
-          <ChannelMembersList
-            channel={getChannelById(activeConversationId)}
-            currentUser={currentUser}
-            usersMap={usersMap}
-            setUsersMap={setUsersMap}
-            token={token}
-            onMembersUpdated={fetchChannels}
-          />
-        </div>
-      )}
+        )}
 
-      {/* Desktop Members List - only shown for channels */}
       {showChannelMembers &&
         isActiveChannelConversation &&
         activeConversationId && (
@@ -414,7 +408,6 @@ export function Messaging() {
           </div>
         )}
 
-      {/* Dialogs */}
       {showCreateChannel && (
         <CreateChannelDialog
           onCloseAction={() => setShowCreateChannel(false)}

@@ -429,7 +429,7 @@ export function ChannelMembersList({
             {groupedMembers.onlineMembers.length > 0 && (
               <div className="mb-2">
                 <div className="text-xs font-semibold text-muted-foreground uppercase px-3 py-1">
-                  Online — {groupedMembers.onlineMembers.length}
+                  Members — {groupedMembers.onlineMembers.length}
                 </div>
                 <div className="space-y-0.5">
                   {groupedMembers.onlineMembers.map((member) =>

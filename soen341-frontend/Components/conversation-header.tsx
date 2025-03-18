@@ -25,7 +25,6 @@ export function ConversationHeader({
   receiver,
   onViewChannelInvite,
 }: ConversationHeaderProps) {
-  // Check if this is a channel by looking for the type property
   const isChannel = "type" in conversation && conversation.type === "GROUP";
   const channel = isChannel ? (conversation as Channel) : null;
 
@@ -35,7 +34,9 @@ export function ConversationHeader({
         {isChannel ? (
           <>
             <Hash className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
-            <span className="font-medium text-sm sm:text-base truncate">{channel?.name}</span>
+            <span className="font-medium text-sm sm:text-base truncate">
+              {channel?.name}
+            </span>
           </>
         ) : (
           <>
@@ -55,7 +56,9 @@ export function ConversationHeader({
                     }`}
                   />
                 </span>
-                <span className="font-medium text-sm sm:text-base truncate">{receiver.username}</span>
+                <span className="font-medium text-sm sm:text-base truncate">
+                  {receiver.username}
+                </span>
               </>
             )}
           </>

@@ -73,7 +73,9 @@ export function Sidebar({
                 className="h-5 w-5 rounded-full hover:bg-secondary"
                 onClick={onCreateChannel}
               >
-                <Plus className="h-3 w-3 text-muted-foreground" />
+                <div className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
+                  <Plus className="h-3 w-3 text-muted-foreground" />
+                </div>
               </Button>
             </div>
 
@@ -90,11 +92,6 @@ export function Sidebar({
                 >
                   <Hash className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="truncate text-sm">{channel.name}</span>
-                  {/* {channel.unreadCount && channel.unreadCount > 0 && (
-                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-                      {channel.unreadCount}
-                    </span>
-                  )} */}
                   {currentUserIsAdmin(channel) && (
                     <div
                       role="button"
@@ -123,7 +120,9 @@ export function Sidebar({
                 className="h-5 w-5 rounded-full hover:bg-secondary"
                 onClick={onCreateDirectMessage}
               >
-                <Plus className="h-3 w-3 text-muted-foreground" />
+                <div className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
+                  <Plus className="h-3 w-3 text-muted-foreground" />
+                </div>
               </Button>
             </div>
 

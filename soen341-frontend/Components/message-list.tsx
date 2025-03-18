@@ -15,17 +15,6 @@ interface MessageGroup {
   messages: WebSocketMessage[];
 }
 
-/**
- * MessageList component displays a list of messages grouped by date. It automatically scrolls to the latest message
- * and formats timestamps for messages with respect to the current date.
- *
- * @param {Object} props - The component props.
- * @param {Message[]} props.messages - An array of messages to display in the list.
- * @param {User | null} props.currentUser - The current user object, used to determine if a message is sent by the current user.
- * @param {Record<string, User>} props.users - A dictionary of users where the key is the user ID and the value is the user object.
- *
- * @returns {JSX.Element} The rendered MessageList component, displaying messages grouped by date.
- */
 export function MessageList({
   messages,
   currentUser,
@@ -46,15 +35,12 @@ export function MessageList({
     });
   };
 
-  // Group messages by date
   const groupedMessages = messages.reduce((groups: MessageGroup[], message) => {
-    // Ensure timestamp is a Date object
     const timestamp =
       message.timestamp instanceof Date
         ? message.timestamp
         : new Date(message.timestamp);
 
-    // Get local date string for the user's timezone
     const localDate = new Date(
       timestamp.getFullYear(),
       timestamp.getMonth(),
@@ -63,34 +49,29 @@ export function MessageList({
       .toISOString()
       .split("T")[0];
 
-    // Find existing group or create new one
     let group = groups.find((g) => g.date === localDate);
     if (!group) {
       group = { date: localDate, messages: [] };
       groups.push(group);
     }
 
-    // Add message to group
     group.messages.push({
       ...message,
-      timestamp: timestamp, // Ensure timestamp is a Date
+      timestamp: timestamp,
     });
 
     return groups;
   }, []);
 
   const formatMessageDate = (dateStr: string) => {
-    // Parse the date in local timezone
     const [year, month, day] = dateStr.split("-").map(Number);
-    const messageDate = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+    const messageDate = new Date(year, month - 1, day);
 
-    // Get today and yesterday dates, ignoring time
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Compare dates (ignoring time)
     if (messageDate.getTime() === today.getTime()) {
       return "Today";
     } else if (messageDate.getTime() === yesterday.getTime()) {
@@ -122,7 +103,6 @@ export function MessageList({
               };
               const avatarChar = sender.username?.[0] || "?";
 
-              // Generate a unique key if message.id is not available
               const messageKey =
                 message.id ||
                 `${message.senderId}-${message.timestamp.getTime()}`;
