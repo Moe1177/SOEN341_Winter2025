@@ -12,7 +12,7 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 import { ChannelMembersList } from "./channel-members-list";
-import { Menu, X, Users } from "lucide-react";
+import { Menu, X, Users, MessageSquare } from "lucide-react";
 
 // Import custom hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -20,11 +20,8 @@ import { useChannels } from "@/hooks/useChannels";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
 import { useMessaging } from "@/hooks/useMessaging";
 
-// interface to represent a direct message display
-
 /**
  *  Messaging component allowing users to message eachother
- *
  */
 export function Messaging() {
   // Using custom auth hook
@@ -234,7 +231,17 @@ export function Messaging() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a] text-white">
+      {/* Aurora effect overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-800/20 via-blue-900/15 to-indigo-900/15 pointer-events-none"></div>
+      
+      {/* Stars effect */}
+      <div className="stars-bg"></div>
+      
+      {/* Cosmic glow effects */}
+      <div className="cosmic-glow"></div>
+      <div className="cosmic-glow-2"></div>
+      
       {/* Mobile overlay when sidebar or members list is open */}
       {(showMobileSidebar || showMobileMembers) && (
         <div 
@@ -247,7 +254,7 @@ export function Messaging() {
       )}
       
       {/* Desktop Sidebar - Always visible on md+ screens */}
-      <div className={`${showMobileSidebar ? 'fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-background' : 'hidden'} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-border`}>
+      <div className={`${showMobileSidebar ? 'fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md' : 'hidden'} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-[#36327e]/50 relative z-10`}>
         <Sidebar
           channels={channels}
           directMessages={directMessages}
@@ -257,23 +264,23 @@ export function Messaging() {
           onCreateDirectMessage={() => setShowCreateDM(true)}
           onViewChannelInvite={handleViewChannelInvite}
           currentUser={currentUser}
+          fetchChannels={fetchChannels}
         />
       </div>
 
-      <div className="flex flex-col flex-1 overflow-hidden border-l border-border">
-        {activeConversationId && (
-          <>
-            <div className="flex items-center p-2 border-b border-border">
-              {/* Mobile hamburger menu */}
-              <button 
-                className="p-2 mr-2 rounded-md hover:bg-secondary md:hidden"
-                onClick={toggleMobileSidebar}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            
+      <div className="flex flex-col flex-1 overflow-hidden relative z-10">
+        {/* Header is always visible */}
+        <div className="flex items-center p-3 border-b border-[#36327e]/50 bg-[#0e1230]/80 backdrop-blur-md">
+          {/* Mobile hamburger menu - Always visible */}
+          <button 
+            className="p-2 mr-2 rounded-md hover:bg-[#1c1f45]/60 md:hidden"
+            onClick={toggleMobileSidebar}
+          >
+            <Menu className="h-5 w-5 text-white" />
+          </button>
+        
+          {activeConversationId ? (
+            <>
               <ConversationHeader
                 conversation={
                   isActiveChannelConversation
@@ -291,41 +298,93 @@ export function Messaging() {
                 }
               />
               
-              {/* Mobile members toggle button - only for channels */}
-              {isActiveChannelConversation && (
-                <button 
-                  className="p-2 ml-2 rounded-md hover:bg-secondary md:hidden"
-                  onClick={toggleMobileMembers}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+              {/* Mobile channel/user name display */}
+              {isActiveChannelConversation ? (
+                <>
+                  {/* Mobile channel name display */}
+                  <div className="md:hidden flex items-center mx-2 px-2 py-1 bg-[#1c1f45]/60 rounded-md">
+                    <span className="text-sm font-medium text-white truncate max-w-[120px]">
+                      #{getChannelById(activeConversationId)?.name || "channel"}
+                    </span>
+                  </div>
+                  
+                  <button 
+                    className="p-2 ml-2 rounded-md hover:bg-[#1c1f45]/60 md:hidden"
+                    onClick={toggleMobileMembers}
+                  >
+                    <Users className="h-5 w-5 text-white" />
+                  </button>
+                </>
+              ) : (
+                /* Direct message username display for mobile */
+                <div className="md:hidden flex items-center mx-2 px-2 py-1 bg-[#1c1f45]/60 rounded-md">
+                  <span className="text-sm font-medium text-white truncate max-w-[120px]">
+                    @{getActiveUser()?.username || "user"}
+                  </span>
+                </div>
               )}
-            </div>
-            
+            </>
+          ) : (
+            <h1 className="font-semibold text-white">Dialogos Chat</h1>
+          )}
+        </div>
+        
+        {activeConversationId ? (
+          <>
             <MessageList
               messages={filteredMessages}
               currentUser={currentUser}
               users={usersMap}
             />
-            <MessageInput onSendMessageAction={handleSendMessage} />
+            <MessageInput 
+              onSendMessageAction={handleSendMessage} 
+              channelName={
+                isActiveChannelConversation && activeConversationId
+                  ? getChannelById(activeConversationId)?.name || "channel"
+                  : getActiveUser()?.username || "conversation"
+              }
+            />
           </>
+        ) : (
+          // Welcome page when no conversation is selected
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <div className="bg-[#0e1230]/70 rounded-xl p-8 max-w-md backdrop-blur-md border border-[#36327e]/40 shadow-lg">
+              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+              <h2 className="text-2xl font-bold mb-2 text-white">
+                Welcome, {currentUser?.username || "User"}!
+              </h2>
+              <p className="text-gray-300 mb-6">
+                Select a channel or direct message to start chatting
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => setShowCreateChannel(true)}
+                  className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+                >
+                  Create Channel
+                </button>
+                <button
+                  onClick={() => setShowCreateDM(true)}
+                  className="px-4 py-2 rounded-md bg-[#1c1f45]/60 hover:bg-[#1c1f45]/80 text-white font-medium border border-[#36327e]/50 transition-colors"
+                >
+                  New Message
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
       {/* Mobile Members List - only shown for channels when toggled */}
       {showMobileMembers && isActiveChannelConversation && activeConversationId && (
-        <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-background overflow-y-auto border-l border-border">
-          <div className="p-4 border-b border-border flex justify-between items-center">
-            <h3 className="font-medium">Channel Members</h3>
+        <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md overflow-y-auto border-l border-[#36327e]/50">
+          <div className="p-4 border-b border-[#36327e]/50 flex justify-between items-center">
+            <h3 className="font-medium text-white">Channel Members</h3>
             <button 
-              className="p-1 rounded-md hover:bg-secondary"
+              className="p-1 rounded-md hover:bg-[#1c1f45]/60"
               onClick={() => setShowMobileMembers(false)}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <X className="h-5 w-5 text-white" />
             </button>
           </div>
           <ChannelMembersList
@@ -343,7 +402,7 @@ export function Messaging() {
       {showChannelMembers &&
         isActiveChannelConversation &&
         activeConversationId && (
-          <div className="hidden md:block w-64 flex-shrink-0 overflow-y-auto border-l border-border">
+          <div className="hidden md:block w-64 flex-shrink-0 overflow-y-auto border-l border-[#36327e]/50 bg-[#0e1230]/90 backdrop-blur-md relative z-10">
             <ChannelMembersList
               channel={getChannelById(activeConversationId)}
               currentUser={currentUser}
@@ -366,7 +425,7 @@ export function Messaging() {
       {showCreateDM && (
         <CreateDirectMessageDialog
           users={users}
-          currentUserId={userId}
+          currentUserId={userId || ""}
           onCloseAction={() => setShowCreateDM(false)}
           onCreateDirectMessageAction={handleCreateDirectMessage}
         />
