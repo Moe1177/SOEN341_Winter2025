@@ -11,7 +11,7 @@ import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 import { ChannelMembersList } from "./channel-members-list";
-import { Menu, X, Users, MessageSquare } from "lucide-react";
+import { Menu, X, Users, MessageSquare, Hash } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
@@ -235,9 +235,10 @@ export function Messaging() {
       <div className="cosmic-glow"></div>
       <div className="cosmic-glow-2"></div>
 
+      {/* Mobile overlay - behind both sidebar and members list */}
       {(showMobileSidebar || showMobileMembers) && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          className="md:hidden fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 ease-in-out"
           onClick={() => {
             setShowMobileSidebar(false);
             setShowMobileMembers(false);
@@ -245,8 +246,16 @@ export function Messaging() {
         />
       )}
 
+      {/* Apply sidebar background to entire screen when sidebar is open */}
+      {showMobileSidebar && (
+        <div className="md:hidden fixed inset-0 bg-[#0e1230] z-40 pointer-events-none" />
+      )}
+
+      {/* Mobile sidebar - Fixed position, outside of flow */}
       <div
-        className={`${showMobileSidebar ? "fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md" : "hidden"} md:static md:block md:w-64 md:z-auto overflow-hidden border-r border-[#36327e]/50 relative z-10`}
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-[95%] max-w-[280px] bg-[#0e1230] backdrop-blur-md border-r border-[#36327e]/50 transform transition-transform duration-300 ease-in-out ${
+          showMobileSidebar ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <Sidebar
           channels={channels}
@@ -261,8 +270,26 @@ export function Messaging() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col relative z-10">
-        {activeConversationId && (
+      {/* Full Screen Container - desktop layout */}
+      <div className="flex w-full h-full relative z-10">
+        {/* Desktop sidebar - Only visible on MD+ screens */}
+        <div className="hidden md:block w-64 flex-shrink-0 overflow-hidden border-r border-[#36327e]/50 bg-[#0e1230]/90 backdrop-blur-md">
+          <Sidebar
+            channels={channels}
+            directMessages={directMessages}
+            activeConversationId={activeConversationId}
+            onConversationSelect={handleConversationSelect}
+            onCreateChannel={() => setShowCreateChannel(true)}
+            onCreateDirectMessage={() => setShowCreateDM(true)}
+            onViewChannelInvite={handleViewChannelInvite}
+            currentUser={currentUser}
+            fetchChannels={fetchChannels}
+          />
+        </div>
+
+        {/* Main content - Full screen on mobile */}
+        <div className="flex flex-col flex-1 h-full">
+          {/* Mobile header */}
           <div className="md:bg-transparent bg-[#0e1234]/90 border-b border-[#36327e]/50 md:border-0">
             <div className="flex md:hidden items-center h-12">
               <button
@@ -272,107 +299,134 @@ export function Messaging() {
                 <Menu size={20} />
               </button>
 
-              <ConversationHeader
-                conversation={
-                  isActiveChannelConversation
-                    ? getChannelById(activeConversationId)!
-                    : getActiveDirectMessage(activeConversationId)!
-                }
-                receiver={getActiveUser()}
-                onViewChannelInvite={
-                  isActiveChannelConversation
-                    ? () =>
-                        handleViewChannelInvite(
-                          getChannelById(activeConversationId)!
-                        )
-                    : undefined
-                }
-              />
+              {activeConversationId ? (
+                <div className="flex-1 flex items-center justify-between">
+                  <div className="flex items-center overflow-hidden">
+                    {isActiveChannelConversation ? (
+                      <>
+                        <Hash className="h-4 w-4 mr-1.5 flex-shrink-0" />
+                        <span className="font-medium text-sm truncate">
+                          {getChannelById(activeConversationId)?.name}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium text-sm truncate">
+                          {getActiveUser()?.username}
+                        </span>
+                      </>
+                    )}
+                  </div>
 
-              {isActiveChannelConversation && (
-                <button
-                  onClick={toggleMobileMembers}
-                  className="p-3 text-white hover:text-gray-200"
-                >
-                  <Users size={20} />
-                </button>
+                  {isActiveChannelConversation && (
+                    <button
+                      onClick={toggleMobileMembers}
+                      className="p-3 text-white hover:text-gray-200"
+                    >
+                      <Users size={20} />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex-1 font-medium text-sm truncate px-2">
+                  Dialogos Chat
+                </div>
               )}
             </div>
           </div>
-        )}
 
-        {activeConversationId ? (
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <div className="hidden md:flex items-center pl-4 pr-2 py-2">
-              <ConversationHeader
-                conversation={
+          {/* Content area - either chat or welcome message */}
+          {activeConversationId ? (
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="hidden md:flex items-center pl-4 pr-2 py-2">
+                <ConversationHeader
+                  conversation={
+                    isActiveChannelConversation
+                      ? getChannelById(activeConversationId)!
+                      : getActiveDirectMessage(activeConversationId)!
+                  }
+                  receiver={getActiveUser()}
+                  onViewChannelInvite={
+                    isActiveChannelConversation
+                      ? () =>
+                          handleViewChannelInvite(
+                            getChannelById(activeConversationId)!
+                          )
+                      : undefined
+                  }
+                />
+              </div>
+
+              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#36327e] scrollbar-track-transparent">
+                <MessageList
+                  messages={filteredMessages}
+                  currentUser={currentUser}
+                  users={usersMap}
+                />
+              </div>
+
+              <MessageInput
+                onSendMessageAction={handleSendMessage}
+                channelName={
                   isActiveChannelConversation
-                    ? getChannelById(activeConversationId)!
-                    : getActiveDirectMessage(activeConversationId)!
-                }
-                receiver={getActiveUser()}
-                onViewChannelInvite={
-                  isActiveChannelConversation
-                    ? () =>
-                        handleViewChannelInvite(
-                          getChannelById(activeConversationId)!
-                        )
-                    : undefined
+                    ? getChannelById(activeConversationId)?.name || "channel"
+                    : getActiveUser()?.username || "user"
                 }
               />
             </div>
-
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#36327e] scrollbar-track-transparent">
-              <MessageList
-                messages={filteredMessages}
-                currentUser={currentUser}
-                users={usersMap}
-              />
-            </div>
-
-            <MessageInput
-              onSendMessageAction={handleSendMessage}
-              channelName={
-                isActiveChannelConversation
-                  ? getChannelById(activeConversationId)?.name || "channel"
-                  : getActiveUser()?.username || "user"
-              }
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-            <div className="bg-[#0e1230]/70 rounded-xl p-8 max-w-md backdrop-blur-md border border-[#36327e]/40 shadow-lg">
-              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-              <h2 className="text-2xl font-bold mb-2 text-white">
-                Welcome, {currentUser?.username || "User"}!
-              </h2>
-              <p className="text-gray-300 mb-6">
-                Select an existing channel or direct message to start chatting,
-                or start chatting by creating a new channel or direct message.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => setShowCreateChannel(true)}
-                  className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
-                >
-                  Create Channel
-                </button>
-                <button
-                  onClick={() => setShowCreateDM(true)}
-                  className="px-4 py-2 rounded-md bg-[#1c1f45]/60 hover:bg-[#1c1f45]/80 text-white font-medium border border-[#36327e]/50 transition-colors"
-                >
-                  New Message
-                </button>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+              <div className="bg-[#0e1230]/70 rounded-xl p-8 max-w-md backdrop-blur-md border border-[#36327e]/40 shadow-lg">
+                <MessageSquare className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+                <h2 className="text-2xl font-bold mb-2 text-white">
+                  Welcome, {currentUser?.username || "User"}!
+                </h2>
+                <p className="text-gray-300 mb-6">
+                  Select an existing channel or direct message to start
+                  chatting, or start chatting by creating a new channel or
+                  direct message.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => setShowCreateChannel(true)}
+                    className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+                  >
+                    Create Channel
+                  </button>
+                  <button
+                    onClick={() => setShowCreateDM(true)}
+                    className="px-4 py-2 rounded-md bg-[#1c1f45]/60 hover:bg-[#1c1f45]/80 text-white font-medium border border-[#36327e]/50 transition-colors"
+                  >
+                    New Message
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Desktop members panel */}
+        {showChannelMembers &&
+          isActiveChannelConversation &&
+          activeConversationId && (
+            <div className="hidden md:block w-64 flex-shrink-0 overflow-y-auto border-l border-[#36327e]/50 bg-[#0e1230]/90 backdrop-blur-md">
+              <ChannelMembersList
+                channel={getChannelById(activeConversationId)}
+                currentUser={currentUser}
+                usersMap={usersMap}
+                setUsersMap={setUsersMap}
+                token={token}
+                onMembersUpdated={fetchChannels}
+              />
+            </div>
+          )}
       </div>
 
+      {/* Mobile members panel - Fixed position, outside of flow */}
       {showMobileMembers &&
         isActiveChannelConversation &&
         activeConversationId && (
-          <div className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-[#0e1230]/90 backdrop-blur-md overflow-y-auto border-l border-[#36327e]/50">
+          <div className="md:hidden fixed inset-y-0 right-0 z-50 w-[80%] max-w-xs bg-[#0e1230]/90 backdrop-blur-md overflow-y-auto border-l border-[#36327e]/50 transform transition-transform duration-300 ease-in-out translate-x-0">
             <div className="p-4 border-b border-[#36327e]/50 flex justify-between items-center">
               <h3 className="font-medium text-white">Channel Members</h3>
               <button
@@ -393,21 +447,7 @@ export function Messaging() {
           </div>
         )}
 
-      {showChannelMembers &&
-        isActiveChannelConversation &&
-        activeConversationId && (
-          <div className="hidden md:block w-64 flex-shrink-0 overflow-y-auto border-l border-[#36327e]/50 bg-[#0e1230]/90 backdrop-blur-md relative z-10">
-            <ChannelMembersList
-              channel={getChannelById(activeConversationId)}
-              currentUser={currentUser}
-              usersMap={usersMap}
-              setUsersMap={setUsersMap}
-              token={token}
-              onMembersUpdated={fetchChannels}
-            />
-          </div>
-        )}
-
+      {/* Dialogs */}
       {showCreateChannel && (
         <CreateChannelDialog
           onCloseAction={() => setShowCreateChannel(false)}
