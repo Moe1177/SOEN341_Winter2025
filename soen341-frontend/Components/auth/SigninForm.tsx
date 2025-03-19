@@ -67,12 +67,22 @@ function SigninForm({ showToast }: SigninFormProps) {
 
       console.log("Login successful", responseData);
 
-      if (responseData && responseData.token) {
-        localStorage.setItem("authToken", responseData.token);
-      }
+      if (typeof window !== "undefined") {
+        if (responseData && responseData.token) {
+          localStorage.setItem("authToken", responseData.token);
+        }
 
-      if (responseData && responseData.user) {
-        localStorage.setItem("currentUser", JSON.stringify(responseData.user));
+        if (responseData && responseData.user) {
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(responseData.user)
+          );
+
+          // Store the user ID in localStorage for easy access
+          if (responseData.user.id) {
+            localStorage.setItem("currentUserId", responseData.user.id);
+          }
+        }
       }
 
       showToast("Login successful!", "success");

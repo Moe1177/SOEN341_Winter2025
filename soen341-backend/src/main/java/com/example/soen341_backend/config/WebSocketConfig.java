@@ -40,7 +40,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
         .addEndpoint("/ws")
-        .setAllowedOrigins("http://localhost:3000", "https://test-messages.vercel.app")
+        .setAllowedOrigins("http://localhost:3000", "https://soen-341-winter2025.vercel.app")
         .withSockJS()
         .setSuppressCors(true);
   }

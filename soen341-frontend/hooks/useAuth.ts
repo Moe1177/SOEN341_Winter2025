@@ -4,11 +4,9 @@ import type { User } from "@/lib/types";
 export function useAuth() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
 
-  // Initialize the user's ID from environment variable
-  const userId = process.env.NEXT_PUBLIC_USER_ID!;
-
-  // Initialize the token and user from localStorage
+  // Initialize the token, userId, and user from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedToken = localStorage.getItem("authToken");
@@ -16,18 +14,38 @@ export function useAuth() {
         setToken(storedToken);
       }
 
+      const storedUserId = localStorage.getItem("currentUserId");
+      if (storedUserId) {
+        setUserId(storedUserId);
+      }
+
       const storedUsername = localStorage.getItem("currentUsername");
       if (storedUsername && !currentUser) {
-        setCurrentUser({
-          id: userId,
-          username: storedUsername,
-          email: "",
-          password: "",
-          channelIds: [],
-          directMessageIds: [],
-          adminsForWhichChannels: [],
-          status: "ONLINE",
-        });
+        try {
+          // Try to get the complete user object from localStorage
+          const storedUser = localStorage.getItem("currentUser");
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setCurrentUser(parsedUser);
+            if (parsedUser.id) {
+              setUserId(parsedUser.id);
+            }
+          } else {
+            // Fallback to creating a minimal user object
+            setCurrentUser({
+              id: storedUserId || "",
+              username: storedUsername,
+              email: "",
+              password: "",
+              channelIds: [],
+              directMessageIds: [],
+              adminsForWhichChannels: [],
+              status: "ONLINE" as "ONLINE" | "OFFLINE",
+            });
+          }
+        } catch (error) {
+          console.error("Error parsing stored user:", error);
+        }
       }
     }
   }, []);
@@ -63,25 +81,40 @@ export function useAuth() {
 
       const data = await handleApiResponse(response);
 
-      if (typeof window !== "undefined" && data && data.username) {
-        localStorage.setItem("currentUsername", data.username);
+      if (typeof window !== "undefined") {
+        if (data && data.username) {
+          localStorage.setItem("currentUsername", data.username);
+        }
+        if (data && data.id) {
+          localStorage.setItem("currentUserId", data.id);
+          setUserId(data.id);
+        }
       }
 
       setCurrentUser(data);
     } catch (error) {
       console.error("Error fetching current user:", error);
 
-      // For testing purposes fallback user
-      setCurrentUser({
-        id: userId,
-        username: "TestUser",
-        email: "test@example.com",
-        password: "",
-        channelIds: [],
-        directMessageIds: [],
-        adminsForWhichChannels: [],
-        status: "ONLINE",
-      });
+      // Only use fallback if absolutely necessary
+      if (!currentUser && typeof window !== "undefined") {
+        const storedUserId = localStorage.getItem("currentUserId");
+        const storedUsername = localStorage.getItem("currentUsername");
+
+        if (storedUserId && storedUsername) {
+          const fallbackUser = {
+            id: storedUserId,
+            username: storedUsername,
+            email: "",
+            password: "",
+            channelIds: [],
+            directMessageIds: [],
+            adminsForWhichChannels: [],
+            status: "ONLINE" as "ONLINE" | "OFFLINE",
+          };
+          setCurrentUser(fallbackUser);
+          setUserId(storedUserId);
+        }
+      }
     }
   };
 

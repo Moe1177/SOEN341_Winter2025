@@ -9,9 +9,9 @@
 <br>
 <div>This web application allows users to communicate together whether personally to contact another user or whether to join a community of users to discuss different subjects as a group. We answer the need of connectivity between users such as students, friends, communities, QA, and so on. It also permits us to enhance the user experience with intuitive design which is clean easy to navigate and free of complexity.<br></div>
 <br>
-<div>Users have the ability to either directly message other users, join existing channels to asociate with or create their own channels for their own reasons. The platform also seperates users based on roles (Role-Based Permisions), giving admins the capability to manage channels and messages with the capacity to create or detele channels and supervise messages and giving members only the capability to send or view messages.</div>
+<div>Users have the ability to either directly message other users, join existing channels to associate with or create their own channels for their own reasons. The platform also separates users based on roles (Role-Based Permissions), giving admins the capability to manage channels and messages with the capacity to create or delete channels and supervise messages and giving members only the capability to send or view messages.</div>
 <br>
-<div>The communication platform is for everyone from friends and familty to peers in school and coworkers. It can be used by anyone, anytime and anywhere!</div>
+<div>The communication platform is for everyone from friends and family to peers in school and coworkers. It can be used by anyone, anytime and anywhere!</div>
 <br>
 <div>Once users have an account, they can either join a group or start a group depending on their user-based role. Once a one-on-one chat or a server is created users, whether members or admins, can view and send messages.</div> 
 <br>
@@ -21,7 +21,7 @@
 
 ## Objective
 
-<!-- Objectif is for the class or the app? -->
+<!-- Objective is for the class or the app? -->
 
 Develop a flexible, easy to use, versatile and friendly communication platform using the proper tools such as React.js, Java Spring
 Boot and MongoDB. This will allow us to learn the basics and understand the fundamental technologies behind a web app such as the frontend and backend development and it will also allow us to practice using the agile methodologies. This platform allows direct messaging, group messaging, and admin supervision over group channels to moderate the text messages.
@@ -32,11 +32,11 @@ The following core features will be available in this project:
 
 - ### Text Channels For Group Communication
   - Ability to join group chats and visibility of messages to all group members.
-- ### Direct Messsaging Between Users
+- ### Direct Messaging Between Users
   - Predefined set of channels.
   - Ability to join the predefined channels.
   - Ability to communicate between users.
-- ### Role-Based User Permisions
+- ### Role-Based User Permissions
   - Two main roles: Admin and Member.
   - Admins have the ability to create/delete and moderate channels/messages that are inappropriate.
   - Members can only send and view messages.
@@ -63,6 +63,11 @@ The following core features will be available in this project:
 - ### Backend
   - Java Spring Boot
   - MongoDB
+
+- ### Deployment
+  - Docker
+  - Render
+  - Vercel
 
 ## Design and Architecture
 ![Block Architecture of the Project](/BlockDiagram_SOEN341_Winter2025.png)
