@@ -4,21 +4,23 @@ import Button from "./Button";
 
 /**
  * SignUp component allows the user to direct themselves to signing up from the landing page.
- * 
+ *
  * @returns {JSX.Element} The rendered SignUp component
  */
 const SignUp = () => {
   return (
-    <div className="hero">
-      <div className="flex-1 pt-36 padding-x">
-        <h1 className="hero__title">Sign Up Now</h1>
+    <div className="hero flex flex-col-reverse md:flex-row px-5 sm:px-8">
+      <div className="flex-1 pt-8 md:pt-24 lg:pt-28 2xl:pt-32 pb-10 md:pb-0">
+        <h1 className="hero__title text-3xl sm:text-4xl lg:text-5xl xl:text-[64px] leading-tight">
+          Sign Up Now
+        </h1>
 
-        <p className="Signup_subtitle">
+        <p className="Signup_subtitle text-lg sm:text-xl md:text-2xl lg:text-[27px] mt-4 md:mt-5">
           What are you waiting for? Sign up now and start connecting with your
           friends, family, and colleagues.
         </p>
 
-        <div className="flexCenter mt-10">
+        <div className="flex justify-center md:justify-start mt-6 md:mt-8 lg:mt-10">
           <Button
             href="/login"
             type="button"
@@ -28,17 +30,16 @@ const SignUp = () => {
           />
         </div>
       </div>
-      <div className="about__image-container">
-        <div className="hero__image">
+
+      <div className="flex items-center justify-center w-full md:w-1/2 py-4 md:py-0">
+        <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-full aspect-square md:aspect-auto md:h-[460px] lg:h-[500px] 2xl:h-[540px]">
           <Image
             src="/undraw_my-app_15n4.svg"
-            alt="hero"
+            alt="Sign up illustration"
             fill
             className="object-contain"
           />
         </div>
-
-        <div className="hero__image-overlay" />
       </div>
     </div>
   );

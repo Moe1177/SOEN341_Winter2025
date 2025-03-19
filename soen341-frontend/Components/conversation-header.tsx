@@ -25,37 +25,40 @@ export function ConversationHeader({
   receiver,
   onViewChannelInvite,
 }: ConversationHeaderProps) {
-  // Check if this is a channel by looking for the type property
   const isChannel = "type" in conversation && conversation.type === "GROUP";
   const channel = isChannel ? (conversation as Channel) : null;
 
   return (
-    <div className="h-14 border-b flex items-center justify-between px-4">
-      <div className="flex items-center">
+    <div className="h-10 sm:h-14 flex-1 flex items-center justify-between px-2 sm:px-4">
+      <div className="flex items-center overflow-hidden">
         {isChannel ? (
           <>
-            <Hash className="h-5 w-5 mr-2" />
-            <span className="font-medium">{channel?.name}</span>
+            <Hash className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <span className="font-medium text-sm sm:text-base truncate">
+              {channel?.name}
+            </span>
           </>
         ) : (
           <>
             {receiver && (
               <>
-                <span className="relative mr-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback>
+                <span className="relative mr-1.5 sm:mr-2 flex-shrink-0">
+                  <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                    <AvatarFallback className="text-xs">
                       {receiver.username ? receiver.username.charAt(0) : "?"}
                     </AvatarFallback>
                   </Avatar>
                   <span
-                    className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
+                    className={`absolute bottom-0 right-0 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full border border-background ${
                       receiver.status === "ONLINE"
                         ? "bg-green-500"
                         : "bg-gray-500"
                     }`}
                   />
                 </span>
-                <span className="font-medium">{receiver.username}</span>
+                <span className="font-medium text-sm sm:text-base truncate">
+                  {receiver.username}
+                </span>
               </>
             )}
           </>
@@ -66,10 +69,10 @@ export function ConversationHeader({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
           onClick={onViewChannelInvite}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       )}
     </div>

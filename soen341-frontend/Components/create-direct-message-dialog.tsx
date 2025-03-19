@@ -36,7 +36,6 @@ interface CreateDirectMessageDialogProps {
 
 export function CreateDirectMessageDialog({
   users,
-  // currentUserId,
   onCloseAction,
   onCreateDirectMessageAction,
 }: CreateDirectMessageDialogProps) {

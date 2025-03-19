@@ -15,17 +15,6 @@ interface MessageGroup {
   messages: WebSocketMessage[];
 }
 
-/**
- * MessageList component displays a list of messages grouped by date. It automatically scrolls to the latest message
- * and formats timestamps for messages with respect to the current date.
- *
- * @param {Object} props - The component props.
- * @param {Message[]} props.messages - An array of messages to display in the list.
- * @param {User | null} props.currentUser - The current user object, used to determine if a message is sent by the current user.
- * @param {Record<string, User>} props.users - A dictionary of users where the key is the user ID and the value is the user object.
- *
- * @returns {JSX.Element} The rendered MessageList component, displaying messages grouped by date.
- */
 export function MessageList({
   messages,
   currentUser,
@@ -46,15 +35,12 @@ export function MessageList({
     });
   };
 
-  // Group messages by date
   const groupedMessages = messages.reduce((groups: MessageGroup[], message) => {
-    // Ensure timestamp is a Date object
     const timestamp =
       message.timestamp instanceof Date
         ? message.timestamp
         : new Date(message.timestamp);
 
-    // Get local date string for the user's timezone
     const localDate = new Date(
       timestamp.getFullYear(),
       timestamp.getMonth(),
@@ -63,34 +49,29 @@ export function MessageList({
       .toISOString()
       .split("T")[0];
 
-    // Find existing group or create new one
     let group = groups.find((g) => g.date === localDate);
     if (!group) {
       group = { date: localDate, messages: [] };
       groups.push(group);
     }
 
-    // Add message to group
     group.messages.push({
       ...message,
-      timestamp: timestamp, // Ensure timestamp is a Date
+      timestamp: timestamp,
     });
 
     return groups;
   }, []);
 
   const formatMessageDate = (dateStr: string) => {
-    // Parse the date in local timezone
     const [year, month, day] = dateStr.split("-").map(Number);
-    const messageDate = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+    const messageDate = new Date(year, month - 1, day);
 
-    // Get today and yesterday dates, ignoring time
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Compare dates (ignoring time)
     if (messageDate.getTime() === today.getTime()) {
       return "Today";
     } else if (messageDate.getTime() === yesterday.getTime()) {
@@ -104,12 +85,12 @@ export function MessageList({
   };
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto" ref={messagesEndRef}>
-      <div className="space-y-8">
+    <div className="flex-1 p-2 sm:p-4 overflow-y-auto" ref={messagesEndRef}>
+      <div className="space-y-4 sm:space-y-8">
         {groupedMessages.map((group) => (
-          <div key={group.date} className="space-y-6">
+          <div key={group.date} className="space-y-3 sm:space-y-6">
             <div className="sticky top-0 z-10 flex justify-center">
-              <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
+              <div className="bg-primary/10 text-primary px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 {formatMessageDate(group.date)}
               </div>
             </div>
@@ -122,7 +103,6 @@ export function MessageList({
               };
               const avatarChar = sender.username?.[0] || "?";
 
-              // Generate a unique key if message.id is not available
               const messageKey =
                 message.id ||
                 `${message.senderId}-${message.timestamp.getTime()}`;
@@ -130,15 +110,15 @@ export function MessageList({
               return (
                 <div
                   key={messageKey}
-                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-2 sm:mb-3`}
                 >
                   <div
-                    className={`flex max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
+                    className={`flex max-w-[85%] sm:max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
                   >
                     {!isCurrentUser && (
-                      <div className="flex-shrink-0 mr-3">
-                        <Avatar className="h-8 w-8 border border-border">
-                          <AvatarFallback className="bg-secondary text-foreground text-sm">
+                      <div className="flex-shrink-0 mr-2 sm:mr-3">
+                        <Avatar className="h-6 w-6 sm:h-8 sm:w-8 border border-border">
+                          <AvatarFallback className="bg-secondary text-foreground text-xs sm:text-sm">
                             {avatarChar}
                           </AvatarFallback>
                         </Avatar>
@@ -147,10 +127,10 @@ export function MessageList({
                     <div>
                       {!isCurrentUser && (
                         <div className="mb-1 ml-1 flex items-center">
-                          <span className="text-sm font-medium">
+                          <span className="text-xs sm:text-sm font-medium">
                             {sender?.username || "Unknown"}
                           </span>
-                          <span className="text-xs text-muted-foreground ml-2">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground ml-2">
                             {formatMessageTime(message.timestamp)}
                           </span>
                         </div>
@@ -160,15 +140,15 @@ export function MessageList({
                           isCurrentUser
                             ? "bg-primary text-primary-foreground rounded-l-xl rounded-tr-xl"
                             : "bg-secondary text-secondary-foreground rounded-r-xl rounded-tl-xl"
-                        } px-4 py-2.5 shadow-sm`}
+                        } px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm text-sm sm:text-base`}
                       >
-                        <div className="whitespace-pre-wrap">
+                        <div className="whitespace-pre-wrap break-words">
                           {message.content}
                         </div>
                       </div>
                       {isCurrentUser && (
                         <div className="mt-1 mr-1 flex justify-end">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
                             {formatMessageTime(message.timestamp)}
                           </span>
                         </div>
