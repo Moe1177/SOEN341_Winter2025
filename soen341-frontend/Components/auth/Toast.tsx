@@ -15,7 +15,7 @@ const Toast = ({ message, visible, onClose, type = "success" }: ToastProps) => {
 
   return (
     <div
-      className={`fixed top-4 right-4 ${bgColor} text-white p-4 rounded-md shadow-lg z-50 flex justify-between items-center min-w-[300px]`}
+      className={`fixed ${bgColor} text-white p-4 rounded-md shadow-lg z-[9999] flex justify-between items-center min-w-[300px] sm:right-4 sm:top-4 top-4 left-1/2 sm:left-auto sm:transform-none -translate-x-1/2`}
     >
       <div>{message}</div>
       <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">
