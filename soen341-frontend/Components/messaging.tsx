@@ -12,6 +12,7 @@ import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
 import { ChannelMembersList } from "./channel-members-list";
 import { Menu, X, Users, MessageSquare, Hash } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
@@ -120,16 +121,74 @@ export function Messaging() {
   }, [users]);
 
   // Handle sending messages
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, attachments?: File[]) => {
     if (!activeConversationId) {
       console.error("No active conversation selected");
       return;
     }
 
-    if (isActiveChannelConversation) {
-      sendGroupMessage(content);
+    // If there are attachments, we need to use FormData and a direct API call
+    if (attachments && attachments.length > 0) {
+      const formData = new FormData();
+      formData.append("content", content);
+
+      // Add the current conversation ID
+      if (isActiveChannelConversation) {
+        formData.append("channelId", activeConversationId);
+      } else {
+        formData.append("recipientId", receiverId);
+      }
+
+      // Add all attachments
+      for (const file of attachments) {
+        formData.append("files", file);
+      }
+
+      // Send the message with attachments using the appropriate endpoint
+      const endpoint = isActiveChannelConversation
+        ? `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel`
+        : `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/dm`;
+
+      // Get JWT token from localStorage
+      const storedToken = localStorage.getItem("authToken");
+
+      fetch(endpoint, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        headers: {
+          // Include the token in Authorization header as bearer token
+          ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 413) {
+              throw new Error("File too large. Maximum size is 20MB.");
+            }
+            throw new Error(`Failed to send message: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Message with attachments sent successfully:", data);
+          // Reload the conversation messages to get the new message with attachments
+          loadConversationMessages(
+            activeConversationId,
+            isActiveChannelConversation
+          );
+        })
+        .catch((error) => {
+          console.error("Error sending message with attachments:", error);
+          toast.error(error.message);
+        });
     } else {
-      sendDirectMessage(content, receiverId);
+      // Regular text message without attachments - use WebSocket
+      if (isActiveChannelConversation) {
+        sendGroupMessage(content);
+      } else {
+        sendDirectMessage(content, receiverId);
+      }
     }
   };
 
@@ -366,7 +425,9 @@ export function Messaging() {
               </div>
 
               <MessageInput
-                onSendMessageAction={handleSendMessage}
+                onSendMessageAction={(content, attachments) =>
+                  handleSendMessage(content, attachments)
+                }
                 channelName={
                   isActiveChannelConversation
                     ? getChannelById(activeConversationId)?.name || "channel"

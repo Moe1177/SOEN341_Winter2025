@@ -8,14 +8,18 @@ import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class MessageService {
@@ -25,6 +29,8 @@ public class MessageService {
   private final UserService userService;
   private final SimpMessagingTemplate messagingTemplate;
   private final UserRepository userRepository;
+  private final FileStorageService fileStorageService;
+  private final AttachmentRepository attachmentRepository;
 
   public Message getMessageById(String id) {
     return messageRepository
@@ -134,7 +140,121 @@ public class MessageService {
     return messageRepository.save(message);
   }
 
-  /* TODO: Modify this function to match the new WebSocket implementation  */
+  /**
+   * Sends a message to a channel with optional file attachments
+   *
+   * @param message the message containing content and channelId
+   * @param username the username of the sender
+   * @param files optional array of files to attach to the message
+   * @return the saved message with attachments
+   */
+  public Message sendMessageWithAttachments(
+      Message message, String username, MultipartFile[] files) {
+    try {
+      log.info("Processing message with attachments for user: {}", username);
+
+      Optional<User> userOpt = userRepository.findByUsername(username);
+      if (userOpt.isEmpty()) {
+        log.error("User not found: {}", username);
+        throw new ResourceNotFoundException("User not found with username: " + username);
+      }
+
+      User user = userOpt.get();
+      Channel channel = channelService.getChannelById(message.getChannelId());
+      log.info("Found channel: {}", channel.getId());
+
+      // Verify user is a member of the channel
+      if (!channel.getMembers().contains(user.getId())) {
+        log.error("User {} is not a member of channel {}", user.getId(), channel.getId());
+        throw new UnauthorizedException("You don't have access to this channel");
+      }
+
+      // Set message properties
+      message.setSenderId(user.getId());
+      message.setSenderUsername(user.getUsername());
+      message.setTimestamp(Instant.now());
+
+      // Save the message first to get an ID
+      Message savedMessage = messageRepository.save(message);
+      log.info("Saved message with ID: {}", savedMessage.getId());
+
+      // Process any attachments
+      List<Attachment> attachments = new ArrayList<>();
+      if (files != null && files.length > 0) {
+        log.info("Processing {} attachments", files.length);
+        for (MultipartFile file : files) {
+          if (!file.isEmpty()) {
+            log.info(
+                "Processing attachment: {} ({} bytes)", file.getOriginalFilename(), file.getSize());
+            Attachment attachment = fileStorageService.storeFile(file, savedMessage.getId());
+            attachments.add(attachment);
+            log.info("Successfully processed attachment: {}", attachment.getId());
+          }
+        }
+      }
+
+      // Set attachments on the returned message
+      savedMessage.setAttachments(attachments);
+      log.info("Message processing completed successfully");
+
+      return savedMessage;
+    } catch (Exception e) {
+      log.error("Failed to process message with attachments", e);
+      throw e;
+    }
+  }
+
+  /**
+   * Sends a direct message with optional file attachments
+   *
+   * @param message the message content
+   * @param senderUsername the username of the sender
+   * @param recipientId the ID of the recipient
+   * @param files optional array of files to attach to the message
+   * @return the saved message with attachments
+   */
+  public Message sendDirectMessageWithAttachments(
+      Message message, String senderUsername, String recipientId, MultipartFile[] files) {
+
+    // Get users
+    Optional<User> senderOpt = userRepository.findByUsername(senderUsername);
+    if (senderOpt.isEmpty()) {
+      throw new ResourceNotFoundException("Sender not found with username: " + senderUsername);
+    }
+
+    User sender = senderOpt.get();
+
+    // Get or create DM channel
+    Channel dmChannel = channelService.getOrCreateDirectMessageChannel(sender.getId(), recipientId);
+
+    // Set message properties
+    message.setSenderId(sender.getId());
+    message.setSenderUsername(sender.getUsername());
+    message.setReceiverId(recipientId);
+    message.setChannelId(dmChannel.getId());
+    message.setTimestamp(Instant.now());
+    message.setDirectMessage(true);
+
+    // Save the message first to get an ID
+    Message savedMessage = messageRepository.save(message);
+
+    // Process any attachments
+    List<Attachment> attachments = new ArrayList<>();
+    if (files != null && files.length > 0) {
+      for (MultipartFile file : files) {
+        if (!file.isEmpty()) {
+          Attachment attachment = fileStorageService.storeFile(file, savedMessage.getId());
+          attachments.add(attachment);
+        }
+      }
+    }
+
+    // Set attachments on the returned message
+    savedMessage.setAttachments(attachments);
+
+    return savedMessage;
+  }
+
   public void deleteMessage(String messageId, String username) {
     Message message = getMessageById(messageId);
     Optional<User> user = userRepository.findByUsername(username);
@@ -143,6 +263,13 @@ public class MessageService {
     if (!message.getSenderId().equals(user.get().getId())
         && !userService.isAdmin(user.get().getId(), message.getChannelId())) {
       throw new UnauthorizedException("You don't have permission to delete this message");
+    }
+
+    // Delete any attachments
+    List<Attachment> attachments = attachmentRepository.findByMessageId(messageId);
+    for (Attachment attachment : attachments) {
+      fileStorageService.deleteFile(attachment.getFileName());
+      attachmentRepository.delete(attachment);
     }
 
     // Delete from database

@@ -9,6 +9,16 @@ export interface User {
   status: "ONLINE" | "OFFLINE";
 }
 
+export interface Attachment {
+  id: string;
+  fileName: string;
+  originalFileName: string;
+  fileUrl: string;
+  contentType: string;
+  size: number;
+  messageId: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -17,6 +27,7 @@ export interface Message {
   isDirectMessage?: boolean;
   senderId: string;
   receiverId?: string;
+  attachments?: Attachment[];
 }
 
 export interface Channel {
@@ -30,7 +41,7 @@ export interface Channel {
 }
 
 export interface WebSocketMessage {
-  id: string
+  id: string;
   content: string;
   senderId: string;
   senderUsername?: string;
@@ -38,4 +49,5 @@ export interface WebSocketMessage {
   receiverId: string;
   directMessage?: boolean;
   timestamp: Date;
+  attachments?: Attachment[];
 }

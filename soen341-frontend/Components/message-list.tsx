@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { User, WebSocketMessage } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
+import { AttachmentDisplay } from "./AttachmentDisplay";
 
 interface MessageListProps {
   messages: WebSocketMessage[];
@@ -145,6 +146,16 @@ export function MessageList({
                         <div className="whitespace-pre-wrap break-words">
                           {message.content}
                         </div>
+
+                        {/* Display attachments if present */}
+                        {message.attachments &&
+                          message.attachments.length > 0 && (
+                            <div className="mt-2">
+                              <AttachmentDisplay
+                                attachments={message.attachments}
+                              />
+                            </div>
+                          )}
                       </div>
                       {isCurrentUser && (
                         <div className="mt-1 mr-1 flex justify-end">
