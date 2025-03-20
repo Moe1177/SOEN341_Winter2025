@@ -112,12 +112,141 @@ export function Messaging() {
 
   // Create a map of users for easy lookup
   useEffect(() => {
-    const map: Record<string, User> = {};
-    users.forEach((user) => {
-      map[user.id] = user;
-    });
-    setUsersMap(map);
-  }, [users]);
+    const createUpdatedUsersMap = (prevMap: Record<string, User>) => {
+      const map: Record<string, User> = {};
+
+      // Add all users from the users array
+      if (users) {
+        users.forEach((user) => {
+          if (user && user.id) {
+            // Preserve existing user data if already in the map
+            if (prevMap[user.id]) {
+              map[user.id] = {
+                ...user,
+                adminsForWhichChannels:
+                  user.adminsForWhichChannels ||
+                  prevMap[user.id].adminsForWhichChannels ||
+                  [],
+              };
+            } else {
+              map[user.id] = {
+                ...user,
+                adminsForWhichChannels: user.adminsForWhichChannels || [],
+              };
+            }
+          }
+        });
+      }
+
+      // Add channel admins based on channel information
+      if (channels) {
+        channels.forEach((channel) => {
+          // For each channel, check if it has adminIds
+          if (channel.adminIds) {
+            console.log(
+              `Processing adminIds for channel ${channel.name}:`,
+              channel.adminIds
+            );
+            // For each admin ID, ensure their admin status is recorded
+            channel.adminIds.forEach((adminId) => {
+              if (map[adminId]) {
+                // If user exists, add this channel to their admin channels if not already there
+                if (!map[adminId].adminsForWhichChannels.includes(channel.id)) {
+                  map[adminId] = {
+                    ...map[adminId],
+                    adminsForWhichChannels: [
+                      ...map[adminId].adminsForWhichChannels,
+                      channel.id,
+                    ],
+                  };
+                  console.log(
+                    `Added channel ${channel.id} to user ${map[adminId].username}'s admin channels`
+                  );
+                }
+              }
+            });
+          }
+        });
+      }
+
+      // Also add participants from direct messages to ensure DM users are in the map
+      if (directMessages) {
+        directMessages.forEach((dm) => {
+          if (dm.participant && dm.participant.id) {
+            // If user already exists in map, merge with existing data rather than overwrite
+            if (map[dm.participant.id]) {
+              // Preserve admin status and other existing properties
+              map[dm.participant.id] = {
+                ...dm.participant,
+                adminsForWhichChannels:
+                  map[dm.participant.id].adminsForWhichChannels || [],
+                status:
+                  map[dm.participant.id].status ||
+                  dm.participant.status ||
+                  "OFFLINE",
+              };
+            } else {
+              // Add new user with default admin array if not already in map
+              map[dm.participant.id] = {
+                ...dm.participant,
+                adminsForWhichChannels:
+                  dm.participant.adminsForWhichChannels || [],
+              };
+            }
+          }
+        });
+      }
+
+      // Ensure current user has proper admin status
+      if (currentUser && currentUser.id) {
+        if (map[currentUser.id]) {
+          // Update the map with the current user's admin information while preserving existing data
+          map[currentUser.id] = {
+            ...map[currentUser.id],
+            adminsForWhichChannels:
+              currentUser.adminsForWhichChannels ||
+              map[currentUser.id].adminsForWhichChannels ||
+              [],
+          };
+        } else {
+          map[currentUser.id] = currentUser;
+        }
+      }
+
+      // Preserve admin status from the existing usersMap for any users we're updating
+      Object.keys(prevMap).forEach((userId) => {
+        if (map[userId] && prevMap[userId].adminsForWhichChannels?.length) {
+          // Ensure we don't lose admin status when updating users
+          const existingAdminChannels =
+            prevMap[userId].adminsForWhichChannels || [];
+          const newAdminChannels = map[userId].adminsForWhichChannels || [];
+
+          // Combine both admin channel lists and remove duplicates
+          const mergedAdminChannels = [
+            ...new Set([...existingAdminChannels, ...newAdminChannels]),
+          ];
+
+          map[userId] = {
+            ...map[userId],
+            adminsForWhichChannels: mergedAdminChannels,
+          };
+        }
+      });
+
+      console.log(
+        "Final usersMap with admin statuses:",
+        Object.values(map).map((u) => ({
+          id: u.id,
+          username: u.username,
+          adminsForWhichChannels: u.adminsForWhichChannels,
+        }))
+      );
+
+      return map;
+    };
+
+    setUsersMap((prev) => createUpdatedUsersMap(prev));
+  }, [users, directMessages, currentUser, channels]);
 
   // Handle sending messages
   const handleSendMessage = (content: string) => {

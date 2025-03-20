@@ -33,4 +33,5 @@ public class Channel {
   private Set<String> members = new HashSet<>();
   private boolean isDirectMessage;
   private Set<String> directMessageMembers = new HashSet<>();
+  private Set<String> adminIds = new HashSet<>();
 }

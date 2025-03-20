@@ -9,7 +9,7 @@ interface ExtendedChannel extends Channel {
 export function useChannels(
   userId: string,
   token: string,
-  handleApiResponse: (response: Response) => Promise<any>
+  handleApiResponse: (response: Response) => Promise<unknown>
 ) {
   const [channels, setChannels] = useState<ExtendedChannel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -17,25 +17,48 @@ export function useChannels(
   // Fetch all channels for the current user
   const fetchChannels = async () => {
     try {
+      console.log("Fetching channels for user:", userId);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/user/${userId}`,
         {
-          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      const data = await handleApiResponse(response);
 
-      // Add unreadCount property to match ExtendedChannel
-      const extendedChannels: ExtendedChannel[] = data.map(
-        (channel: Channel) => ({
+      const data = (await handleApiResponse(response)) as Channel[];
+      console.log("Fetched channels data:", JSON.stringify(data));
+
+      // Map the channels and add unreadCount property
+      const extendedChannels = data.map((channel: Channel) => {
+        // Make sure channel has an adminIds field, even if empty
+        if (!channel.adminIds) {
+          channel.adminIds = [];
+        }
+
+        console.log(
+          `Channel ${channel.name} (${channel.id}) admin IDs:`,
+          channel.adminIds
+        );
+
+        return {
           ...channel,
           unreadCount: 0,
-        })
+        };
+      });
+
+      console.log(
+        "Processed channels with adminIds:",
+        extendedChannels.map((c: Channel) => ({
+          id: c.id,
+          name: c.name,
+          adminIds: c.adminIds || [],
+          members: c.members || [],
+        }))
       );
+
       setChannels(extendedChannels);
       return extendedChannels;
     } catch (error) {
@@ -143,8 +166,9 @@ export function useChannels(
         }
       );
 
-      const data = await handleApiResponse(response);
-      setChannels((prev) => [...prev, { ...data, unreadCount: 0 }]);
+      const data = (await handleApiResponse(response)) as Channel;
+      const extendedChannel: ExtendedChannel = { ...data, unreadCount: 0 };
+      setChannels((prev) => [...prev, extendedChannel]);
       return data;
     } catch (error) {
       console.error("Error creating channel:", error);

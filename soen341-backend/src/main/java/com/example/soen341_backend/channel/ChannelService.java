@@ -39,27 +39,48 @@ public class ChannelService {
      *     saved, and the creator's user record is updated with the new channel.
      * @return the saved channel object after persistence (type: {@link Channel}).
      */
-
-    // Set default values if not provided
     if (channel.getMembers() == null) {
       channel.setMembers(new HashSet<>());
     }
 
-    // Add creator to the channel members
+    // Add the creator to members list
     channel.getMembers().add(creatorUserId);
 
+    // Generate an invite code
     String inviteCode = generateInviteCode();
     channel.setInviteCode(inviteCode);
 
-    channel.setCreatorId(creatorUserId);
+    // Create adminIds set and add creator as admin
+    Set<String> adminIds = new HashSet<>();
+    adminIds.add(creatorUserId);
+    channel.setAdminIds(adminIds);
+
+    // Default to GROUP type if not specified
     channel.setChannelType(ChannelType.GROUP);
-    channel.setDirectMessage(false);
 
-    Channel savedChannel = channelRepository.save(channel);
+    Channel savedChannel;
+    try {
+      savedChannel = channelRepository.save(channel);
+    } catch (Exception e) {
+      // Handle duplicate key exceptions (like duplicate channel name)
+      String message = e.getMessage();
+      if (message != null && message.contains("duplicate key error")) {
+        if (message.contains("name")) {
+          throw new IllegalArgumentException("A channel with this name already exists");
+        }
+      }
+      throw e;
+    }
 
-    // Update user's channels list
+    // Add the channel to the creator's channels list
     userService.addChannelToUser(creatorUserId, savedChannel.getId());
+
+    // Add the channel to the creator's admin channels list
     userService.addAdminChannelToUser(creatorUserId, savedChannel.getId());
+
+    System.out.println("Channel created: " + savedChannel.getId());
+    System.out.println("Channel members: " + savedChannel.getMembers());
+    System.out.println("Channel admin IDs: " + savedChannel.getAdminIds());
 
     return savedChannel;
   }
@@ -289,7 +310,19 @@ public class ChannelService {
     User admin = userService.getUserByUsername(adminUsername);
 
     if (userService.isAdmin(admin.getId(), channelId)) {
+      // Update user's admin status
       userService.addAdminChannelToUser(userIdToPromote, channelId);
+
+      // Also update the channel's adminIds set for redundancy and faster lookups
+      Channel channel = getChannelById(channelId);
+      if (channel.getAdminIds() == null) {
+        channel.setAdminIds(new HashSet<>());
+      }
+      channel.getAdminIds().add(userIdToPromote);
+      channelRepository.save(channel);
+
+      System.out.println("Promoted user " + userIdToPromote + " to admin in channel " + channelId);
+      System.out.println("Channel admin IDs: " + channel.getAdminIds());
     }
   }
 }

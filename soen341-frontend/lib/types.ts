@@ -22,15 +22,19 @@ export interface Message {
 export interface Channel {
   id: string;
   name: string;
-  creatorId: string;
-  type: "DIRECT" | "GROUP";
-  inviteCode: string;
-  members: string[];
-  directMessageMembers: string[];
+  channelType?: string;
+  inviteCode?: string;
+  creatorId?: string;
+  senderUsername?: string;
+  receiverUsername?: string;
+  members?: string[];
+  isDirectMessage?: boolean;
+  directMessageMembers?: string[];
+  adminIds?: string[];
 }
 
 export interface WebSocketMessage {
-  id: string
+  id: string;
   content: string;
   senderId: string;
   senderUsername?: string;
