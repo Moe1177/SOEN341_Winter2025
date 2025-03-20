@@ -6,44 +6,7 @@ import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Crown, ShieldAlert } from "lucide-react";
 import { ConfirmDialog } from "@/Components/ui/confirm-dialog";
 import useConversations from "@/hooks/useConversations";
-
-// Toast Component
-const Toast = ({
-  message,
-  type = "success",
-  isVisible,
-  onClose,
-}: {
-  message: string;
-  type?: "success" | "error";
-  isVisible: boolean;
-  onClose: () => void;
-}) => {
-  React.useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-    return undefined; // Return something even when not isVisible
-  }, [isVisible, onClose]);
-
-  if (!isVisible) return null;
-
-  const bgColor = type === "success" ? "bg-primary" : "bg-destructive";
-
-  return (
-    <div
-      className={`fixed top-4 right-4 ${bgColor} text-white p-4 rounded-md shadow-lg z-50 flex justify-between items-center min-w-[300px]`}
-    >
-      <div>{message}</div>
-      <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">
-        &times;
-      </button>
-    </div>
-  );
-};
+import { toast } from "react-hot-toast";
 
 interface ChannelMembersListProps {
   channel: Channel | null;
@@ -76,11 +39,6 @@ export function ChannelMembersList({
   const [isPromoting, setIsPromoting] = useState<string | null>(null);
   const [userToPromote, setUserToPromote] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [toast, setToast] = useState({
-    message: "",
-    type: "success" as "success" | "error",
-    isVisible: false,
-  });
 
   // Initialize useConversations with the required props
   const { promoteToAdmin } = useConversations(
@@ -139,8 +97,6 @@ export function ChannelMembersList({
         user = { ...user, adminsForWhichChannels: [] };
       }
 
-      // Check if the user is an admin from either the channel.adminIds array
-      // or the user's own adminsForWhichChannels array
       const isAdminInUserObject = user.adminsForWhichChannels.includes(
         channel.id
       );
@@ -148,8 +104,6 @@ export function ChannelMembersList({
         channel.adminIds && channel.adminIds.includes(memberId);
       const isAdmin = isAdminInUserObject || isAdminInChannelObject;
 
-      // If the user is an admin in the channel object but not in their user object,
-      // update the user object for consistency
       if (isAdminInChannelObject && !isAdminInUserObject) {
         user = {
           ...user,
@@ -162,10 +116,6 @@ export function ChannelMembersList({
           [user.id]: user,
         }));
       }
-
-      console.log(
-        `Processing user: ${user.username}, ID: ${user.id}, status: ${user.status}, admin: ${isAdmin}, adminsForWhichChannels: ${JSON.stringify(user.adminsForWhichChannels)}, adminInChannel: ${isAdminInChannelObject}`
-      );
 
       // Categorize the user based on role and status
       if (isAdmin) {
@@ -199,15 +149,6 @@ export function ChannelMembersList({
         }
       }
     }
-
-    // Log the categorization results
-    console.log(
-      `Categorized members - Admins: ${admins.length}, Online: ${onlineMembers.length}, Offline: ${offlineMembers.length}`
-    );
-    console.log(
-      "Admin users:",
-      admins.map((a) => a.username)
-    );
 
     // Sort each category alphabetically by username
     admins.sort((a, b) => a.username.localeCompare(b.username));
@@ -245,11 +186,7 @@ export function ChannelMembersList({
 
     // Check if current user is an admin
     if (!currentUser.adminsForWhichChannels?.includes(channel.id)) {
-      setToast({
-        message: "You don't have permission to promote users",
-        type: "error",
-        isVisible: true,
-      });
+      toast.error("You don't have permission to promote users");
       return;
     }
 
@@ -271,11 +208,9 @@ export function ChannelMembersList({
 
       // Show success toast
       const promotedUser = usersMap[userToPromote];
-      setToast({
-        message: `${promotedUser ? promotedUser.username : "User"} was promoted to admin`,
-        type: "success",
-        isVisible: true,
-      });
+      toast.success(
+        `${promotedUser ? promotedUser.username : "User"} was promoted to admin`
+      );
 
       // First update local state to show immediate feedback - this is crucial for UI consistency
       setGroupedMembers((prevState) => {
@@ -350,11 +285,7 @@ export function ChannelMembersList({
     } catch (error) {
       console.error("Error promoting user:", error);
       // Show error toast
-      setToast({
-        message: "Failed to promote user. Please try again.",
-        type: "error",
-        isVisible: true,
-      });
+      toast.error("Failed to promote user. Please try again.");
     } finally {
       setIsPromoting(null);
       setUserToPromote(null);
@@ -525,14 +456,6 @@ export function ChannelMembersList({
         confirmLabel="Promote"
         cancelLabel="Cancel"
         variant="default"
-      />
-
-      {/* Toast for notifications */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
       />
     </>
   );
