@@ -156,6 +156,7 @@ export function ChannelMembersList({
     offlineMembers.sort((a, b) => a.username.localeCompare(b.username));
 
     setGroupedMembers({ admins, onlineMembers, offlineMembers });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel, usersMap, currentUser]);
 
   // For debugging: Log whenever usersMap changes

@@ -101,6 +101,7 @@ export function Messaging() {
       fetchDirectMessages();
       fetchDirectMessageListUsers(setUsers);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Subscribe to active conversation when it changes
@@ -556,8 +557,8 @@ export function Messaging() {
                   messages={filteredMessages}
                   currentUser={currentUser}
                   users={usersMap}
-                  onEditMessage={handleEditMessage}
-                  onDeleteMessage={handleDeleteMessage}
+                  onEditMessageAction={handleEditMessage}
+                  onDeleteMessageAction={handleDeleteMessage}
                   channelId={
                     isActiveChannelConversation
                       ? activeConversationId

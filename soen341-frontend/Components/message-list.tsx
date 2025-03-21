@@ -8,8 +8,8 @@ interface MessageListProps {
   messages: WebSocketMessage[];
   currentUser: User | null;
   users: Record<string, User>;
-  onEditMessage: (messageId: string, newContent: string) => Promise<boolean>;
-  onDeleteMessage: (messageId: string) => Promise<boolean>;
+  onEditMessageAction: (messageId: string, newContent: string) => Promise<boolean>;
+  onDeleteMessageAction: (messageId: string) => Promise<boolean>;
   channelId?: string;
 }
 
@@ -22,8 +22,8 @@ export function MessageList({
   messages,
   currentUser,
   users,
-  onEditMessage,
-  onDeleteMessage,
+  onEditMessageAction,
+  onDeleteMessageAction,
   channelId,
 }: MessageListProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -139,9 +139,9 @@ export function MessageList({
                   currentUser={currentUser}
                   sender={sender}
                   isCurrentUser={isCurrentUser}
-                  formatMessageTime={formatMessageTime}
-                  onEditMessage={onEditMessage}
-                  onDeleteMessage={onDeleteMessage}
+                  formatMessageTimeAction={formatMessageTime}
+                  onEditMessageAction={onEditMessageAction}
+                  onDeleteMessageAction={onDeleteMessageAction}
                   isUserAdmin={isUserAdmin()}
                 />
               );

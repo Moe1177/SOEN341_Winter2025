@@ -19,9 +19,9 @@ interface MessageItemProps {
   currentUser: User | null;
   sender: User;
   isCurrentUser: boolean;
-  formatMessageTime: (date: Date) => string;
-  onEditMessage: (messageId: string, newContent: string) => Promise<boolean>;
-  onDeleteMessage: (messageId: string) => Promise<boolean>;
+  formatMessageTimeAction: (date: Date) => string;
+  onEditMessageAction: (messageId: string, newContent: string) => Promise<boolean>;
+  onDeleteMessageAction: (messageId: string) => Promise<boolean>;
   isUserAdmin: boolean;
 }
 
@@ -29,9 +29,9 @@ export function MessageItem({
   message,
   sender,
   isCurrentUser,
-  formatMessageTime,
-  onEditMessage,
-  onDeleteMessage,
+  formatMessageTimeAction,
+  onEditMessageAction,
+  onDeleteMessageAction,
   isUserAdmin,
 }: MessageItemProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -66,7 +66,7 @@ export function MessageItem({
     }
 
     try {
-      const success = await onEditMessage(message.id, editedContent);
+      const success = await onEditMessageAction(message.id, editedContent);
 
       if (success) {
         setIsEditing(false);
@@ -84,7 +84,7 @@ export function MessageItem({
     setIsDeleting(true);
 
     try {
-      const success = await onDeleteMessage(message.id);
+      const success = await onDeleteMessageAction(message.id);
 
       if (success) {
         toast.success("Message deleted");
@@ -132,7 +132,7 @@ export function MessageItem({
                 {sender?.username || "Unknown"}
               </span>
               <span className="text-[10px] sm:text-xs text-muted-foreground ml-2">
-                {formatMessageTime(message.timestamp)}
+                {formatMessageTimeAction(message.timestamp)}
               </span>
             </div>
           )}
@@ -217,7 +217,7 @@ export function MessageItem({
           {isCurrentUser && !isEditing && (
             <div className="mt-1 mr-1 flex justify-end">
               <span className="text-[10px] sm:text-xs text-muted-foreground">
-                {formatMessageTime(message.timestamp)}
+                {formatMessageTimeAction(message.timestamp)}
               </span>
             </div>
           )}
