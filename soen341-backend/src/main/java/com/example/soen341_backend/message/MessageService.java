@@ -139,6 +139,10 @@ public class MessageService {
     Message message = getMessageById(messageId);
     Optional<User> user = userRepository.findByUsername(username);
 
+    if (user.isEmpty()) {
+      throw new ResourceNotFoundException("User not found with username: " + username);
+    }
+
     // Only message sender or admin can delete a message
     if (!message.getSenderId().equals(user.get().getId())
         && !userService.isAdmin(user.get().getId(), message.getChannelId())) {
@@ -150,7 +154,7 @@ public class MessageService {
 
     // Create notification about message deletion
     Map<String, Object> notification = new HashMap<>();
-    notification.put("type", "MESSAGE_DELETED");
+    notification.put("type", "Message deleted");
     notification.put("messageId", messageId);
     notification.put("deletedBy", user.get().getId());
 
@@ -158,15 +162,22 @@ public class MessageService {
     if (!message.isDirectMessage()) {
       messagingTemplate.convertAndSend("/topic/channel/" + message.getChannelId(), notification);
     } else {
-      // For direct messages, notify both parties
-      messagingTemplate.convertAndSend("/queue/user/" + message.getSenderId(), notification);
-      messagingTemplate.convertAndSend("/queue/user/" + message.getReceiverId(), notification);
+
+      messagingTemplate.convertAndSendToUser(
+          message.getSenderId(), "/direct-messages", notification);
+
+      messagingTemplate.convertAndSendToUser(
+          message.getReceiverId(), "/direct-messages", notification);
     }
   }
 
-  public void editMessage(String messageId, String username, Message editedMessage) {
+  public Message editMessage(String messageId, String username, Message editedMessage) {
     Message messageToEdit = getMessageById(messageId);
     Optional<User> user = userRepository.findByUsername(username);
+
+    if (user.isEmpty()) {
+      throw new ResourceNotFoundException("User not found with username: " + username);
+    }
 
     // Only message sender and admin can edit a message
     if (!messageToEdit.getSenderId().equals(user.get().getId())
@@ -174,7 +185,30 @@ public class MessageService {
       throw new UnauthorizedException("You don't have permission to edit this message");
     }
 
+    // Update message content
     messageToEdit.setContent(editedMessage.getContent());
-    messageRepository.save(messageToEdit);
+    // Save the updated message
+    Message savedMessage = messageRepository.save(messageToEdit);
+
+    // Create notification about message update
+    Map<String, Object> notification = new HashMap<>();
+    notification.put("type", "Message updated");
+    notification.put("messageId", messageId);
+    notification.put("editedBy", user.get().getId());
+    notification.put("message", savedMessage);
+
+    // For channel messages, broadcast to the channel
+    if (!messageToEdit.isDirectMessage()) {
+      messagingTemplate.convertAndSend(
+          "/topic/channel/" + messageToEdit.getChannelId(), notification);
+    } else {
+      messagingTemplate.convertAndSendToUser(
+          messageToEdit.getSenderId(), "/direct-messages", notification);
+
+      messagingTemplate.convertAndSendToUser(
+          messageToEdit.getReceiverId(), "/direct-messages", notification);
+    }
+
+    return savedMessage;
   }
 }

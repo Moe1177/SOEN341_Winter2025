@@ -3,7 +3,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { WebSocketMessage } from "./types";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_BASE_BACKEND_WEBSOCKET_URL!; 
+const SOCKET_URL = process.env.NEXT_PUBLIC_BASE_BACKEND_WEBSOCKET_URL!;
 
 const useChat = (
   channelId: string,
@@ -28,17 +28,134 @@ const useChat = (
 
         // Subscribe to group chat messages
         stompClient.subscribe(`/topic/channel/${channelId}`, (message) => {
-          const newMessage = JSON.parse(message.body);
-          console.log("Received group message:", newMessage);
-          setMessages((prev) => [...prev, newMessage]);
+          const receivedData = JSON.parse(message.body);
+          console.log("Received channel data:", receivedData);
+
+          // Handle different message types
+          if (receivedData.type === "Message deleted") {
+            // Handle message delete event
+            const messageId = receivedData.messageId;
+            console.log("Message deleted:", messageId);
+
+            // Remove message from state
+            setMessages((prev) => prev.filter((m) => m.id !== messageId));
+          } else if (receivedData.type === "Message updated") {
+            // Handle message edit event
+            const updatedMessage = receivedData.message;
+            console.log("Message updated:", updatedMessage);
+
+            // Update message in state
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === updatedMessage.id
+                  ? {
+                      ...updatedMessage,
+                      timestamp: new Date(updatedMessage.timestamp),
+                    }
+                  : m
+              )
+            );
+          } else {
+            // Regular new message
+            const newMessage = receivedData;
+            // Convert timestamp to Date object if it's a string
+            if (typeof newMessage.timestamp === "string") {
+              newMessage.timestamp = new Date(newMessage.timestamp);
+            }
+            console.log("Received group message:", newMessage);
+            setMessages((prev) => [...prev, newMessage]);
+          }
         });
 
         // Subscribe to direct messages
         stompClient.subscribe(
           `/user/${receiverId}/direct-messages`,
           (message) => {
-            const newMessage = JSON.parse(message.body);
-            console.log("Received direct message:", newMessage);
+            const receivedData = JSON.parse(message.body);
+            console.log("Received DM data:", receivedData);
+
+            // Handle different message types
+            if (receivedData.type === "Message deleted") {
+              // Handle message delete event
+              const messageId = receivedData.messageId;
+              console.log("DM message deleted:", messageId);
+
+              // Remove message from state
+              setMessages((prev) => prev.filter((m) => m.id !== messageId));
+            } else if (receivedData.type === "Message updated") {
+              // Handle message edit event
+              const updatedMessage = receivedData.message;
+              console.log("DM message updated:", updatedMessage);
+
+              // Update message in state
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === updatedMessage.id
+                    ? {
+                        ...updatedMessage,
+                        timestamp: new Date(updatedMessage.timestamp),
+                      }
+                    : m
+                )
+              );
+            } else {
+              // Regular new message
+              const newMessage = receivedData;
+              // Convert timestamp to Date object if it's a string
+              if (typeof newMessage.timestamp === "string") {
+                newMessage.timestamp = new Date(newMessage.timestamp);
+              }
+              console.log("Received direct message:", newMessage);
+              setMessages((prev) => [...prev, newMessage]);
+
+              if (
+                onNewDirectMessage &&
+                newMessage.directMessage &&
+                newMessage.channelId
+              ) {
+                console.log("Calling onNewDirectMessage");
+                onNewDirectMessage(newMessage);
+              }
+            }
+          }
+        );
+
+        stompClient.subscribe(`/user/${userId}/direct-messages`, (message) => {
+          const receivedData = JSON.parse(message.body);
+          console.log("Received own DM data:", receivedData);
+
+          // Handle different message types
+          if (receivedData.type === "Message deleted") {
+            // Handle message delete event
+            const messageId = receivedData.messageId;
+            console.log("Own DM message deleted:", messageId);
+
+            // Remove message from state
+            setMessages((prev) => prev.filter((m) => m.id !== messageId));
+          } else if (receivedData.type === "Message updated") {
+            // Handle message edit event
+            const updatedMessage = receivedData.message;
+            console.log("Own DM message updated:", updatedMessage);
+
+            // Update message in state
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === updatedMessage.id
+                  ? {
+                      ...updatedMessage,
+                      timestamp: new Date(updatedMessage.timestamp),
+                    }
+                  : m
+              )
+            );
+          } else {
+            // Regular new message
+            const newMessage = receivedData;
+            // Convert timestamp to Date object if it's a string
+            if (typeof newMessage.timestamp === "string") {
+              newMessage.timestamp = new Date(newMessage.timestamp);
+            }
+            console.log("Received own direct message:", newMessage);
             setMessages((prev) => [...prev, newMessage]);
 
             if (
@@ -49,21 +166,6 @@ const useChat = (
               console.log("Calling onNewDirectMessage");
               onNewDirectMessage(newMessage);
             }
-          }
-        );
-
-        stompClient.subscribe(`/user/${userId}/direct-messages`, (message) => {
-          const newMessage = JSON.parse(message.body);
-          console.log("Received direct message:", newMessage);
-          setMessages((prev) => [...prev, newMessage]);
-
-          if (
-            onNewDirectMessage &&
-            newMessage.directMessage &&
-            newMessage.channelId
-          ) {
-            console.log("Calling onNewDirectMessage");
-            onNewDirectMessage(newMessage);
           }
         });
       },
@@ -76,7 +178,7 @@ const useChat = (
     return () => {
       stompClient.deactivate();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId, userId, token]);
 
   // Send Group Message
@@ -111,9 +213,20 @@ const useChat = (
     }
   };
 
-  // New function to merge historical messages into our state
+  // Load initial messages
   const setInitialMessages = (initialMessages: WebSocketMessage[]) => {
-    setMessages(initialMessages);
+    console.log(`Setting initial ${initialMessages.length} messages`);
+
+    // Sort messages by timestamp to ensure proper ordering
+    const sortedMessages = [...initialMessages].sort((a, b) => {
+      const timestampA =
+        a.timestamp instanceof Date ? a.timestamp : new Date(a.timestamp);
+      const timestampB =
+        b.timestamp instanceof Date ? b.timestamp : new Date(b.timestamp);
+      return timestampA.getTime() - timestampB.getTime();
+    });
+
+    setMessages(sortedMessages);
   };
 
   return { messages, sendGroupMessage, sendDirectMessage, setInitialMessages };

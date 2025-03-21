@@ -48,7 +48,13 @@ export function Messaging() {
   } = useDirectMessages(userId, token, currentUser, handleApiResponse);
 
   // Using custom messaging hook
-  const { fetchMessages } = useMessaging(token, handleApiResponse);
+  const {
+    fetchMessages,
+    deleteMessage,
+    editMessage,
+    updateMessageInState,
+    removeMessageFromState,
+  } = useMessaging(token, handleApiResponse);
 
   // State for users
   const [users, setUsers] = useState<User[]>([]);
@@ -357,6 +363,65 @@ export function Messaging() {
     if (showMobileSidebar) setShowMobileSidebar(false);
   };
 
+  // Handle editing a message
+  const handleEditMessage = async (
+    messageId: string,
+    newContent: string
+  ): Promise<boolean> => {
+    try {
+      if (!token) {
+        console.error("No authentication token available");
+        return false;
+      }
+
+      console.log(
+        `Editing message ${messageId} with new content: ${newContent}`
+      );
+
+      const updatedMessage = await editMessage(messageId, newContent);
+
+      if (!updatedMessage) {
+        console.error("Failed to update message");
+        return false;
+      }
+
+      // Update the message in the local state
+      updateMessageInState(updatedMessage);
+
+      return true;
+    } catch (error) {
+      console.error("Error editing message:", error);
+      return false;
+    }
+  };
+
+  // Handle deleting a message
+  const handleDeleteMessage = async (messageId: string): Promise<boolean> => {
+    try {
+      if (!token) {
+        console.error("No authentication token available");
+        return false;
+      }
+
+      console.log(`Deleting message ${messageId}`);
+
+      const success = await deleteMessage(messageId);
+
+      if (!success) {
+        console.error("Failed to delete message");
+        return false;
+      }
+
+      // Remove the message from the local state
+      removeMessageFromState(messageId);
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      return false;
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-800/20 via-blue-900/15 to-indigo-900/15 pointer-events-none"></div>
@@ -491,6 +556,13 @@ export function Messaging() {
                   messages={filteredMessages}
                   currentUser={currentUser}
                   users={usersMap}
+                  onEditMessage={handleEditMessage}
+                  onDeleteMessage={handleDeleteMessage}
+                  channelId={
+                    isActiveChannelConversation
+                      ? activeConversationId
+                      : undefined
+                  }
                 />
               </div>
 
