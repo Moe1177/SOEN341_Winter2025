@@ -3,16 +3,20 @@ import type { WebSocketMessage } from "@/lib/types";
 
 export function useMessaging(
   token: string,
-  handleApiResponse: (response: Response) => Promise<any>
+  handleApiResponse: (response: Response) => Promise<unknown>
 ) {
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
 
-  // Fetch messages for a specific conversation
-  const fetchMessages = async (conversationId: string, isChannel: boolean) => {
+  // Fetch messages for a conversation (either channel or direct message)
+  const fetchMessages = async (
+    conversationId: string,
+    isChannel: boolean
+  ): Promise<WebSocketMessage[]> => {
     try {
       if (!conversationId) return [];
 
-      const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel/${conversationId}`;
+      const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel/${conversationId}`
+        
 
       const response = await fetch(endpoint, {
         headers: {
@@ -21,19 +25,18 @@ export function useMessaging(
         },
       });
 
-      const data = await handleApiResponse(response);
+      const data = (await handleApiResponse(
+        response
+      )) as Partial<WebSocketMessage>[];
 
-      const formattedMessages = data.map((msg: Partial<WebSocketMessage>) => ({
+      const formattedMessages = data.map((msg) => ({
         ...msg,
+        id: msg.id || `temp-${Date.now()}`,
+        content: msg.content || "",
+        senderId: msg.senderId || "",
+        receiverId: msg.receiverId || "",
         timestamp: new Date(msg.timestamp || Date.now()),
-      }));
-
-      console.log(
-        `Fetched messages for ${
-          isChannel ? "channel" : "DM"
-        } ${conversationId}:`,
-        formattedMessages
-      );
+      })) as WebSocketMessage[];
 
       return formattedMessages;
     } catch (error) {
@@ -47,7 +50,70 @@ export function useMessaging(
     }
   };
 
-  // Filter messages for the current conversation
+  
+  const deleteMessage = async (messageId: string): Promise<boolean> => {
+    try {
+      const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/${messageId}`;
+
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete message: ${response.statusText}`);
+      }
+
+      console.log(`Successfully deleted message: ${messageId}`);
+      return true;
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      return false;
+    }
+  };
+
+  
+  const editMessage = async (
+    messageId: string,
+    newContent: string
+  ): Promise<WebSocketMessage | null> => {
+    try {
+      const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/${messageId}`;
+
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newContent }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to edit message: ${response.statusText}`);
+      }
+
+      const updatedMessage = (await handleApiResponse(
+        response
+      )) as WebSocketMessage;
+      console.log(`Successfully edited message: ${messageId}`, updatedMessage);
+
+      // Convert timestamp to Date object if it's not already
+      if (!(updatedMessage.timestamp instanceof Date)) {
+        updatedMessage.timestamp = new Date(updatedMessage.timestamp);
+      }
+
+      return updatedMessage;
+    } catch (error) {
+      console.error("Error editing message:", error);
+      return null;
+    }
+  };
+
+  
   const getFilteredMessages = (
     allMessages: WebSocketMessage[],
     activeConversationId: string | null,
@@ -64,10 +130,30 @@ export function useMessaging(
     });
   };
 
+  // Update message in state after editing
+  const updateMessageInState = (updatedMessage: WebSocketMessage) => {
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.id === updatedMessage.id ? updatedMessage : msg
+      )
+    );
+  };
+
+  // Remove message from state after deletion
+  const removeMessageFromState = (messageId: string) => {
+    setMessages((prevMessages) =>
+      prevMessages.filter((msg) => msg.id !== messageId)
+    );
+  };
+
   return {
     messages,
     setMessages,
     fetchMessages,
     getFilteredMessages,
+    deleteMessage,
+    editMessage,
+    updateMessageInState,
+    removeMessageFromState,
   };
 }

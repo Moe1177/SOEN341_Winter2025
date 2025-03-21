@@ -184,10 +184,8 @@ export function useDirectMessages(
 
       setDirectMessages((prev) => [...prev, newDM]);
 
-      // This ensures proper subscription setup before sending messages
       handleConversationSelect(data.id, false);
 
-      // Added console log for debugging
       console.log(`Created new DM channel with ID: ${data.id}`);
 
       return data.id;
@@ -214,7 +212,6 @@ export function useDirectMessages(
     return null;
   };
 
-  // Handle new direct message from websocket
   const handleNewDirectMessage = async (message: WebSocketMessage) => {
     console.log("Handling new direct message:", message);
     if (!message.channelId || !message.directMessage) return;
@@ -229,8 +226,6 @@ export function useDirectMessages(
       );
       return dm.id === normalizedId;
     });
-
-    console.log("DM exists:", exists);
 
     if (!exists) {
       try {

@@ -31,9 +31,9 @@ export function useChannels(
       const data = (await handleApiResponse(response)) as Channel[];
       console.log("Fetched channels data:", JSON.stringify(data));
 
-      // Map the channels and add unreadCount property
+     
       const extendedChannels = data.map((channel: Channel) => {
-        // Make sure channel has an adminIds field, even if empty
+        
         if (!channel.adminIds) {
           channel.adminIds = [];
         }
@@ -89,15 +89,14 @@ export function useChannels(
         `Fetching details for ${selectedChannel.members.length} members`
       );
 
-      // Create a copy of the current usersMap
+      
       const updatedUsersMap = { ...usersMap };
 
-      // Add current user to usersMap if not already there
+      
       if (currentUser && !updatedUsersMap[currentUser.id]) {
         updatedUsersMap[currentUser.id] = currentUser;
       }
 
-      // Fetch details for each member not already in the usersMap
       const fetchPromises = selectedChannel.members
         .filter(
           (memberId) =>
@@ -139,7 +138,6 @@ export function useChannels(
         }
       });
 
-      // Update the usersMap state
       setUsersMap(updatedUsersMap);
       console.log(
         `Updated usersMap with ${Object.keys(updatedUsersMap).length} users`
@@ -149,7 +147,6 @@ export function useChannels(
     }
   };
 
-  // Create a new channel
   const createChannel = async (name: string) => {
     try {
       const response = await fetch(
