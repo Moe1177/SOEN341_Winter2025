@@ -48,6 +48,7 @@ export function useAuth() {
         }
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper function to handle API responses
