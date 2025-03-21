@@ -113,7 +113,7 @@ export function MessageItem({
 
   return (
     <div
-      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-2 sm:mb-3 group`}
+      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-2 sm:mb-3 group pr-5`}
     >
       <div
         className={`flex max-w-[85%] sm:max-w-[75%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
@@ -175,23 +175,22 @@ export function MessageItem({
                 isCurrentUser
                   ? "bg-primary text-primary-foreground rounded-l-xl rounded-tr-xl"
                   : "bg-secondary text-secondary-foreground rounded-r-xl rounded-tl-xl"
-              } px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm text-sm sm:text-base group-hover:pr-8`}
+              } px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm text-sm sm:text-base relative group/message`}
             >
               <div className="whitespace-pre-wrap break-words">
                 {message.content}
               </div>
 
-              {/* Message actions dropdown - only visible on hover and for users who can modify */}
               {canModify && (
-                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-1/2 -translate-y-1/2 -right-8 opacity-0 group-hover/message:opacity-100 transition-opacity z-10">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full hover:bg-black/20"
+                        className="h-7 w-7 rounded-full hover:bg-black/20 bg-[#0e1230]/80 backdrop-blur-sm shadow-md"
                       >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        <MoreHorizontal className="h-4 w-4 text-white" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

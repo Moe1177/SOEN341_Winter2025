@@ -109,7 +109,7 @@ export function MessageList({
 
   return (
     <div
-      className="flex-1 p-2 sm:p-4 overflow-y-auto"
+      className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden"
       ref={messagesContainerRef}
     >
       <div className="space-y-4 sm:space-y-8">
