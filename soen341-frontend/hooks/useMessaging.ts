@@ -38,13 +38,6 @@ export function useMessaging(
         timestamp: new Date(msg.timestamp || Date.now()),
       })) as WebSocketMessage[];
 
-      console.log(
-        `Fetched messages for ${
-          isChannel ? "channel" : "DM"
-        } ${conversationId}:`,
-        formattedMessages
-      );
-
       return formattedMessages;
     } catch (error) {
       console.error(
@@ -57,7 +50,7 @@ export function useMessaging(
     }
   };
 
-  // Delete a message
+  
   const deleteMessage = async (messageId: string): Promise<boolean> => {
     try {
       const endpoint = `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/${messageId}`;
@@ -82,7 +75,7 @@ export function useMessaging(
     }
   };
 
-  // Edit a message
+  
   const editMessage = async (
     messageId: string,
     newContent: string
@@ -120,7 +113,7 @@ export function useMessaging(
     }
   };
 
-  // Filter messages for the current conversation
+  
   const getFilteredMessages = (
     allMessages: WebSocketMessage[],
     activeConversationId: string | null,

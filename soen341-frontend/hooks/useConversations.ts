@@ -29,19 +29,15 @@ const useConversations = (
           return false;
         }
 
-        // After successful API call, update the frontend state immediately
-        // This ensures UI is consistent regardless of backend sync timing
-
-        // 1. Update the channel's adminIds if it exists
         setChannels((prev) => {
           return prev.map((channel) => {
             if (channel.id === channelId) {
               console.log(
                 `Adding ${userId} to adminIds for channel ${channel.name}`
               );
-              // Check if adminIds exists, if not create it
+              
               const adminIds = channel.adminIds || [];
-              // Only add if not already there
+              
               if (!adminIds.includes(userId)) {
                 return {
                   ...channel,
@@ -53,14 +49,14 @@ const useConversations = (
           });
         });
 
-        // 2. Update the user in usersMap
+        
         setUsersMap((prev) => {
           const user = prev[userId];
           if (user) {
             console.log(
               `Updating usersMap for user ${user.username} with new admin status for channel ${channelId}`
             );
-            // Check if user already has adminsForWhichChannels, if not create it
+            
             const adminsForWhichChannels = user.adminsForWhichChannels || [];
             // Only add if not already there
             if (!adminsForWhichChannels.includes(channelId)) {
@@ -79,8 +75,6 @@ const useConversations = (
           return prev;
         });
 
-        // Add a short delay to ensure the UI updates are processed before returning
-        // This prevents race conditions with any subsequent operations
         return new Promise<boolean>((resolve) => {
           setTimeout(() => {
             resolve(true);

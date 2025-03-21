@@ -22,7 +22,7 @@ export function useAuth() {
       const storedUsername = localStorage.getItem("currentUsername");
       if (storedUsername && !currentUser) {
         try {
-          // Try to get the complete user object from localStorage
+          
           const storedUser = localStorage.getItem("currentUser");
           if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
@@ -31,7 +31,7 @@ export function useAuth() {
               setUserId(parsedUser.id);
             }
           } else {
-            // Fallback to creating a minimal user object
+            
             setCurrentUser({
               id: storedUserId || "",
               username: storedUsername,
@@ -59,7 +59,7 @@ export function useAuth() {
     return response.json();
   };
 
-  // Fetch current user data
+ 
   const fetchCurrentUser = async () => {
     try {
       if (!token) {

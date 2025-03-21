@@ -40,10 +40,8 @@ export function MessageItem({
   const avatarChar = sender?.username?.[0] || "?";
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Check if the current user can edit/delete this message
   const canModify = isCurrentUser || isUserAdmin;
 
-  // When editing mode is activated, focus the textarea and place cursor at the end
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus();
@@ -55,7 +53,7 @@ export function MessageItem({
   }, [isEditing, editedContent]);
 
   const handleEdit = async () => {
-    // Don't save if nothing changed
+    
     if (editedContent === message.content) {
       setIsEditing(false);
       return;

@@ -21,7 +21,7 @@ const useChat = (
       debug: console.log,
       reconnectDelay: 5000,
       connectHeaders: {
-        Authorization: `Bearer ${token}`, // Send JWT token in headers
+        Authorization: `Bearer ${token}`, 
       },
       onConnect: () => {
         console.log("Connected to WebSocket");
@@ -31,20 +31,19 @@ const useChat = (
           const receivedData = JSON.parse(message.body);
           console.log("Received channel data:", receivedData);
 
-          // Handle different message types
+          
           if (receivedData.type === "Message deleted") {
-            // Handle message delete event
+            
             const messageId = receivedData.messageId;
             console.log("Message deleted:", messageId);
 
-            // Remove message from state
             setMessages((prev) => prev.filter((m) => m.id !== messageId));
           } else if (receivedData.type === "Message updated") {
             // Handle message edit event
             const updatedMessage = receivedData.message;
             console.log("Message updated:", updatedMessage);
 
-            // Update message in state
+            
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === updatedMessage.id
@@ -56,9 +55,9 @@ const useChat = (
               )
             );
           } else {
-            // Regular new message
+            
             const newMessage = receivedData;
-            // Convert timestamp to Date object if it's a string
+            
             if (typeof newMessage.timestamp === "string") {
               newMessage.timestamp = new Date(newMessage.timestamp);
             }
@@ -67,27 +66,27 @@ const useChat = (
           }
         });
 
-        // Subscribe to direct messages
+        
         stompClient.subscribe(
           `/user/${receiverId}/direct-messages`,
           (message) => {
             const receivedData = JSON.parse(message.body);
             console.log("Received DM data:", receivedData);
 
-            // Handle different message types
+            
             if (receivedData.type === "Message deleted") {
               // Handle message delete event
               const messageId = receivedData.messageId;
               console.log("DM message deleted:", messageId);
 
-              // Remove message from state
+              
               setMessages((prev) => prev.filter((m) => m.id !== messageId));
             } else if (receivedData.type === "Message updated") {
-              // Handle message edit event
+              
               const updatedMessage = receivedData.message;
               console.log("DM message updated:", updatedMessage);
 
-              // Update message in state
+              
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === updatedMessage.id
@@ -99,9 +98,9 @@ const useChat = (
                 )
               );
             } else {
-              // Regular new message
+              
               const newMessage = receivedData;
-              // Convert timestamp to Date object if it's a string
+              
               if (typeof newMessage.timestamp === "string") {
                 newMessage.timestamp = new Date(newMessage.timestamp);
               }
@@ -124,20 +123,20 @@ const useChat = (
           const receivedData = JSON.parse(message.body);
           console.log("Received own DM data:", receivedData);
 
-          // Handle different message types
+          
           if (receivedData.type === "Message deleted") {
-            // Handle message delete event
+            
             const messageId = receivedData.messageId;
             console.log("Own DM message deleted:", messageId);
 
-            // Remove message from state
+            
             setMessages((prev) => prev.filter((m) => m.id !== messageId));
           } else if (receivedData.type === "Message updated") {
-            // Handle message edit event
+            
             const updatedMessage = receivedData.message;
             console.log("Own DM message updated:", updatedMessage);
 
-            // Update message in state
+            
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === updatedMessage.id
@@ -149,9 +148,9 @@ const useChat = (
               )
             );
           } else {
-            // Regular new message
+            
             const newMessage = receivedData;
-            // Convert timestamp to Date object if it's a string
+            
             if (typeof newMessage.timestamp === "string") {
               newMessage.timestamp = new Date(newMessage.timestamp);
             }
