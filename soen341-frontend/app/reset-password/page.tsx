@@ -1,10 +1,10 @@
 "use client";
 
 import { ThreeDCardDemo } from "@/Components/ThreeDCardDemo";
-import AuthFormDemo from "@/Components/auth/AuthFormDemo";
+import ResetPasswordDemo from "@/Components/auth/ResetPasswordDemo";
 import { useRedirectIfAuthenticated } from "@/lib/routeProtection";
 
-export default function Login() {
+export default function ResetPassword() {
   const { isChecking } = useRedirectIfAuthenticated();
 
   if (isChecking) {
@@ -12,7 +12,9 @@ export default function Login() {
       <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a]">
         <div className="flex flex-col items-center">
           <div className="h-8 w-8 border-t-2 border-b-2 border-blue-400 rounded-full animate-spin"></div>
-          <p className="mt-4 text-white text-sm">Redirecting to login page...</p>
+          <p className="mt-4 text-white text-sm">
+            Redirecting to login page...
+          </p>
         </div>
       </div>
     );
@@ -39,18 +41,18 @@ export default function Login() {
             <ThreeDCardDemo />
           </div>
 
-          {/* Right side - SignupFormDemo */}
+          {/* Right side - Auth form */}
           <div className="flex-1 flex justify-start items-center pl-8 pr-4">
             <div className="w-full max-w-md">
-              <AuthFormDemo />
+              <ResetPasswordDemo />
             </div>
           </div>
         </div>
 
-        {/* Mobile/Tablet layout - only shown on screens below lg breakpoint */}
+        {/* Mobile layout - stacked vertically */}
         <div className="flex lg:hidden flex-col w-full h-full items-center justify-center px-5 sm:px-8 py-12 my-4">
           <div className="w-full max-w-md">
-            <AuthFormDemo />
+            <ResetPasswordDemo />
           </div>
         </div>
       </div>

@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import LabelInputContainer from "../ui/LabelInputContainer";
+import { Loader2 } from "lucide-react";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 
 interface VerificationFormProps {
   email: string;
@@ -96,6 +98,11 @@ function VerificationForm({
 
   return (
     <div className="w-[350px] mx-auto">
+      <LoadingOverlay
+        isLoading={isLoading}
+        message="Verifying your account..."
+      />
+
       <h2 className="text-2xl font-bold text-center mb-6">
         Verify Your Account
       </h2>
@@ -117,16 +124,24 @@ function VerificationForm({
             required
             value={verificationCode}
             onChange={(e) => setVerificationCode(e.target.value)}
+            disabled={isLoading}
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </LabelInputContainer>
 
         <button
-          className="bg-gradient-to-br from-black to-neutral-600 dark:from-zinc-900 dark:to-zinc-900 block w-full text-white rounded-md h-12 font-medium shadow-input disabled:opacity-50"
+          className="bg-gradient-to-br from-black to-neutral-600 dark:from-zinc-900 dark:to-zinc-900 w-full text-white rounded-md h-12 font-medium shadow-input disabled:opacity-50 flex items-center justify-center"
           type="submit"
           disabled={!verificationCode || isLoading}
         >
-          {isLoading ? "Verifying..." : "Verify Code"}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <span>Verifying...</span>
+            </>
+          ) : (
+            "Verify Code"
+          )}
         </button>
 
         <p className="text-center text-sm">
@@ -134,6 +149,7 @@ function VerificationForm({
             type="button"
             className="text-blue-500 hover:underline"
             onClick={() => setAuthState("signup")}
+            disabled={isLoading}
           >
             Back to Sign Up
           </button>

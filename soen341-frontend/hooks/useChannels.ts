@@ -17,6 +17,11 @@ export function useChannels(
   // Fetch all channels for the current user
   const fetchChannels = async () => {
     try {
+      if (!userId) {
+        console.log("No userId available, skipping channel fetch");
+        return [];
+      }
+
       console.log("Fetching channels for user:", userId);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/user/${userId}`,
@@ -31,9 +36,7 @@ export function useChannels(
       const data = (await handleApiResponse(response)) as Channel[];
       console.log("Fetched channels data:", JSON.stringify(data));
 
-     
       const extendedChannels = data.map((channel: Channel) => {
-        
         if (!channel.adminIds) {
           channel.adminIds = [];
         }
@@ -89,10 +92,8 @@ export function useChannels(
         `Fetching details for ${selectedChannel.members.length} members`
       );
 
-      
       const updatedUsersMap = { ...usersMap };
 
-      
       if (currentUser && !updatedUsersMap[currentUser.id]) {
         updatedUsersMap[currentUser.id] = currentUser;
       }
@@ -149,6 +150,11 @@ export function useChannels(
 
   const createChannel = async (name: string) => {
     try {
+      if (!userId) {
+        console.error("No userId available, cannot create channel");
+        return null;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/create-channel?userId=${userId}`,
         {

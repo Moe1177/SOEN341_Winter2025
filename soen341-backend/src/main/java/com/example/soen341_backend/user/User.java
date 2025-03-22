@@ -34,6 +34,9 @@ public class User {
   private String verificationCode;
   private Instant verificationCodeExpiration;
 
+  private String resetCode;
+  private Instant resetCodeExpiration;
+
   private Status status;
   private Set<String> channelIds = new HashSet<>();
   private Set<String> directMessageIds = new HashSet<>();
