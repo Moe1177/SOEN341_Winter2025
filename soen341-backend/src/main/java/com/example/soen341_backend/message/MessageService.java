@@ -4,6 +4,8 @@ import com.example.soen341_backend.channel.Channel;
 import com.example.soen341_backend.channel.ChannelService;
 import com.example.soen341_backend.exceptions.ResourceNotFoundException;
 import com.example.soen341_backend.exceptions.UnauthorizedException;
+import com.example.soen341_backend.storage.StorageService;
+import com.example.soen341_backend.storage.StorageServiceFactory;
 import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
@@ -25,12 +27,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class MessageService {
 
   private final MessageRepository messageRepository;
+  private final UserRepository userRepository;
   private final ChannelService channelService;
+  private final StorageServiceFactory storageServiceFactory;
+  private final AttachmentRepository attachmentRepository;
   private final UserService userService;
   private final SimpMessagingTemplate messagingTemplate;
-  private final UserRepository userRepository;
-  private final FileStorageService fileStorageService;
-  private final AttachmentRepository attachmentRepository;
 
   public Message getMessageById(String id) {
     return messageRepository
@@ -182,11 +184,15 @@ public class MessageService {
       List<Attachment> attachments = new ArrayList<>();
       if (files != null && files.length > 0) {
         log.info("Processing {} attachments", files.length);
+
+        // Get the appropriate storage service
+        StorageService storageService = storageServiceFactory.getStorageService();
+
         for (MultipartFile file : files) {
           if (!file.isEmpty()) {
             log.info(
                 "Processing attachment: {} ({} bytes)", file.getOriginalFilename(), file.getSize());
-            Attachment attachment = fileStorageService.storeFile(file, savedMessage.getId());
+            Attachment attachment = storageService.storeFile(file, savedMessage.getId());
             attachments.add(attachment);
             log.info("Successfully processed attachment: {}", attachment.getId());
           }
@@ -243,7 +249,8 @@ public class MessageService {
     if (files != null && files.length > 0) {
       for (MultipartFile file : files) {
         if (!file.isEmpty()) {
-          Attachment attachment = fileStorageService.storeFile(file, savedMessage.getId());
+          Attachment attachment =
+              storageServiceFactory.getStorageService().storeFile(file, savedMessage.getId());
           attachments.add(attachment);
         }
       }
@@ -272,7 +279,10 @@ public class MessageService {
     // Delete any attachments
     List<Attachment> attachments = attachmentRepository.findByMessageId(messageId);
     for (Attachment attachment : attachments) {
-      fileStorageService.deleteFile(attachment.getFileName());
+      // Use the appropriate storage service based on where the file is stored
+      StorageService storageService =
+          storageServiceFactory.getStorageService(attachment.isS3Storage());
+      storageService.deleteFile(attachment.getFileName());
       attachmentRepository.delete(attachment);
     }
 
@@ -281,7 +291,7 @@ public class MessageService {
 
     // Create notification about message deletion
     Map<String, Object> notification = new HashMap<>();
-    notification.put("type", "Message deleted");
+    notification.put("type", "MESSAGE_DELETED");
     notification.put("messageId", messageId);
     notification.put("deletedBy", user.get().getId());
 
@@ -289,12 +299,9 @@ public class MessageService {
     if (!message.isDirectMessage()) {
       messagingTemplate.convertAndSend("/topic/channel/" + message.getChannelId(), notification);
     } else {
-
-      messagingTemplate.convertAndSendToUser(
-          message.getSenderId(), "/direct-messages", notification);
-
-      messagingTemplate.convertAndSendToUser(
-          message.getReceiverId(), "/direct-messages", notification);
+      // For direct messages, notify both parties
+      messagingTemplate.convertAndSend("/queue/user/" + message.getSenderId(), notification);
+      messagingTemplate.convertAndSend("/queue/user/" + message.getReceiverId(), notification);
     }
   }
 

@@ -24,6 +24,7 @@ public class MessageController {
   private final JwtUtils jwtUtils;
   private final FileStorageService fileStorageService;
   private final AttachmentRepository attachmentRepository;
+  private final StorageServiceFactory storageServiceFactory;
 
   @GetMapping("/{id}")
   public Message getMessageById(@PathVariable String id) {
@@ -161,20 +162,30 @@ public class MessageController {
 
   @GetMapping("/attachments/{fileName:.+}")
   public ResponseEntity<Resource> downloadAttachment(@PathVariable String fileName) {
-    Resource resource = fileStorageService.loadFileAsResource(fileName);
-
-    // Find the attachment to get the original file name and content type
+    // Find the attachment to get the original file name, content type, and storage type
     String originalFileName = fileName;
     String contentType = "application/octet-stream";
+    boolean isS3Storage = false;
 
+    Attachment attachment = null;
     List<Attachment> attachments = attachmentRepository.findAll();
-    for (Attachment attachment : attachments) {
-      if (attachment.getFileName().equals(fileName)) {
-        originalFileName = attachment.getOriginalFileName();
-        contentType = attachment.getContentType();
+    for (Attachment a : attachments) {
+      if (a.getFileName().equals(fileName)) {
+        attachment = a;
+        originalFileName = a.getOriginalFileName();
+        contentType = a.getContentType();
+        isS3Storage = a.isS3Storage();
         break;
       }
     }
+
+    if (attachment == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    // Use the appropriate storage service based on where the file is stored
+    StorageService storageService = storageServiceFactory.getStorageService(isS3Storage);
+    Resource resource = storageService.loadFileAsResource(fileName);
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(contentType))

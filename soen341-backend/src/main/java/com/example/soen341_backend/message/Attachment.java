@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/** Document representing a message attachment */
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,4 +23,7 @@ public class Attachment {
   private String contentType;
   private long size;
   private String messageId;
+
+  // Flag to indicate if the attachment is stored in S3 or local file system
+  private boolean isS3Storage;
 }
