@@ -3,7 +3,7 @@ import type { User, Channel } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
-import { Hash, Plus, Settings, MessageSquare } from "lucide-react";
+import { Hash, Plus, Settings, MessageSquare, UserPlus } from "lucide-react";
 
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
@@ -23,6 +23,7 @@ interface SidebarProps {
   onCreateChannel: () => void;
   onCreateDirectMessage: () => void;
   onViewChannelInvite: (channel: Channel) => void;
+  onJoinChannel: () => void;
   currentUser: User | null;
   fetchChannels?: () => void;
 }
@@ -38,6 +39,7 @@ export function Sidebar({
   onCreateChannel,
   onCreateDirectMessage,
   onViewChannelInvite,
+  onJoinChannel,
   currentUser,
 }: SidebarProps) {
   // Helper function to check if current user is an admin of the channel
@@ -67,16 +69,30 @@ export function Sidebar({
               <div className="text-xs uppercase font-semibold tracking-wider text-muted-foreground flex items-center">
                 Channels
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 rounded-full hover:bg-secondary"
-                onClick={onCreateChannel}
-              >
-                <div className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
-                  <Plus className="h-3 w-3 text-muted-foreground" />
-                </div>
-              </Button>
+              <div className="flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full hover:bg-secondary"
+                  onClick={onJoinChannel}
+                  title="Join a channel"
+                >
+                  <div className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
+                    <UserPlus className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full hover:bg-secondary"
+                  onClick={onCreateChannel}
+                  title="Create a channel"
+                >
+                  <div className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 hover:bg-white/15 transition-colors">
+                    <Plus className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -90,7 +106,7 @@ export function Sidebar({
                     ${activeConversationId === channel.id ? "bg-secondary" : "hover:bg-secondary/50"}`}
                   onClick={() => onConversationSelect(channel.id, true)}
                 >
-                  <Hash className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <Hash className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                   <span className="truncate text-sm">{channel.name}</span>
                   {currentUserIsAdmin(channel) && (
                     <div
@@ -106,6 +122,31 @@ export function Sidebar({
                   )}
                 </Button>
               ))}
+
+              {channels.length === 0 && (
+                <div className="px-2 py-3 text-sm text-muted-foreground flex flex-col items-center">
+                  <Hash className="h-8 w-8 mb-1 opacity-50" />
+                  <p className="text-sm mb-2">No channels yet</p>
+                  <div className="flex gap-2 mt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-border bg-secondary/50 hover:bg-secondary"
+                      onClick={onJoinChannel}
+                    >
+                      Join
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-border bg-secondary/50 hover:bg-secondary"
+                      onClick={onCreateChannel}
+                    >
+                      Create
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

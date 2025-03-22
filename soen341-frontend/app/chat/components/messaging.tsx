@@ -10,6 +10,7 @@ import useChat from "@/lib/use-websocket";
 import { CreateChannelDialog } from "./create-channel-dialog";
 import { CreateDirectMessageDialog } from "./create-direct-message-dialog";
 import { ChannelInviteDialog } from "./channel-invite-dialog";
+import { JoinChannelDialog } from "./join-channel-dialog";
 import { ChannelMembersList } from "./channel-members-list";
 import { Menu, X, Users, MessageSquare, Hash } from "lucide-react";
 
@@ -69,6 +70,7 @@ export function Messaging() {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
+  const [showJoinChannel, setShowJoinChannel] = useState(false);
   const [showChannelMembers, setShowChannelMembers] = useState<boolean>(true);
 
   // Mobile sidebar state
@@ -315,6 +317,16 @@ export function Messaging() {
     setShowChannelInvite(true);
   };
 
+  // Handle joining a channel with invite code
+  const handleJoinChannel = () => {
+    setShowJoinChannel(true);
+  };
+
+  // Callback for when a channel is successfully joined
+  const handleJoinChannelSuccess = () => {
+    fetchChannels();
+  };
+
   const filteredMessages = messages.filter((msg) => {
     if (isActiveChannelConversation) {
       // Show only group (non-DM) messages for the active channel
@@ -437,6 +449,7 @@ export function Messaging() {
           onCreateChannel={() => setShowCreateChannel(true)}
           onCreateDirectMessage={() => setShowCreateDM(true)}
           onViewChannelInvite={handleViewChannelInvite}
+          onJoinChannel={handleJoinChannel}
           currentUser={currentUser}
           fetchChannels={fetchChannels}
         />
@@ -454,6 +467,7 @@ export function Messaging() {
             onCreateChannel={() => setShowCreateChannel(true)}
             onCreateDirectMessage={() => setShowCreateDM(true)}
             onViewChannelInvite={handleViewChannelInvite}
+            onJoinChannel={handleJoinChannel}
             currentUser={currentUser}
             fetchChannels={fetchChannels}
           />
@@ -636,7 +650,7 @@ export function Messaging() {
 
       {showCreateDM && (
         <CreateDirectMessageDialog
-          users={users}
+          users={users.filter((user) => user.id !== userId)}
           currentUserId={userId || ""}
           onCloseAction={() => setShowCreateDM(false)}
           onCreateDirectMessageAction={handleCreateDirectMessage}
@@ -647,6 +661,15 @@ export function Messaging() {
         <ChannelInviteDialog
           channel={selectedChannel}
           onCloseAction={() => setShowChannelInvite(false)}
+        />
+      )}
+
+      {showJoinChannel && (
+        <JoinChannelDialog
+          userId={userId || ""}
+          token={token || ""}
+          onJoinSuccess={handleJoinChannelSuccess}
+          onCloseAction={() => setShowJoinChannel(false)}
         />
       )}
     </div>
