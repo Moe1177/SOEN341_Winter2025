@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 import React from "react";
@@ -20,7 +19,6 @@ export default function RootLayout({
       <body className="bg-background">
         <Toaster position="top-right" richColors />
         <main className="relative overflow-hidden">{children}</main>
-        <Toaster position="top-center" />
       </body>
     </html>
   );
