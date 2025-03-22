@@ -34,7 +34,7 @@ export default function ResetPassword() {
       <div className="cosmic-glow-2"></div>
 
       <div className="relative z-10 min-h-screen flex items-center">
-        {/* Desktop layout - preserved exactly as is */}
+        {/* Desktop layout */}
         <div className="hidden lg:flex flex-row w-full justify-center items-center min-h-screen">
           {/* Left side - ThreeDCardDemo */}
           <div className="flex-1 flex justify-end items-center pr-8 pl-4">

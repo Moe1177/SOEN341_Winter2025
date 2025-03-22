@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { WebSocketMessage } from "./types";
+import toast from "react-hot-toast";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_BASE_BACKEND_WEBSOCKET_URL!;
 
@@ -14,6 +15,82 @@ const useChat = (
 ) => {
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
   const [client, setClient] = useState<Client | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // Check notification permission on mount
+  useEffect(() => {
+    const checkNotificationPermission = () => {
+      if (!("Notification" in window)) return;
+
+      setNotificationsEnabled(Notification.permission === "granted");
+    };
+
+    checkNotificationPermission();
+  }, []);
+
+  // Function to request notification permission
+  const requestNotificationPermission = useCallback(async () => {
+    if (!("Notification" in window)) {
+      toast.error("This browser doesn't support notifications");
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      setNotificationsEnabled(!notificationsEnabled);
+      return !notificationsEnabled;
+    }
+
+    if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      const granted = permission === "granted";
+      setNotificationsEnabled(granted);
+
+      if (granted) {
+        toast.success("Notifications enabled");
+      } else {
+        toast.error("Notification permission denied");
+      }
+      return granted;
+    } else {
+      toast.error("Notifications were previously denied by your browser");
+      return false;
+    }
+  }, [notificationsEnabled]);
+
+  // Function to show notification
+  const showNotification = useCallback(
+    (message: WebSocketMessage) => {
+      if (!notificationsEnabled || Notification.permission !== "granted") {
+        return;
+      }
+
+      // Don't notify for our own messages
+      if (message.senderId === userId) {
+        return;
+      }
+
+      // Only show when tab is not active
+      if (document.visibilityState === "visible") {
+        return;
+      }
+
+      const isDirectMessage = message.directMessage;
+      const title = isDirectMessage
+        ? `New message from ${message.senderUsername || "User"}`
+        : `New message in channel`;
+
+      const notification = new Notification(title, {
+        body: message.content,
+        icon: "/favicon.ico",
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    },
+    [notificationsEnabled, userId]
+  );
 
   useEffect(() => {
     const stompClient = new Client({
@@ -21,7 +98,7 @@ const useChat = (
       debug: console.log,
       reconnectDelay: 5000,
       connectHeaders: {
-        Authorization: `Bearer ${token}`, 
+        Authorization: `Bearer ${token}`,
       },
       onConnect: () => {
         console.log("Connected to WebSocket");
@@ -29,21 +106,15 @@ const useChat = (
         // Subscribe to group chat messages
         stompClient.subscribe(`/topic/channel/${channelId}`, (message) => {
           const receivedData = JSON.parse(message.body);
-          console.log("Received channel data:", receivedData);
 
-          
           if (receivedData.type === "Message deleted") {
-            
             const messageId = receivedData.messageId;
-            console.log("Message deleted:", messageId);
 
             setMessages((prev) => prev.filter((m) => m.id !== messageId));
           } else if (receivedData.type === "Message updated") {
             // Handle message edit event
             const updatedMessage = receivedData.message;
-            console.log("Message updated:", updatedMessage);
 
-            
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === updatedMessage.id
@@ -55,38 +126,33 @@ const useChat = (
               )
             );
           } else {
-            
             const newMessage = receivedData;
-            
+
             if (typeof newMessage.timestamp === "string") {
               newMessage.timestamp = new Date(newMessage.timestamp);
             }
             console.log("Received group message:", newMessage);
             setMessages((prev) => [...prev, newMessage]);
+
+            // Show notification for new message
+            showNotification(newMessage);
           }
         });
 
-        
         stompClient.subscribe(
           `/user/${receiverId}/direct-messages`,
           (message) => {
             const receivedData = JSON.parse(message.body);
             console.log("Received DM data:", receivedData);
 
-            
             if (receivedData.type === "Message deleted") {
               // Handle message delete event
               const messageId = receivedData.messageId;
-              console.log("DM message deleted:", messageId);
 
-              
               setMessages((prev) => prev.filter((m) => m.id !== messageId));
             } else if (receivedData.type === "Message updated") {
-              
               const updatedMessage = receivedData.message;
-              console.log("DM message updated:", updatedMessage);
 
-              
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === updatedMessage.id
@@ -98,14 +164,16 @@ const useChat = (
                 )
               );
             } else {
-              
               const newMessage = receivedData;
-              
+
               if (typeof newMessage.timestamp === "string") {
                 newMessage.timestamp = new Date(newMessage.timestamp);
               }
               console.log("Received direct message:", newMessage);
               setMessages((prev) => [...prev, newMessage]);
+
+              // Show notification for new direct message
+              showNotification(newMessage);
 
               if (
                 onNewDirectMessage &&
@@ -123,20 +191,13 @@ const useChat = (
           const receivedData = JSON.parse(message.body);
           console.log("Received own DM data:", receivedData);
 
-          
           if (receivedData.type === "Message deleted") {
-            
             const messageId = receivedData.messageId;
-            console.log("Own DM message deleted:", messageId);
 
-            
             setMessages((prev) => prev.filter((m) => m.id !== messageId));
           } else if (receivedData.type === "Message updated") {
-            
             const updatedMessage = receivedData.message;
-            console.log("Own DM message updated:", updatedMessage);
 
-            
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === updatedMessage.id
@@ -148,9 +209,8 @@ const useChat = (
               )
             );
           } else {
-            
             const newMessage = receivedData;
-            
+
             if (typeof newMessage.timestamp === "string") {
               newMessage.timestamp = new Date(newMessage.timestamp);
             }
@@ -178,7 +238,7 @@ const useChat = (
       stompClient.deactivate();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId, userId, token]);
+  }, [channelId, userId, token, showNotification]);
 
   // Send Group Message
   const sendGroupMessage = (content: string) => {
@@ -228,7 +288,14 @@ const useChat = (
     setMessages(sortedMessages);
   };
 
-  return { messages, sendGroupMessage, sendDirectMessage, setInitialMessages };
+  return {
+    messages,
+    sendGroupMessage,
+    sendDirectMessage,
+    setInitialMessages,
+    notificationsEnabled,
+    requestNotificationPermission,
+  };
 };
 
 export default useChat;
