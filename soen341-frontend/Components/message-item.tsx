@@ -12,7 +12,7 @@ import {
 } from "@/Components/ui/dropdown-menu";
 import { Textarea } from "@/Components/ui/textarea";
 import { Button } from "@/Components/ui/button";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { AttachmentDisplay } from "./AttachmentDisplay";
 
 interface MessageItemProps {
