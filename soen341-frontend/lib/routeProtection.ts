@@ -20,8 +20,9 @@ export function useRequireAuth() {
         if (!token || !userId) {
           console.log("User not authenticated, redirecting to login");
           router.push("/login");
+        } else {
+          setIsChecking(false);
         }
-        setIsChecking(false);
       }, 500);
 
       return () => clearTimeout(timer);
