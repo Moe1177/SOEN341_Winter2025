@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { MessageList } from "./message-list";
 import { MessageInput } from "./message-input";
-import { Sidebar } from "@/Components/sidebar";
+import { Sidebar } from "@/app/chat/components/sidebar";
 import { ConversationHeader } from "./conversation-header";
 import type { User, Channel } from "@/lib/types";
 import useChat from "@/lib/use-websocket";
@@ -60,14 +60,12 @@ export function Messaging() {
   const [users, setUsers] = useState<User[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, User>>({});
 
-  
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
   const [isActiveChannelConversation, setIsActiveChannelConversation] =
     useState<boolean>(true);
 
- 
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
@@ -77,13 +75,11 @@ export function Messaging() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showMobileMembers, setShowMobileMembers] = useState(false);
 
-  
   const activeDM = isActiveChannelConversation
     ? null
     : getActiveDirectMessage(activeConversationId);
   const receiverId = activeDM?.receiverId || "";
 
-  
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
       activeConversationId || "",
@@ -93,7 +89,6 @@ export function Messaging() {
       handleNewDirectMessage
     );
 
-  
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
@@ -101,7 +96,7 @@ export function Messaging() {
       fetchDirectMessages();
       fetchDirectMessageListUsers(setUsers);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Subscribe to active conversation when it changes
@@ -112,7 +107,7 @@ export function Messaging() {
         isActiveChannelConversation ? "channel" : "DM"
       }: ${activeConversationId}`
     );
-    
+
     setShowMobileSidebar(false);
     setShowMobileMembers(false);
   }, [activeConversationId, isActiveChannelConversation]);
@@ -122,11 +117,9 @@ export function Messaging() {
     const createUpdatedUsersMap = (prevMap: Record<string, User>) => {
       const map: Record<string, User> = {};
 
-      
       if (users) {
         users.forEach((user) => {
           if (user && user.id) {
-            
             if (prevMap[user.id]) {
               map[user.id] = {
                 ...user,
@@ -148,7 +141,6 @@ export function Messaging() {
       // Add channel admins based on channel information
       if (channels) {
         channels.forEach((channel) => {
-          
           if (channel.adminIds) {
             console.log(
               `Processing adminIds for channel ${channel.name}:`,
@@ -176,7 +168,6 @@ export function Messaging() {
         });
       }
 
-    
       if (directMessages) {
         directMessages.forEach((dm) => {
           if (dm.participant && dm.participant.id) {
@@ -204,7 +195,6 @@ export function Messaging() {
         });
       }
 
-      
       if (currentUser && currentUser.id) {
         if (map[currentUser.id]) {
           // Update the map with the current user's admin information while preserving existing data
@@ -220,7 +210,6 @@ export function Messaging() {
         }
       }
 
-      
       Object.keys(prevMap).forEach((userId) => {
         if (map[userId] && prevMap[userId].adminsForWhichChannels?.length) {
           // Ensure we don't lose admin status when updating users
@@ -255,7 +244,6 @@ export function Messaging() {
     setUsersMap((prev) => createUpdatedUsersMap(prev));
   }, [users, directMessages, currentUser, channels]);
 
-  
   const handleSendMessage = (content: string) => {
     if (!activeConversationId) {
       console.error("No active conversation selected");
@@ -269,7 +257,6 @@ export function Messaging() {
     }
   };
 
-  
   const handleConversationSelect = (
     conversationId: string,
     isChannel: boolean
@@ -282,7 +269,6 @@ export function Messaging() {
       }: ${conversationId}`
     );
 
-    
     setActiveConversationId(conversationId);
     setIsActiveChannelConversation(isChannel);
 
@@ -298,7 +284,6 @@ export function Messaging() {
     }
   };
 
-  
   const loadConversationMessages = async (
     conversationId: string,
     isChannel: boolean
@@ -307,13 +292,11 @@ export function Messaging() {
     setInitialMessages(messages);
   };
 
-  
   const handleCreateChannel = async (name: string) => {
     await createChannel(name);
     setShowCreateChannel(false);
   };
 
-  
   const handleCreateDirectMessage = async (recipientId: string) => {
     const newDmId = await createDirectMessage(
       recipientId,
@@ -332,7 +315,6 @@ export function Messaging() {
     setShowChannelInvite(true);
   };
 
-  
   const filteredMessages = messages.filter((msg) => {
     if (isActiveChannelConversation) {
       // Show only group (non-DM) messages for the active channel
@@ -343,7 +325,6 @@ export function Messaging() {
     }
   });
 
-  
   const getActiveUser = (): User | undefined => {
     if (!isActiveChannelConversation && activeConversationId) {
       const dm = directMessages.find((d) => d.id === activeConversationId);
@@ -352,19 +333,16 @@ export function Messaging() {
     return undefined;
   };
 
-  
   const toggleMobileSidebar = () => {
     setShowMobileSidebar(!showMobileSidebar);
     if (showMobileMembers) setShowMobileMembers(false);
   };
 
-  
   const toggleMobileMembers = () => {
     setShowMobileMembers(!showMobileMembers);
     if (showMobileSidebar) setShowMobileSidebar(false);
   };
 
-  
   const handleEditMessage = async (
     messageId: string,
     newContent: string
@@ -396,7 +374,6 @@ export function Messaging() {
     }
   };
 
- 
   const handleDeleteMessage = async (messageId: string): Promise<boolean> => {
     try {
       if (!token) {
