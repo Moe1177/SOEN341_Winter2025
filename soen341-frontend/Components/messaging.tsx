@@ -49,20 +49,24 @@ export function Messaging() {
   } = useDirectMessages(userId, token, currentUser, handleApiResponse);
 
   // Using custom messaging hook
-  const { fetchMessages } = useMessaging(token, handleApiResponse);
+  const {
+    fetchMessages,
+    deleteMessage,
+    editMessage,
+    updateMessageInState,
+    removeMessageFromState,
+  } = useMessaging(token, handleApiResponse);
 
   // State for users
   const [users, setUsers] = useState<User[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, User>>({});
 
-  // Conversation states
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
   const [isActiveChannelConversation, setIsActiveChannelConversation] =
     useState<boolean>(true);
 
-  // UI dialog states
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
   const [showChannelInvite, setShowChannelInvite] = useState(false);
@@ -72,13 +76,11 @@ export function Messaging() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showMobileMembers, setShowMobileMembers] = useState(false);
 
-  // Get active DM info
   const activeDM = isActiveChannelConversation
     ? null
     : getActiveDirectMessage(activeConversationId);
   const receiverId = activeDM?.receiverId || "";
 
-  // Setup WebSocket chat
   const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
     useChat(
       activeConversationId || "",
@@ -88,7 +90,6 @@ export function Messaging() {
       handleNewDirectMessage
     );
 
-  // Initialize connection and fetch initial data
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
@@ -96,6 +97,7 @@ export function Messaging() {
       fetchDirectMessages();
       fetchDirectMessageListUsers(setUsers);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Subscribe to active conversation when it changes
@@ -106,19 +108,142 @@ export function Messaging() {
         isActiveChannelConversation ? "channel" : "DM"
       }: ${activeConversationId}`
     );
-    // Close mobile sidebar when conversation changes
+
     setShowMobileSidebar(false);
     setShowMobileMembers(false);
   }, [activeConversationId, isActiveChannelConversation]);
 
   // Create a map of users for easy lookup
   useEffect(() => {
-    const map: Record<string, User> = {};
-    users.forEach((user) => {
-      map[user.id] = user;
-    });
-    setUsersMap(map);
-  }, [users]);
+    const createUpdatedUsersMap = (prevMap: Record<string, User>) => {
+      const map: Record<string, User> = {};
+
+      if (users) {
+        users.forEach((user) => {
+          if (user && user.id) {
+            if (prevMap[user.id]) {
+              map[user.id] = {
+                ...user,
+                adminsForWhichChannels:
+                  user.adminsForWhichChannels ||
+                  prevMap[user.id].adminsForWhichChannels ||
+                  [],
+              };
+            } else {
+              map[user.id] = {
+                ...user,
+                adminsForWhichChannels: user.adminsForWhichChannels || [],
+              };
+            }
+          }
+        });
+      }
+
+      // Add channel admins based on channel information
+      if (channels) {
+        channels.forEach((channel) => {
+          if (channel.adminIds) {
+            console.log(
+              `Processing adminIds for channel ${channel.name}:`,
+              channel.adminIds
+            );
+            // For each admin ID, ensure their admin status is recorded
+            channel.adminIds.forEach((adminId) => {
+              if (map[adminId]) {
+                // If user exists, add this channel to their admin channels if not already there
+                if (!map[adminId].adminsForWhichChannels.includes(channel.id)) {
+                  map[adminId] = {
+                    ...map[adminId],
+                    adminsForWhichChannels: [
+                      ...map[adminId].adminsForWhichChannels,
+                      channel.id,
+                    ],
+                  };
+                  console.log(
+                    `Added channel ${channel.id} to user ${map[adminId].username}'s admin channels`
+                  );
+                }
+              }
+            });
+          }
+        });
+      }
+
+      if (directMessages) {
+        directMessages.forEach((dm) => {
+          if (dm.participant && dm.participant.id) {
+            // If user already exists in map, merge with existing data rather than overwrite
+            if (map[dm.participant.id]) {
+              // Preserve admin status and other existing properties
+              map[dm.participant.id] = {
+                ...dm.participant,
+                adminsForWhichChannels:
+                  map[dm.participant.id].adminsForWhichChannels || [],
+                status:
+                  map[dm.participant.id].status ||
+                  dm.participant.status ||
+                  "OFFLINE",
+              };
+            } else {
+              // Add new user with default admin array if not already in map
+              map[dm.participant.id] = {
+                ...dm.participant,
+                adminsForWhichChannels:
+                  dm.participant.adminsForWhichChannels || [],
+              };
+            }
+          }
+        });
+      }
+
+      if (currentUser && currentUser.id) {
+        if (map[currentUser.id]) {
+          // Update the map with the current user's admin information while preserving existing data
+          map[currentUser.id] = {
+            ...map[currentUser.id],
+            adminsForWhichChannels:
+              currentUser.adminsForWhichChannels ||
+              map[currentUser.id].adminsForWhichChannels ||
+              [],
+          };
+        } else {
+          map[currentUser.id] = currentUser;
+        }
+      }
+
+      Object.keys(prevMap).forEach((userId) => {
+        if (map[userId] && prevMap[userId].adminsForWhichChannels?.length) {
+          // Ensure we don't lose admin status when updating users
+          const existingAdminChannels =
+            prevMap[userId].adminsForWhichChannels || [];
+          const newAdminChannels = map[userId].adminsForWhichChannels || [];
+
+          // Combine both admin channel lists and remove duplicates
+          const mergedAdminChannels = [
+            ...new Set([...existingAdminChannels, ...newAdminChannels]),
+          ];
+
+          map[userId] = {
+            ...map[userId],
+            adminsForWhichChannels: mergedAdminChannels,
+          };
+        }
+      });
+
+      console.log(
+        "Final usersMap with admin statuses:",
+        Object.values(map).map((u) => ({
+          id: u.id,
+          username: u.username,
+          adminsForWhichChannels: u.adminsForWhichChannels,
+        }))
+      );
+
+      return map;
+    };
+
+    setUsersMap((prev) => createUpdatedUsersMap(prev));
+  }, [users, directMessages, currentUser, channels]);
 
   // Handle sending messages
   const handleSendMessage = (content: string, attachments?: File[]) => {
@@ -192,7 +317,6 @@ export function Messaging() {
     }
   };
 
-  // Handle conversation selection
   const handleConversationSelect = (
     conversationId: string,
     isChannel: boolean
@@ -205,7 +329,6 @@ export function Messaging() {
       }: ${conversationId}`
     );
 
-    // Update the active conversation and type
     setActiveConversationId(conversationId);
     setIsActiveChannelConversation(isChannel);
 
@@ -221,7 +344,6 @@ export function Messaging() {
     }
   };
 
-  // Load messages for a conversation
   const loadConversationMessages = async (
     conversationId: string,
     isChannel: boolean
@@ -230,13 +352,11 @@ export function Messaging() {
     setInitialMessages(messages);
   };
 
-  // Handle creating a new channel
   const handleCreateChannel = async (name: string) => {
     await createChannel(name);
     setShowCreateChannel(false);
   };
 
-  // Handle creating a new direct message
   const handleCreateDirectMessage = async (recipientId: string) => {
     const newDmId = await createDirectMessage(
       recipientId,
@@ -255,7 +375,6 @@ export function Messaging() {
     setShowChannelInvite(true);
   };
 
-  // Filter messages for the current conversation
   const filteredMessages = messages.filter((msg) => {
     if (isActiveChannelConversation) {
       // Show only group (non-DM) messages for the active channel
@@ -266,7 +385,6 @@ export function Messaging() {
     }
   });
 
-  // Get the active user for DMs
   const getActiveUser = (): User | undefined => {
     if (!isActiveChannelConversation && activeConversationId) {
       const dm = directMessages.find((d) => d.id === activeConversationId);
@@ -275,16 +393,71 @@ export function Messaging() {
     return undefined;
   };
 
-  // Toggle mobile sidebar
   const toggleMobileSidebar = () => {
     setShowMobileSidebar(!showMobileSidebar);
     if (showMobileMembers) setShowMobileMembers(false);
   };
 
-  // Toggle mobile members
   const toggleMobileMembers = () => {
     setShowMobileMembers(!showMobileMembers);
     if (showMobileSidebar) setShowMobileSidebar(false);
+  };
+
+  const handleEditMessage = async (
+    messageId: string,
+    newContent: string
+  ): Promise<boolean> => {
+    try {
+      if (!token) {
+        console.error("No authentication token available");
+        return false;
+      }
+
+      console.log(
+        `Editing message ${messageId} with new content: ${newContent}`
+      );
+
+      const updatedMessage = await editMessage(messageId, newContent);
+
+      if (!updatedMessage) {
+        console.error("Failed to update message");
+        return false;
+      }
+
+      // Update the message in the local state
+      updateMessageInState(updatedMessage);
+
+      return true;
+    } catch (error) {
+      console.error("Error editing message:", error);
+      return false;
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string): Promise<boolean> => {
+    try {
+      if (!token) {
+        console.error("No authentication token available");
+        return false;
+      }
+
+      console.log(`Deleting message ${messageId}`);
+
+      const success = await deleteMessage(messageId);
+
+      if (!success) {
+        console.error("Failed to delete message");
+        return false;
+      }
+
+      // Remove the message from the local state
+      removeMessageFromState(messageId);
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      return false;
+    }
   };
 
   return (
@@ -421,6 +594,13 @@ export function Messaging() {
                   messages={filteredMessages}
                   currentUser={currentUser}
                   users={usersMap}
+                  onEditMessageAction={handleEditMessage}
+                  onDeleteMessageAction={handleDeleteMessage}
+                  channelId={
+                    isActiveChannelConversation
+                      ? activeConversationId
+                      : undefined
+                  }
                 />
               </div>
 

@@ -9,7 +9,7 @@ interface ExtendedChannel extends Channel {
 export function useChannels(
   userId: string,
   token: string,
-  handleApiResponse: (response: Response) => Promise<any>
+  handleApiResponse: (response: Response) => Promise<unknown>
 ) {
   const [channels, setChannels] = useState<ExtendedChannel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -17,25 +17,48 @@ export function useChannels(
   // Fetch all channels for the current user
   const fetchChannels = async () => {
     try {
+      console.log("Fetching channels for user:", userId);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/user/${userId}`,
         {
-          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      const data = await handleApiResponse(response);
 
-      // Add unreadCount property to match ExtendedChannel
-      const extendedChannels: ExtendedChannel[] = data.map(
-        (channel: Channel) => ({
+      const data = (await handleApiResponse(response)) as Channel[];
+      console.log("Fetched channels data:", JSON.stringify(data));
+
+     
+      const extendedChannels = data.map((channel: Channel) => {
+        
+        if (!channel.adminIds) {
+          channel.adminIds = [];
+        }
+
+        console.log(
+          `Channel ${channel.name} (${channel.id}) admin IDs:`,
+          channel.adminIds
+        );
+
+        return {
           ...channel,
           unreadCount: 0,
-        })
+        };
+      });
+
+      console.log(
+        "Processed channels with adminIds:",
+        extendedChannels.map((c: Channel) => ({
+          id: c.id,
+          name: c.name,
+          adminIds: c.adminIds || [],
+          members: c.members || [],
+        }))
       );
+
       setChannels(extendedChannels);
       return extendedChannels;
     } catch (error) {
@@ -66,15 +89,14 @@ export function useChannels(
         `Fetching details for ${selectedChannel.members.length} members`
       );
 
-      // Create a copy of the current usersMap
+      
       const updatedUsersMap = { ...usersMap };
 
-      // Add current user to usersMap if not already there
+      
       if (currentUser && !updatedUsersMap[currentUser.id]) {
         updatedUsersMap[currentUser.id] = currentUser;
       }
 
-      // Fetch details for each member not already in the usersMap
       const fetchPromises = selectedChannel.members
         .filter(
           (memberId) =>
@@ -116,7 +138,6 @@ export function useChannels(
         }
       });
 
-      // Update the usersMap state
       setUsersMap(updatedUsersMap);
       console.log(
         `Updated usersMap with ${Object.keys(updatedUsersMap).length} users`
@@ -126,7 +147,6 @@ export function useChannels(
     }
   };
 
-  // Create a new channel
   const createChannel = async (name: string) => {
     try {
       const response = await fetch(
@@ -143,8 +163,9 @@ export function useChannels(
         }
       );
 
-      const data = await handleApiResponse(response);
-      setChannels((prev) => [...prev, { ...data, unreadCount: 0 }]);
+      const data = (await handleApiResponse(response)) as Channel;
+      const extendedChannel: ExtendedChannel = { ...data, unreadCount: 0 };
+      setChannels((prev) => [...prev, extendedChannel]);
       return data;
     } catch (error) {
       console.error("Error creating channel:", error);

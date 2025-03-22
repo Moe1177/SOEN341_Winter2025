@@ -5,44 +5,8 @@ import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import { Crown, ShieldAlert } from "lucide-react";
 import { ConfirmDialog } from "@/Components/ui/confirm-dialog";
-
-// Toast Component
-const Toast = ({
-  message,
-  type = "success",
-  isVisible,
-  onClose,
-}: {
-  message: string;
-  type?: "success" | "error";
-  isVisible: boolean;
-  onClose: () => void;
-}) => {
-  React.useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-    return undefined; // Return something even when not isVisible
-  }, [isVisible, onClose]);
-
-  if (!isVisible) return null;
-
-  const bgColor = type === "success" ? "bg-primary" : "bg-destructive";
-
-  return (
-    <div
-      className={`fixed top-4 right-4 ${bgColor} text-white p-4 rounded-md shadow-lg z-50 flex justify-between items-center min-w-[300px]`}
-    >
-      <div>{message}</div>
-      <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">
-        &times;
-      </button>
-    </div>
-  );
-};
+import useConversations from "@/hooks/useConversations";
+import { toast } from "react-hot-toast";
 
 interface ChannelMembersListProps {
   channel: Channel | null;
@@ -75,11 +39,13 @@ export function ChannelMembersList({
   const [isPromoting, setIsPromoting] = useState<string | null>(null);
   const [userToPromote, setUserToPromote] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [toast, setToast] = useState({
-    message: "",
-    type: "success" as "success" | "error",
-    isVisible: false,
-  });
+
+  // Initialize useConversations with the required props
+  const { promoteToAdmin } = useConversations(
+    onMembersUpdated,
+    setUsersMap,
+    token
+  );
 
   // Fetch all channel members when channel changes
   useEffect(() => {
@@ -90,6 +56,11 @@ export function ChannelMembersList({
 
     console.log(
       `Processing ${channel.members.length} members for channel ${channel.id}`
+    );
+    console.log("Channel admin IDs:", channel.adminIds || []);
+    console.log(
+      "Current user admin channels:",
+      currentUser?.adminsForWhichChannels || []
     );
 
     const admins: User[] = [];
@@ -126,12 +97,28 @@ export function ChannelMembersList({
         user = { ...user, adminsForWhichChannels: [] };
       }
 
-      console.log(
-        `Processing user: ${user.username}, status: ${user.status}, admin: ${user.adminsForWhichChannels.includes(channel.id)}`
+      const isAdminInUserObject = user.adminsForWhichChannels.includes(
+        channel.id
       );
+      const isAdminInChannelObject =
+        channel.adminIds && channel.adminIds.includes(memberId);
+      const isAdmin = isAdminInUserObject || isAdminInChannelObject;
+
+      if (isAdminInChannelObject && !isAdminInUserObject) {
+        user = {
+          ...user,
+          adminsForWhichChannels: [...user.adminsForWhichChannels, channel.id],
+        };
+
+        // Update the usersMap with this updated user
+        setUsersMap((prev) => ({
+          ...prev,
+          [user.id]: user,
+        }));
+      }
 
       // Categorize the user based on role and status
-      if (user.adminsForWhichChannels.includes(channel.id)) {
+      if (isAdmin) {
         admins.push(user);
       } else if (user.status === "ONLINE") {
         onlineMembers.push(user);
@@ -142,6 +129,10 @@ export function ChannelMembersList({
 
     // Add the current user to the appropriate category if not already included
     if (currentUser && channel.members.includes(currentUser.id)) {
+      const isCurrentUserAdmin =
+        currentUser.adminsForWhichChannels?.includes(channel.id) ||
+        (channel.adminIds && channel.adminIds.includes(currentUser.id));
+
       const isAlreadyIncluded = [
         ...admins,
         ...onlineMembers,
@@ -149,7 +140,7 @@ export function ChannelMembersList({
       ].some((user) => user.id === currentUser.id);
 
       if (!isAlreadyIncluded) {
-        if (currentUser.adminsForWhichChannels?.includes(channel.id)) {
+        if (isCurrentUserAdmin) {
           admins.push(currentUser);
         } else if (currentUser.status === "ONLINE") {
           onlineMembers.push(currentUser);
@@ -159,17 +150,13 @@ export function ChannelMembersList({
       }
     }
 
-    // Log the categorization results
-    console.log(
-      `Categorized members - Admins: ${admins.length}, Online: ${onlineMembers.length}, Offline: ${offlineMembers.length}`
-    );
-
     // Sort each category alphabetically by username
     admins.sort((a, b) => a.username.localeCompare(b.username));
     onlineMembers.sort((a, b) => a.username.localeCompare(b.username));
     offlineMembers.sort((a, b) => a.username.localeCompare(b.username));
 
     setGroupedMembers({ admins, onlineMembers, offlineMembers });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel, usersMap, currentUser]);
 
   // For debugging: Log whenever usersMap changes
@@ -200,11 +187,7 @@ export function ChannelMembersList({
 
     // Check if current user is an admin
     if (!currentUser.adminsForWhichChannels?.includes(channel.id)) {
-      setToast({
-        message: "You don't have permission to promote users",
-        type: "error",
-        isVisible: true,
-      });
+      toast.error("You don't have permission to promote users");
       return;
     }
 
@@ -212,39 +195,25 @@ export function ChannelMembersList({
 
     try {
       console.log(
-        `Attempting to promote user ${userToPromote} in channel ${channel.id}`
+        `Handling promotion for user ${userToPromote} in channel ${channel.id}`
       );
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/promote?channelId=${channel.id}&userIdToPromote=${userToPromote}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Use the promoteToAdmin function from our hook
+      const success = await promoteToAdmin(userToPromote, channel.id);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          `Failed to promote user: ${response.status} - ${errorText}`
-        );
-        throw new Error(`Failed to promote user: ${response.statusText}`);
+      if (!success) {
+        throw new Error("Failed to promote user");
       }
 
       console.log(`Successfully promoted user ${userToPromote} to admin`);
 
       // Show success toast
       const promotedUser = usersMap[userToPromote];
-      setToast({
-        message: `${promotedUser ? promotedUser.username : "User"} was promoted to admin`,
-        type: "success",
-        isVisible: true,
-      });
+      toast.success(
+        `${promotedUser ? promotedUser.username : "User"} was promoted to admin`
+      );
 
-      // First update local state to show immediate feedback
+      // First update local state to show immediate feedback - this is crucial for UI consistency
       setGroupedMembers((prevState) => {
         // Find the user in onlineMembers or offlineMembers
         const user = [
@@ -274,6 +243,9 @@ export function ChannelMembersList({
         // Add to admins
         const newAdmins = [...prevState.admins, updatedUser];
 
+        // Log for debugging
+        console.log("Updated user with admin status:", updatedUser);
+
         return {
           admins: newAdmins,
           onlineMembers: newOnlineMembers,
@@ -281,31 +253,40 @@ export function ChannelMembersList({
         };
       });
 
-      // Update the usersMap with the new admin status
-      if (usersMap[userToPromote]) {
-        const updatedUsersMap = { ...usersMap };
-        updatedUsersMap[userToPromote] = {
-          ...updatedUsersMap[userToPromote],
-          adminsForWhichChannels: [
-            ...(updatedUsersMap[userToPromote].adminsForWhichChannels || []),
-            channel.id,
-          ],
-        };
-        // Update the usersMap state through the parent component
-        console.log("Updating usersMap with new admin status");
-        setUsersMap(updatedUsersMap);
-      }
+      // Also ensure the usersMap is updated with the latest admin status
+      setUsersMap((prev) => {
+        if (prev[userToPromote]) {
+          const updatedUser = {
+            ...prev[userToPromote],
+            adminsForWhichChannels: [
+              ...(prev[userToPromote].adminsForWhichChannels || []),
+              channel.id,
+            ],
+          };
+          console.log(
+            "Updating usersMap with admin status for user:",
+            updatedUser.username
+          );
+          return {
+            ...prev,
+            [userToPromote]: updatedUser,
+          };
+        }
+        return prev;
+      });
 
-      // Then call onMembersUpdated to refresh channel data
-      await onMembersUpdated();
+      // Wait a longer delay before refreshing channels to ensure backend has processed the changes
+      // This prevents race conditions where server data might not be updated yet
+      setTimeout(() => {
+        if (onMembersUpdated) {
+          console.log("Refreshing channel data after admin promotion");
+          onMembersUpdated();
+        }
+      }, 2000); // 2 seconds delay - this is important to prevent race conditions
     } catch (error) {
       console.error("Error promoting user:", error);
       // Show error toast
-      setToast({
-        message: "Failed to promote user. Please try again.",
-        type: "error",
-        isVisible: true,
-      });
+      toast.error("Failed to promote user. Please try again.");
     } finally {
       setIsPromoting(null);
       setUserToPromote(null);
@@ -476,14 +457,6 @@ export function ChannelMembersList({
         confirmLabel="Promote"
         cancelLabel="Cancel"
         variant="default"
-      />
-
-      {/* Toast for notifications */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
       />
     </>
   );

@@ -142,21 +142,21 @@ public class MessageController {
     }
   }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<?> deleteMessage(@PathVariable String id, HttpServletRequest request) {
+  @DeleteMapping("/{messageId}")
+  public ResponseEntity<?> deleteMessage(
+      @PathVariable String messageId, HttpServletRequest request) {
     // Extract userId from JWT token
     String username = getUserUsernameFromRequest(request);
-    messageService.deleteMessage(id, username);
+    messageService.deleteMessage(messageId, username);
     return ResponseEntity.ok().build();
   }
 
-  @PostMapping("/{id}")
-  public ResponseEntity<?> editMessage(
-      @PathVariable String id, @RequestBody Message newMessage, HttpServletRequest request) {
+  @PutMapping("/{messageId}")
+  public Message editMessage(
+      @PathVariable String messageId, @RequestBody Message newMessage, HttpServletRequest request) {
     // Extract userId from JWT token
     String username = getUserUsernameFromRequest(request);
-    messageService.editMessage(id, username, newMessage);
-    return ResponseEntity.ok().build();
+    return messageService.editMessage(messageId, username, newMessage);
   }
 
   @GetMapping("/attachments/{fileName:.+}")
