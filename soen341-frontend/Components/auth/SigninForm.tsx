@@ -71,17 +71,43 @@ function SigninForm({ showToast }: SigninFormProps) {
       if (typeof window !== "undefined") {
         if (responseData && responseData.token) {
           localStorage.setItem("authToken", responseData.token);
-        }
 
-        if (responseData && responseData.user) {
-          localStorage.setItem(
-            "currentUser",
-            JSON.stringify(responseData.user)
-          );
+          // Fetch user details with the new token
+          try {
+            const userResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users/currentUser`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${responseData.token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
 
-          // Store the user ID in localStorage for easy access
-          if (responseData.user.id) {
-            localStorage.setItem("currentUserId", responseData.user.id);
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+
+              // Store user data
+              localStorage.setItem("currentUser", JSON.stringify(userData));
+
+              // Store user ID in localStorage for easy access
+              if (userData.id) {
+                localStorage.setItem("currentUserId", userData.id);
+              }
+
+              // Store username for fallback
+              if (userData.username) {
+                localStorage.setItem("currentUsername", userData.username);
+              }
+            } else {
+              console.error("Failed to fetch user details after login");
+            }
+          } catch (userError) {
+            console.error(
+              "Error fetching user details after login:",
+              userError
+            );
           }
         }
       }

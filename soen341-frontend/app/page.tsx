@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Features from "@/Components/Features";
 import Hero from "@/Components/Hero";
