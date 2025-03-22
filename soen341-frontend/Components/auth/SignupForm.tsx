@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import LabelInputContainer from "../ui/LabelInputContainer";
+import { Loader2 } from "lucide-react";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 
 interface TouchedFields {
   userName: boolean;
@@ -118,6 +120,11 @@ function SignupForm({
 
   return (
     <div className="w-full max-w-sm mx-auto">
+      <LoadingOverlay
+        isLoading={isLoading}
+        message="Creating your account..."
+      />
+
       <form className="space-y-5" onSubmit={handleSubmit}>
         <LabelInputContainer>
           <Label htmlFor="username" className="text-white text-sm mb-1.5">
@@ -132,6 +139,7 @@ function SignupForm({
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             onBlur={() => handleBlur("userName")}
+            disabled={isLoading}
           />
           {touchedFields.userName && !userName && (
             <p className="text-red-400 text-xs mt-1">User Name is required.</p>
@@ -154,6 +162,7 @@ function SignupForm({
               setEmailError("");
             }}
             onBlur={() => handleBlur("email")}
+            disabled={isLoading}
           />
           {touchedFields.email && !email && (
             <p className="text-red-400 text-xs mt-1">Email is required.</p>
@@ -177,6 +186,7 @@ function SignupForm({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onBlur={() => handleBlur("password")}
+            disabled={isLoading}
           />
           {touchedFields.password && !password && (
             <p className="text-red-400 text-xs mt-1">Password is required.</p>
@@ -184,13 +194,20 @@ function SignupForm({
         </LabelInputContainer>
 
         <button
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 block w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6 flex items-center justify-center"
           type="submit"
           disabled={
             !userName || !email || !password || !!emailError || isLoading
           }
         >
-          {isLoading ? "Processing..." : "Sign Up →"}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <span>Creating Account...</span>
+            </>
+          ) : (
+            "Sign Up →"
+          )}
         </button>
       </form>
     </div>
