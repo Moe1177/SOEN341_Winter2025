@@ -66,7 +66,7 @@ export function useAuth() {
         console.error("Error initializing auth state:", error);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   // Helper function to handle API responses

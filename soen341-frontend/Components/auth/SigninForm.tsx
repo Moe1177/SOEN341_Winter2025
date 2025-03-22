@@ -4,6 +4,7 @@ import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { useRouter } from "next/navigation";
 import LabelInputContainer from "../ui/LabelInputContainer";
+import { Loader2 } from "lucide-react";
 
 interface SigninFormProps {
   showToast: (message: string, type: "success" | "error") => void;
@@ -163,11 +164,18 @@ function SigninForm({ showToast }: SigninFormProps) {
         </LabelInputContainer>
 
         <button
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 block w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6 flex items-center justify-center"
           type="submit"
           disabled={!username || !password || isLoading}
         >
-          {isLoading ? "Signing In..." : "Sign In →"}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <span>Signing In...</span>
+            </>
+          ) : (
+            "Sign In →"
+          )}
         </button>
       </form>
     </div>
