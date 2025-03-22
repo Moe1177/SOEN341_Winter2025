@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/Components/ui/textarea";
 import { Button } from "@/Components/ui/button";
 import toast from "react-hot-toast";
+import { AttachmentDisplay } from "./AttachmentDisplay";
 
 interface MessageItemProps {
   message: WebSocketMessage;
@@ -20,7 +21,10 @@ interface MessageItemProps {
   sender: User;
   isCurrentUser: boolean;
   formatMessageTimeAction: (date: Date) => string;
-  onEditMessageAction: (messageId: string, newContent: string) => Promise<boolean>;
+  onEditMessageAction: (
+    messageId: string,
+    newContent: string
+  ) => Promise<boolean>;
   onDeleteMessageAction: (messageId: string) => Promise<boolean>;
   isUserAdmin: boolean;
 }
@@ -53,7 +57,6 @@ export function MessageItem({
   }, [isEditing, editedContent]);
 
   const handleEdit = async () => {
-    
     if (editedContent === message.content) {
       setIsEditing(false);
       return;
@@ -178,6 +181,13 @@ export function MessageItem({
               <div className="whitespace-pre-wrap break-words">
                 {message.content}
               </div>
+
+              {/* Display attachments if present */}
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="mt-2">
+                  <AttachmentDisplay attachments={message.attachments} />
+                </div>
+              )}
 
               {canModify && (
                 <div className="absolute top-1/2 -translate-y-1/2 -right-8 opacity-0 group-hover/message:opacity-100 transition-opacity z-10">
