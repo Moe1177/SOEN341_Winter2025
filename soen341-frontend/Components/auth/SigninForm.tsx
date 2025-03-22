@@ -5,6 +5,7 @@ import { Input } from "@/Components/ui/input";
 import { useRouter } from "next/navigation";
 import LabelInputContainer from "../ui/LabelInputContainer";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 interface SigninFormProps {
   showToast: (message: string, type: "success" | "error") => void;
@@ -169,9 +170,12 @@ function SigninForm({ showToast }: SigninFormProps) {
             <Label htmlFor="password" className="text-white text-sm">
               Password <span className="text-red-400">*</span>
             </Label>
-            <a href="#" className="text-blue-400 hover:text-blue-300 text-xs">
+            <Link
+              href="/reset-password"
+              className="text-blue-400 hover:text-blue-300 text-xs"
+            >
               Forgot password?
-            </a>
+            </Link>
           </div>
           <Input
             id="password"
