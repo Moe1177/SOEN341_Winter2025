@@ -24,6 +24,11 @@ export function useDirectMessages(
   // Fetch all direct message conversations
   const fetchDirectMessages = async () => {
     try {
+      if (!userId) {
+        console.log("No userId available, skipping direct messages fetch");
+        return [];
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message/${userId}`,
         {
@@ -117,6 +122,11 @@ export function useDirectMessages(
     setUsers: (users: User[]) => void
   ) => {
     try {
+      if (!userId) {
+        console.log("No userId available, skipping users fetch");
+        return [];
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/users/get-other-users/${userId}`,
         {
@@ -146,6 +156,11 @@ export function useDirectMessages(
     ) => void
   ) => {
     try {
+      if (!userId) {
+        console.error("No userId available, cannot create direct message");
+        return null;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/channels/direct-message`,
         {

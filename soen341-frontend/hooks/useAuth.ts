@@ -9,31 +9,49 @@ export function useAuth() {
   // Initialize the token, userId, and user from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("authToken");
-      if (storedToken) {
-        setToken(storedToken);
-      }
+      try {
+        const storedToken = localStorage.getItem("authToken");
+        if (storedToken) {
+          setToken(storedToken);
+        }
 
-      const storedUserId = localStorage.getItem("currentUserId");
-      if (storedUserId) {
-        setUserId(storedUserId);
-      }
+        const storedUserId = localStorage.getItem("currentUserId");
+        if (storedUserId) {
+          setUserId(storedUserId);
+        }
 
-      const storedUsername = localStorage.getItem("currentUsername");
-      if (storedUsername && !currentUser) {
-        try {
-          
-          const storedUser = localStorage.getItem("currentUser");
-          if (storedUser) {
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+          try {
             const parsedUser = JSON.parse(storedUser);
             setCurrentUser(parsedUser);
             if (parsedUser.id) {
               setUserId(parsedUser.id);
             }
-          } else {
-            
+          } catch (error) {
+            console.error("Error parsing stored user:", error);
+
+            // Fallback to using stored username and userId if available
+            const storedUsername = localStorage.getItem("currentUsername");
+            if (storedUsername && storedUserId) {
+              setCurrentUser({
+                id: storedUserId,
+                username: storedUsername,
+                email: "",
+                password: "",
+                channelIds: [],
+                directMessageIds: [],
+                adminsForWhichChannels: [],
+                status: "ONLINE" as "ONLINE" | "OFFLINE",
+              });
+            }
+          }
+        } else {
+          // If no stored user object but have username and userId
+          const storedUsername = localStorage.getItem("currentUsername");
+          if (storedUsername && storedUserId) {
             setCurrentUser({
-              id: storedUserId || "",
+              id: storedUserId,
               username: storedUsername,
               email: "",
               password: "",
@@ -43,12 +61,12 @@ export function useAuth() {
               status: "ONLINE" as "ONLINE" | "OFFLINE",
             });
           }
-        } catch (error) {
-          console.error("Error parsing stored user:", error);
         }
+      } catch (error) {
+        console.error("Error initializing auth state:", error);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper function to handle API responses
@@ -60,7 +78,6 @@ export function useAuth() {
     return response.json();
   };
 
- 
   const fetchCurrentUser = async () => {
     try {
       if (!token) {
@@ -82,17 +99,22 @@ export function useAuth() {
 
       const data = await handleApiResponse(response);
 
-      if (typeof window !== "undefined") {
-        if (data && data.username) {
+      if (typeof window !== "undefined" && data) {
+        // Update localStorage with user data
+        if (data.username) {
           localStorage.setItem("currentUsername", data.username);
         }
-        if (data && data.id) {
+        if (data.id) {
           localStorage.setItem("currentUserId", data.id);
           setUserId(data.id);
         }
+
+        // Store the complete user object
+        localStorage.setItem("currentUser", JSON.stringify(data));
       }
 
       setCurrentUser(data);
+      return data;
     } catch (error) {
       console.error("Error fetching current user:", error);
 
@@ -114,8 +136,10 @@ export function useAuth() {
           };
           setCurrentUser(fallbackUser);
           setUserId(storedUserId);
+          return fallbackUser;
         }
       }
+      return null;
     }
   };
 

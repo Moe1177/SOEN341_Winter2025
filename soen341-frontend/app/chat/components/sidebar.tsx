@@ -3,7 +3,16 @@ import type { User, Channel } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import { Button } from "@/Components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
-import { Hash, Plus, Settings, MessageSquare, UserPlus } from "lucide-react";
+import {
+  Hash,
+  Plus,
+  Settings,
+  MessageSquare,
+  UserPlus,
+  LogOut,
+  Loader2,
+} from "lucide-react";
+import { useLogout } from "@/hooks/useLogout";
 
 interface ExtendedChannel extends Channel {
   unreadCount?: number;
@@ -42,6 +51,8 @@ export function Sidebar({
   onJoinChannel,
   currentUser,
 }: SidebarProps) {
+  const { logout, isLoggingOut } = useLogout();
+
   // Helper function to check if current user is an admin of the channel
   const currentUserIsAdmin = (channel: Channel): boolean => {
     if (!currentUser || !channel.members) return false;
@@ -227,26 +238,45 @@ export function Sidebar({
       </ScrollArea>
 
       {currentUser && (
-        <div className="p-3 border-t border-border flex items-center">
-          <Avatar className="h-6 w-6 mr-2 border border-border">
-            <AvatarFallback className="text-xs bg-primary/20 text-primary">
-              {currentUser.username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">
-              {currentUser.username}
+        <div className="p-3 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center flex-1 min-w-0">
+              <Avatar className="h-6 w-6 mr-2 border border-border">
+                <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                  {currentUser.username.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">
+                  {currentUser.username}
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center">
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      currentUser.status === "ONLINE"
+                        ? "bg-green-500"
+                        : "bg-gray-500"
+                    } mr-1`}
+                  />
+                  {currentUser.status === "ONLINE" ? "Online" : "Offline"}
+                </div>
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground flex items-center">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  currentUser.status === "ONLINE"
-                    ? "bg-green-500"
-                    : "bg-gray-500"
-                } mr-1`}
-              />
-              {currentUser.status === "ONLINE" ? "Online" : "Offline"}
-            </div>
+
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={logout}
+              disabled={isLoggingOut}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+              title="Logout"
+            >
+              {isLoggingOut ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         </div>
       )}

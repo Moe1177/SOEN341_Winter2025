@@ -92,14 +92,19 @@ export function Messaging() {
     );
 
   useEffect(() => {
-    if (token) {
+    if (token && userId) {
+      console.log("Token and userId available, fetching data");
       fetchCurrentUser();
       fetchChannels();
       fetchDirectMessages();
       fetchDirectMessageListUsers(setUsers);
+    } else if (token) {
+      // If we have a token but no userId, fetch the current user first
+      console.log("Token available but no userId, fetching current user first");
+      fetchCurrentUser();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, userId]);
 
   // Subscribe to active conversation when it changes
   useEffect(() => {
