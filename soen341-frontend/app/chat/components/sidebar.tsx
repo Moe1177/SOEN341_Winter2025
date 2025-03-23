@@ -12,6 +12,7 @@ import {
   LogOut,
   Bell,
   BellOff,
+  Loader2,
 } from "lucide-react";
 import { useLogout } from "@/hooks/useLogout";
 
@@ -121,8 +122,13 @@ export function Sidebar({
             className="h-7 w-7"
             onClick={logout}
             disabled={isLoggingOut}
+            title="Logout"
           >
-            <LogOut className="h-5 w-5" />
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </div>
