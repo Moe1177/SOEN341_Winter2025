@@ -1,26 +1,36 @@
-// components/LandingPage.js
+"use client";
 
 import { ThreeDCardDemo } from "@/Components/ThreeDCardDemo";
-import { AuroraBackground } from "@/Components/ui/aurora-background";
 import AuthFormDemo from "@/Components/auth/AuthFormDemo";
-
-import React from "react";
-// import Footer from "@/Components/footer";
+import { useRedirectIfAuthenticated } from "@/lib/routeProtection";
 
 export default function Login() {
+  const { isChecking } = useRedirectIfAuthenticated();
+
+  if (isChecking) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a]">
+        <div className="flex flex-col items-center">
+          <div className="h-8 w-8 border-t-2 border-b-2 border-blue-400 rounded-full animate-spin"></div>
+          <p className="mt-4 text-white text-sm">Not autenticated! Loading login page...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // Landing page
     <div className="min-h-screen bg-gradient-to-br from-[#2b1c5a] via-[#0f1b4d] to-[#2b1c5a] relative aurora-bg">
       {/* Aurora effect overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-800/20 via-blue-900/15 to-indigo-900/15 pointer-events-none"></div>
-      
+
       {/* Stars effect */}
       <div className="stars-bg"></div>
-      
+
       {/* Cosmic glow effects */}
       <div className="cosmic-glow"></div>
       <div className="cosmic-glow-2"></div>
-      
+
       <div className="relative z-10 min-h-screen flex items-center">
         {/* Desktop layout - preserved exactly as is */}
         <div className="hidden lg:flex flex-row w-full justify-center items-center min-h-screen">
