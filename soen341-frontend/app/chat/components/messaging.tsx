@@ -82,14 +82,20 @@ export function Messaging() {
     : getActiveDirectMessage(activeConversationId);
   const receiverId = activeDM?.receiverId || "";
 
-  const { messages, sendGroupMessage, sendDirectMessage, setInitialMessages } =
-    useChat(
-      activeConversationId || "",
-      userId || "",
-      token,
-      receiverId || "",
-      handleNewDirectMessage
-    );
+  const {
+    messages,
+    sendGroupMessage,
+    sendDirectMessage,
+    setInitialMessages,
+    notificationsEnabled,
+    requestNotificationPermission,
+  } = useChat(
+    activeConversationId || "",
+    userId || "",
+    token,
+    receiverId || "",
+    handleNewDirectMessage
+  );
 
   useEffect(() => {
     if (token && userId) {
@@ -457,6 +463,8 @@ export function Messaging() {
           onJoinChannel={handleJoinChannel}
           currentUser={currentUser}
           fetchChannels={fetchChannels}
+          notificationsEnabled={notificationsEnabled}
+          onToggleNotifications={() => requestNotificationPermission?.()}
         />
       </div>
 
@@ -475,6 +483,8 @@ export function Messaging() {
             onJoinChannel={handleJoinChannel}
             currentUser={currentUser}
             fetchChannels={fetchChannels}
+            notificationsEnabled={notificationsEnabled}
+            onToggleNotifications={() => requestNotificationPermission?.()}
           />
         </div>
 

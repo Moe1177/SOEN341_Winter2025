@@ -10,7 +10,8 @@ import {
   MessageSquare,
   UserPlus,
   LogOut,
-  Loader2,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { useLogout } from "@/hooks/useLogout";
 
@@ -35,6 +36,8 @@ interface SidebarProps {
   onJoinChannel: () => void;
   currentUser: User | null;
   fetchChannels?: () => void;
+  notificationsEnabled?: boolean;
+  onToggleNotifications?: () => void;
 }
 
 /**
@@ -50,6 +53,8 @@ export function Sidebar({
   onViewChannelInvite,
   onJoinChannel,
   currentUser,
+  notificationsEnabled = true,
+  onToggleNotifications,
 }: SidebarProps) {
   const { logout, isLoggingOut } = useLogout();
 
@@ -64,13 +69,81 @@ export function Sidebar({
     );
   };
 
+  // Add the UI for the notification toggle in the sidebar footer
+  const renderSidebarFooter = () => {
+    return (
+      <div className="p-4 border-t border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="relative mr-1 flex-shrink-0">
+            <Avatar className="h-8 w-8 border border-border">
+              <AvatarFallback className="text bg-secondary text-secondary-foreground">
+                {currentUser?.username
+                  ? currentUser?.username.charAt(0).toUpperCase()
+                  : "?"}
+              </AvatarFallback>
+            </Avatar>
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-card ${
+                currentUser?.status === "ONLINE"
+                  ? "bg-green-500"
+                  : "bg-gray-500"
+              }`}
+            />
+          </span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{currentUser?.username}</span>
+            <span className="text-xs text-slate-400">Online</span>
+          </div>
+        </div>
+        <div className="flex items-center">
+          {onToggleNotifications && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full mr-2"
+              onClick={onToggleNotifications}
+              title={
+                notificationsEnabled
+                  ? "Disable notifications"
+                  : "Enable notifications"
+              }
+            >
+              {notificationsEnabled ? (
+                <Bell className="h-5 w-5 text-primary" />
+              ) : (
+                <BellOff className="h-5 w-5 text-muted-foreground" />
+              )}
+            </Button>
+          )}
+          <Button
+            variant="destructive"
+            size="icon"
+            className="h-7 w-7"
+            onClick={logout}
+            disabled={isLoggingOut}
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="w-64 flex-shrink-0 flex flex-col h-full bg-card border-r border-border">
-      <div className="p-3 flex items-center justify-between border-b border-border">
-        <h2 className="font-semibold text-sm text-foreground">Dialogos Chat</h2>
-        <Button variant="ghost" size="icon" className="h-7 w-7">
-          <Settings className="h-4 w-4 text-muted-foreground" />
-        </Button>
+    <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800 w-full text-slate-200">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 text-transparent bg-clip-text">
+          Dialogos Chat
+        </h2>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-slate-200 hover:text-white"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
@@ -210,11 +283,6 @@ export function Sidebar({
                       <span className="flex-1 truncate text-left text-sm">
                         {dm.participant?.username || "Unknown User"}
                       </span>
-                      {dm.unreadCount && dm.unreadCount > 0 && (
-                        <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 flex items-center justify-center px-1.5 flex-shrink-0">
-                          {dm.unreadCount}
-                        </span>
-                      )}
                     </div>
                   </Button>
                 ))
@@ -237,49 +305,7 @@ export function Sidebar({
         </div>
       </ScrollArea>
 
-      {currentUser && (
-        <div className="p-3 border-t border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center flex-1 min-w-0">
-              <Avatar className="h-6 w-6 mr-2 border border-border">
-                <AvatarFallback className="text-xs bg-primary/20 text-primary">
-                  {currentUser.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {currentUser.username}
-                </div>
-                <div className="text-xs text-muted-foreground flex items-center">
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      currentUser.status === "ONLINE"
-                        ? "bg-green-500"
-                        : "bg-gray-500"
-                    } mr-1`}
-                  />
-                  {currentUser.status === "ONLINE" ? "Online" : "Offline"}
-                </div>
-              </div>
-            </div>
-
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={logout}
-              disabled={isLoggingOut}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary/80"
-              title="Logout"
-            >
-              {isLoggingOut ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogOut className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
+      {renderSidebarFooter()}
     </div>
   );
 }
