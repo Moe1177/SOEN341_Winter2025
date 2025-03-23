@@ -7,7 +7,9 @@ import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -268,6 +270,82 @@ public class AuthController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error during logout: " + e.getMessage());
     }
+  }
+
+  /**
+   * Handles password reset requests by validating the provided username and email, generating a
+   * reset code, and sending it to the user's email.
+   *
+   * @param request A JSON object containing username and email
+   * @return A ResponseEntity indicating the result of the reset request
+   */
+  @PostMapping("/request-password-reset")
+  public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    System.out.println("Email received in request password reset: " + email);
+
+    if (email == null || email.trim().isEmpty()) {
+      return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+    }
+
+    Optional<User> userOptional = userRepository.findByEmail(email);
+    if (userOptional.isEmpty()) {
+      // Don't reveal if email exists or not
+      return ResponseEntity.ok(
+          Map.of("message", "If an account exists with this email, a reset code has been sent"));
+    }
+
+    User user = userOptional.get();
+    String resetCode = generateResetCode();
+    user.setResetCode(resetCode);
+    user.setResetCodeExpiration(Instant.now().plusSeconds(VERIFICATION_EXPIRATION));
+    userRepository.save(user);
+
+    emailService.sendEmail(
+        email,
+        "Password Reset Code",
+        "Your password reset code is: " + resetCode + ". It will expire in 10 minutes.");
+
+    return ResponseEntity.ok(Map.of("message", "Reset code sent to your email"));
+  }
+
+  @PostMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+    String resetCode = request.get("resetCode");
+    String newPassword = request.get("newPassword");
+
+    System.out.println("Reset code received in reset password: " + resetCode);
+    System.out.println("New password received in reset password: " + newPassword);
+
+    if (resetCode == null || newPassword == null) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", "Reset code and new password are required"));
+    }
+
+    Optional<User> userOptional = userRepository.findByResetCode(resetCode);
+    if (userOptional.isEmpty() || !resetCode.equals(userOptional.get().getResetCode())) {
+      return ResponseEntity.badRequest().body(Map.of("error", "Invalid reset code"));
+    }
+
+    User user = userOptional.get();
+
+    if (user.getResetCodeExpiration() == null
+        || Instant.now().isAfter(user.getResetCodeExpiration())) {
+      return ResponseEntity.badRequest().body(Map.of("error", "Reset code has expired"));
+    }
+
+    // Update password and clear reset code
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setResetCode("0");
+    user.setResetCodeExpiration(null);
+    userRepository.save(user);
+
+    return ResponseEntity.ok(Map.of("message", "Password reset successful"));
+  }
+
+  private String generateResetCode() {
+    Random random = new Random();
+    return String.format("%06d", random.nextInt(1000000));
   }
 
   public record AuthResponse(String token) {}
