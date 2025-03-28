@@ -4,9 +4,9 @@
 This is a Flask-based backend for a Retrieval-Augmented Generation (RAG) chatbot that uses Pinecone for vector search, SentenceTransformers for embeddings, and OpenRouter for language model interactions.
 
 ## Prerequisites
-- Python 3.9+
+- Python 3.9+ (ideally 3.11)
 - pip
-- virtualenv (recommended)
+- virtualenv (optional)
 
 ## Setup Instructions
 
