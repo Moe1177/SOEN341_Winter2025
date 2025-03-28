@@ -5,6 +5,7 @@ import { Input } from "@/Components/ui/input";
 import { useRouter } from "next/navigation";
 import LabelInputContainer from "../ui/LabelInputContainer";
 import { Loader2 } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
 
 interface SigninFormProps {
@@ -21,6 +22,8 @@ function SigninForm({ showToast }: SigninFormProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmitSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -166,32 +169,41 @@ function SigninForm({ showToast }: SigninFormProps) {
         </LabelInputContainer>
 
         <LabelInputContainer>
-          <div className="flex justify-between items-center mb-1.5">
-            <Label htmlFor="password" className="text-white text-sm">
-              Password <span className="text-red-400">*</span>
-            </Label>
-            <Link
-              href="/reset-password"
-              className="text-blue-400 hover:text-blue-300 text-xs"
-            >
-              Forgot password?
-            </Link>
-          </div>
-          <Input
-            id="password"
-            placeholder="••••••••"
-            type="password"
-            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onBlur={() => handleBlur("password")}
-          />
-          {touchedFields.password && !password && (
-            <p className="text-red-400 text-xs mt-1">Password is required.</p>
-          )}
-        </LabelInputContainer>
+      <div className="flex justify-between items-center mb-1.5">
+        <Label htmlFor="password" className="text-white text-sm">
+          Password <span className="text-red-400">*</span>
+        </Label>
+        <Link
+          href="/reset-password"
+          className="text-blue-400 hover:text-blue-300 text-xs"
+        >
+          Forgot password?
+        </Link>
+      </div>
+      <div className="relative">
+        <Input
+          id="password"
+          placeholder="••••••••"
+          type={showPassword ? "text" : "password"} // Toggle type here
+          className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onBlur={() => handleBlur("password")}
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </div>
+      {touchedFields.password && !password && (
+        <p className="text-red-400 text-xs mt-1">Password is required.</p>
+      )}
+    </LabelInputContainer>
 
         <button
           className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 w-full text-white rounded-md h-11 font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-6 flex items-center justify-center"
