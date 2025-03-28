@@ -21,18 +21,18 @@ CORS(app)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-# Lightweight connection management
+
 mongo_client = MongoClient(os.environ.get('MONGO_URI'), maxPoolSize=10)
 db = mongo_client.get_default_database()
 chats_collection = db.chats
 
-# Use a more lightweight embedding model
+
 @lru_cache(maxsize=128)
 def get_huggingface_embeddings(text, model_name="sentence-transformers/all-mpnet-base-v2"):
     model = SentenceTransformer(model_name)
     return model.encode(text)
 
-# Singleton pattern for Pinecone and OpenRouter clients
+
 class ClientManager:
     _pinecone_instance = None
     _openrouter_instance = None
