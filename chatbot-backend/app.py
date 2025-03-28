@@ -70,7 +70,7 @@ def strip_markdown(text):
     
     return text.strip()
 
-def perform_rag(query, model="deepseek/deepseek-r1-distill-llama-70b:free"):
+def perform_rag(query, model="deepseek/deepseek-r1:free"):
     try:
         pinecone_index = ClientManager.get_pinecone_client().Index("codebase-rag")
         openrouter_client = ClientManager.get_openrouter_client()
@@ -87,22 +87,23 @@ def perform_rag(query, model="deepseek/deepseek-r1-distill-llama-70b:free"):
         augmented_query = "\n" + "\n\n-------\n\n".join(contexts[:10]) + \
                           "\n-------\n\n\n\n\nMY QUESTION:\n" + query
 
-        system_prompt = """
-            - You have ultimate knowledge over this codebase.
-            - You are an AI agent that helps users navigate the website to  help them do what they need to do.
-            - You do not answer any questions about the backend, about any configuration file, or anything that has nothing to do with a functionality from the website.
-            - A good user request would be for example how can I create a channel or how can I log in.
-            - A bad user request would be how was this component of the website built, or what technology was used in this part of the website.
-            - Also do not release any sensitive information. Do not hallucinate. Answer the user's question by following the previous instructions. Consider the entire context provided to answer the user's question.
-            - If any invasive questions are asked, ONLY reply that this information cannot be given out due to privacy, and security reasons.
-            - You should not even give out one word of information on tech stack or anything else. Make all answers clear, and concise and easy to understand for the user.
-            - Also, make the answers straight to the point as well as be polite, and navigate the user properly. 
+        SYSTEM_PROMPT = """
+            You have complete knowledge of this website’s functionality.
+            Your role is to assist users in navigating and using the website.
+
+            Rules:
+            - DO NOT answer questions about the backend, configuration files, or technologies used.
+            - Only respond to functional requests, such as "How can I create a channel?" or "How do I log in?"
+            - Reject questions about implementation details, tech stack, or internal components.
+            - Do not provide or infer any sensitive information. Do not hallucinate.
+            - If asked invasive questions, ONLY respond that this information cannot be shared for privacy and security reasons.
+            - Keep answers clear, concise, polite, and to the point while guiding users effectively.
         """
 
         llm_response = openrouter_client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": augmented_query}
             ]
         )
