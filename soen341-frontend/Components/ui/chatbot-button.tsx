@@ -11,7 +11,7 @@ export function ChatbotButton() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {isOpen ? (
-        <ChatbotDialog onClose={() => setIsOpen(false)} />
+        <ChatbotDialog onCloseAction={() => setIsOpen(false)} />
       ) : (
         <Button
           onClick={() => setIsOpen(true)}

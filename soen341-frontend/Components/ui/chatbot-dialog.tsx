@@ -8,7 +8,7 @@ import { ScrollArea } from "./scroll-area";
 import type { Socket } from "socket.io-client";
 
 interface ChatbotDialogProps {
-  onClose: () => void;
+  onCloseAction: () => void;
 }
 
 interface Message {
@@ -17,7 +17,7 @@ interface Message {
   isUser: boolean;
 }
 
-export function ChatbotDialog({ onClose }: ChatbotDialogProps) {
+export function ChatbotDialog({ onCloseAction }: ChatbotDialogProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ export function ChatbotDialog({ onClose }: ChatbotDialogProps) {
       .then(({ io }) => {
         // Get backend URL from env or fallback to localhost
         const backendUrl =
-          process.env.NEXT_PUBLIC_CHATBOT_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_CHATBOT_API_URL;
 
         // Connect to Flask backend
         const socket = io(backendUrl);
@@ -142,7 +142,7 @@ export function ChatbotDialog({ onClose }: ChatbotDialogProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={onClose}
+          onClick={onCloseAction}
           className="h-8 w-8 text-muted-foreground hover:text-foreground"
         >
           <X className="h-5 w-5" />
