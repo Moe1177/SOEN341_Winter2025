@@ -41,6 +41,22 @@ function SignupForm({
     confirmPassword:false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+  
+    if (!passwordRegex.test(newPassword)) {
+      setPasswordError(
+        "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character."
+      );
+    } else {
+      setPasswordError("");
+    }
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -193,7 +209,7 @@ function SignupForm({
           required
           minLength={6}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
           onBlur={() => handleBlur("password")}
           disabled={isLoading}
         />
@@ -208,6 +224,9 @@ function SignupForm({
       {touchedFields.password && !password && (
         <p className="text-red-400 text-xs mt-1">Password is required.</p>
       )}
+      {passwordError && (
+        <p className="text-red-400 text-xs mt-1">{passwordError}</p>
+        )}
 
       {/* Confirm Password Field */}
       <Label htmlFor="confirmPassword" className="text-white text-sm mb-1.5">
