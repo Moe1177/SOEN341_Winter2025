@@ -15,7 +15,7 @@ const About = () => {
         </h1>
 
         <p className="about_subtitle text-lg sm:text-xl md:text-2xl lg:text-[27px] mt-4 mb-8 md:mt-5 md:mb-0">
-          At [App Name], our goal is to make messaging simple, secure, and
+          At Dialogos, our goal is to make messaging simple, secure, and
           enjoyable. We connect people—whether friends, family, or
           colleagues—through a user-friendly platform built with privacy in
           mind. Explore our &apos;Features&apos; section to discover how we are making

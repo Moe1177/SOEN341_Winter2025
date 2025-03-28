@@ -5,11 +5,13 @@ import { Input } from "@/Components/ui/input";
 import LabelInputContainer from "../ui/LabelInputContainer";
 import { Loader2 } from "lucide-react";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 interface TouchedFields {
   userName: boolean;
   email: boolean;
   password: boolean;
+  confirmPassword:boolean
 }
 
 interface SignupFormProps {
@@ -28,13 +30,33 @@ function SignupForm({
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [touchedFields, setTouchedFields] = useState({
     userName: false,
     email: false,
     password: false,
+    confirmPassword:false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+  
+    if (!passwordRegex.test(newPassword)) {
+      setPasswordError(
+        "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character."
+      );
+    } else {
+      setPasswordError("");
+    }
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -114,6 +136,7 @@ function SignupForm({
     }
   };
 
+
   const handleBlur = (field: keyof TouchedFields) => {
     setTouchedFields((prev) => ({ ...prev, [field]: true }));
   };
@@ -173,24 +196,69 @@ function SignupForm({
         </LabelInputContainer>
 
         <LabelInputContainer>
-          <Label htmlFor="password" className="text-white text-sm mb-1.5">
-            Password <span className="text-red-400">*</span>
-          </Label>
-          <Input
-            id="password"
-            placeholder="••••••••"
-            type="password"
-            className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onBlur={() => handleBlur("password")}
-            disabled={isLoading}
-          />
-          {touchedFields.password && !password && (
-            <p className="text-red-400 text-xs mt-1">Password is required.</p>
-          )}
+      {/* Password Field */}
+      <Label htmlFor="password" className="text-white text-sm mb-1.5">
+        Password <span className="text-red-400">*</span>
+      </Label>
+      <div className="relative mb-4">
+        <Input
+          id="password"
+          placeholder="••••••••"
+          type={showPassword ? "text" : "password"}
+          className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
+          required
+          minLength={6}
+          value={password}
+          onChange={handlePasswordChange}
+          onBlur={() => handleBlur("password")}
+          disabled={isLoading}
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </div>
+      {touchedFields.password && !password && (
+        <p className="text-red-400 text-xs mt-1">Password is required.</p>
+      )}
+      {passwordError && (
+        <p className="text-red-400 text-xs mt-1">{passwordError}</p>
+        )}
+
+      {/* Confirm Password Field */}
+      <Label htmlFor="confirmPassword" className="text-white text-sm mb-1.5">
+        Confirm Password <span className="text-red-400">*</span>
+      </Label>
+      <div className="relative mb-4">
+        <Input
+          id="confirmPassword"
+          placeholder="••••••••"
+          type={showConfirmPassword ? "text" : "password"}
+          className="w-full h-11 text-white bg-[#1c1f45]/50 border-[#36327e]/40 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 rounded-md"
+          required
+          minLength={6}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          onBlur={() => handleBlur("confirmPassword")}
+          disabled={isLoading}
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+          {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </div>
+      {touchedFields.confirmPassword && !confirmPassword && (
+        <p className="text-red-400 text-xs mt-1">Confirm password is required.</p>
+      )}
+      {touchedFields.confirmPassword && password !== confirmPassword && confirmPassword && (
+        <p className="text-red-400 text-xs mt-1">Passwords do not match.</p>
+      )}
         </LabelInputContainer>
 
         <button
