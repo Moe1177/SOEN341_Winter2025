@@ -22,87 +22,87 @@ export function ChatbotDialog({ onCloseAction }: ChatbotDialogProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [userId, setUserId] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Socket.IO connection and user ID
-  useEffect(() => {
-    // We'll load socket.io-client dynamically to avoid server-side rendering issues
-    import("socket.io-client")
-      .then(({ io }) => {
-        // Get backend URL from env or fallback to localhost
-        const backendUrl =
-          process.env.NEXT_PUBLIC_CHATBOT_API_URL;
+useEffect(() => {
+  import("socket.io-client")
+    .then(({ io }) => {
+      // Get backend URL from env or fallback to localhost
+      const backendUrl = process.env.NEXT_PUBLIC_CHATBOT_API_URL;
 
-        // Connect to Flask backend
-        const socket = io(backendUrl);
-
-        // Generate a unique user ID if not already in localStorage
-        const storedUserId = localStorage.getItem("chatbot_user_id");
-        const newUserId =
-          storedUserId || Math.random().toString(36).substring(2, 15);
-
-        if (!storedUserId) {
-          localStorage.setItem("chatbot_user_id", newUserId);
-        }
-
-        setUserId(newUserId);
-        setSocket(socket);
-
-        // Add welcome message
-        setMessages([
-          {
-            id: "0",
-            content: "Hi there! How can I help you today?",
-            isUser: false,
-          },
-        ]);
-
-        // Listen for chat responses
-        socket.on("chat_response", (data: { response: string }) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              content: data.response,
-              isUser: false,
-            },
-          ]);
-          setIsLoading(false);
-        });
-
-        // Handle connection error
-        socket.on("connect_error", (error: Error) => {
-          console.error("Socket connection error:", error);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              content:
-                "Unable to connect to chat service. Please try again later.",
-              isUser: false,
-            },
-          ]);
-          setIsLoading(false);
-        });
-
-        // Clean up on unmount
-        return () => {
-          socket.disconnect();
-        };
-      })
-      .catch((err) => {
-        console.error("Failed to load socket.io-client:", err);
-        // Add fallback message if socket.io fails to load
-        setMessages([
-          {
-            id: "0",
-            content: "Chat is currently unavailable. Please try again later.",
-            isUser: false,
-          },
-        ]);
+      const socket = io(backendUrl, {
+        transports: ["websocket"], 
       });
-  }, []);
+
+      setSocket(socket);
+
+      // Add welcome message
+      setMessages([
+        {
+          id: "0",
+          content: "Hi there! How can I help you today?",
+          isUser: false,
+        },
+      ]);
+
+      // Listen for chat responses
+      socket.on("chat_response", (data: { response: string }) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            content: data.response,
+            isUser: false,
+          },
+        ]);
+        setIsLoading(false);
+      });
+
+      // Handle connection error
+      socket.on("connect_error", (error: Error) => {
+        console.error("Socket connection error:", error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            content:
+              "Unable to connect to chat service. Please try again later.",
+            isUser: false,
+          },
+        ]);
+        setIsLoading(false);
+      });
+
+      // Add connection status handlers
+      socket.on("connect", () => {
+        console.log("Socket connected successfully");
+      });
+
+      socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", reason);
+        if (reason === "io server disconnect") {
+          // Server disconnected the client, attempt to reconnect
+          socket.connect();
+        }
+      });
+
+      // Clean up on unmount
+      return () => {
+        socket.disconnect();
+      };
+    })
+    .catch((err) => {
+      console.error("Failed to load socket.io-client:", err);
+      // Add fallback message if socket.io fails to load
+      setMessages([
+        {
+          id: "0",
+          content: "Chat is currently unavailable. Please try again later.",
+          isUser: false,
+        },
+      ]);
+    });
+}, []);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -112,7 +112,7 @@ export function ChatbotDialog({ onCloseAction }: ChatbotDialogProps) {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!input.trim() || !socket || !userId) return;
+    if (!input.trim() || !socket) return;
 
     // Add user message to chat
     const newMessage: Message = {
@@ -128,7 +128,6 @@ export function ChatbotDialog({ onCloseAction }: ChatbotDialogProps) {
     // Send message to server
     socket.emit("chat_message", {
       message: input,
-      user_id: userId,
     });
   };
 

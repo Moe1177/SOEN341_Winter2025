@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+env_variables.yaml
