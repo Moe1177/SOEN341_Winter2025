@@ -1,32 +1,33 @@
-package com.example.soen341_backend.channel;
+package com.example.soen341_backend;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.example.soen341_backend.channel.Channel;
+import com.example.soen341_backend.channel.ChannelController;
+import com.example.soen341_backend.channel.ChannelService;
 import com.example.soen341_backend.security.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.test.web.servlet.MockMvc;
-import java.util.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ChannelController.class)
-@Import(ChannelControllerTest.TestSecurityConfig.class)
+@Import(TestSecurityConfig.class)
 public class ChannelControllerTest {
 
   @Autowired private MockMvc mockMvc;
-  @MockBean private ChannelService channelService;
-  @MockBean private JwtUtils jwtUtils;
+  @MockitoBean private ChannelService channelService;
+  @MockitoBean private JwtUtils jwtUtils;
   @Autowired private ObjectMapper objectMapper;
 
   private Channel sampleChannel;
@@ -60,35 +61,37 @@ public class ChannelControllerTest {
 
   @Test
   void testCreateChannel() throws Exception {
-    Mockito.when(channelService.createChannel(any(Channel.class), eq("123"))).thenReturn(sampleChannel);
+    Mockito.when(channelService.createChannel(any(Channel.class), eq("123")))
+        .thenReturn(sampleChannel);
 
     mockMvc
-        .perform(post("/api/channels/create-channel")
-            .param("userId", "123")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(sampleChannel)))
+        .perform(
+            post("/api/channels/create-channel")
+                .param("userId", "123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(sampleChannel)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("General"));
   }
 
   @Test
   void testUpdateChannel() throws Exception {
-    Mockito.when(channelService.updateChannel(eq("1"), any(Channel.class), eq("123"))).thenReturn(sampleChannel);
+    Mockito.when(channelService.updateChannel(eq("1"), any(Channel.class), eq("123")))
+        .thenReturn(sampleChannel);
 
     mockMvc
-        .perform(put("/api/channels/1")
-            .param("userId", "123")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(sampleChannel)))
+        .perform(
+            put("/api/channels/1")
+                .param("userId", "123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(sampleChannel)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("General"));
   }
 
   @Test
   void testDeleteChannel() throws Exception {
-    mockMvc
-        .perform(delete("/api/channels/1").param("userId", "123"))
-        .andExpect(status().isOk());
+    mockMvc.perform(delete("/api/channels/1").param("userId", "123")).andExpect(status().isOk());
   }
 
   @Test
@@ -106,19 +109,8 @@ public class ChannelControllerTest {
     Mockito.when(channelService.joinChannelByInviteCode("abc123", "123")).thenReturn(sampleChannel);
 
     mockMvc
-        .perform(put("/api/channels/join")
-            .param("inviteCode", "abc123")
-            .param("userId", "123"))
+        .perform(put("/api/channels/join").param("inviteCode", "abc123").param("userId", "123"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("General"));
-  }
-
-  @Configuration
-  @EnableWebSecurity
-  static class TestSecurityConfig {
-    @Bean
-    public JwtUtils jwtUtils() {
-      return Mockito.mock(JwtUtils.class);
-    }
   }
 }
