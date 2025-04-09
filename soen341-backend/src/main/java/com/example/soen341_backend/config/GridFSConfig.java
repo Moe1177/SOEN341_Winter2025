@@ -21,7 +21,7 @@ public class GridFSConfig {
 
   @Bean
   public GridFSBucket gridFSBucket(MongoClient mongoClient) {
-    MongoDatabase db = mongoClient.getDatabase("soen341");
+    MongoDatabase db = mongoClient.getDatabase("SOEN341_Backend");
     return GridFSBuckets.create(db);
   }
 } 
