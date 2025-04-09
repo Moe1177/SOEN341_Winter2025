@@ -7,7 +7,9 @@ import com.example.soen341_backend.exceptions.UnauthorizedException;
 import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
+import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor
@@ -25,6 +28,7 @@ public class MessageService {
   private final UserService userService;
   private final SimpMessagingTemplate messagingTemplate;
   private final UserRepository userRepository;
+  private final FileService fileService;
 
   public Message getMessageById(String id) {
     return messageRepository
@@ -134,7 +138,113 @@ public class MessageService {
     return messageRepository.save(message);
   }
 
-  /* TODO: Modify this function to match the new WebSocket implementation  */
+  public Message sendChannelMessageWithAttachments(String content, String senderId, String channelId, MultipartFile[] files) throws IOException {
+    /**
+     * Sends a message with attachments to a specified channel.
+     *
+     * @param content the text content of the message
+     * @param senderId the unique identifier of the user sending the message
+     * @param channelId the unique identifier of the target channel
+     * @param files an array of files to attach to the message
+     * @return the saved message object after persistence
+     */
+    Channel channel = channelService.getChannelById(channelId);
+    System.out.println(senderId);
+
+    User user =
+        userRepository
+            .findByUsername(senderId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("User not found with username: " + senderId));
+
+    // Verify user is a member of the channel
+    if (!channel.getMembers().contains(user.getId())) {
+      throw new UnauthorizedException("You don't have access to this channel");
+    }
+
+    Message message = new Message();
+    message.setContent(content);
+    message.setSenderId(user.getId());
+    message.setSenderUsername(user.getUsername());
+    message.setChannelId(channelId);
+    message.setTimestamp(Instant.now());
+    message.setDirectMessage(false);
+
+    // Handle file attachments if present
+    if (files != null && files.length > 0) {
+      message.setHasAttachment(true);
+      List<Message.FileInfo> attachments = new ArrayList<>();
+      
+      for (MultipartFile file : files) {
+        if (file != null && !file.isEmpty()) {
+          String fileId = fileService.storeFile(file);
+          Message.FileInfo fileInfo = Message.FileInfo.builder()
+              .fileId(fileId)
+              .filename(file.getOriginalFilename())
+              .contentType(file.getContentType())
+              .size(file.getSize())
+              .build();
+          attachments.add(fileInfo);
+        }
+      }
+      
+      message.setAttachments(attachments);
+    }
+
+    return messageRepository.save(message);
+  }
+
+  public Message sendDirectMessageWithAttachments(String content, String senderUsername, String recipientId, MultipartFile[] files) throws IOException {
+    /**
+     * Sends a direct message with attachments between two users.
+     *
+     * @param content the text content of the message
+     * @param senderUsername the username of the sender
+     * @param recipientId the unique identifier of the recipient
+     * @param files an array of files to attach to the message
+     * @return the saved message object after persistence
+     */
+
+    // Get users
+    Optional<User> sender = userRepository.findByUsername(senderUsername);
+
+    // Get or create DM channel
+    Channel dmChannel =
+        channelService.getOrCreateDirectMessageChannel(sender.get().getId(), recipientId);
+
+    Message message = new Message();
+    message.setContent(content);
+    message.setSenderId(sender.get().getId());
+    message.setSenderUsername(sender.get().getUsername());
+    message.setReceiverId(recipientId);
+    message.setChannelId(dmChannel.getId());
+    message.setTimestamp(Instant.now());
+    message.setDirectMessage(true);
+
+    // Handle file attachments if present
+    if (files != null && files.length > 0) {
+      message.setHasAttachment(true);
+      List<Message.FileInfo> attachments = new ArrayList<>();
+      
+      for (MultipartFile file : files) {
+        if (file != null && !file.isEmpty()) {
+          String fileId = fileService.storeFile(file);
+          Message.FileInfo fileInfo = Message.FileInfo.builder()
+              .fileId(fileId)
+              .filename(file.getOriginalFilename())
+              .contentType(file.getContentType())
+              .size(file.getSize())
+              .build();
+          attachments.add(fileInfo);
+        }
+      }
+      
+      message.setAttachments(attachments);
+    }
+
+    return messageRepository.save(message);
+  }
+
   public void deleteMessage(String messageId, String username) {
     Message message = getMessageById(messageId);
     Optional<User> user = userRepository.findByUsername(username);
@@ -163,6 +273,48 @@ public class MessageService {
       messagingTemplate.convertAndSend("/topic/channel/" + message.getChannelId(), notification);
     } else {
 
+      messagingTemplate.convertAndSendToUser(
+          message.getSenderId(), "/direct-messages", notification);
+
+      messagingTemplate.convertAndSendToUser(
+          message.getReceiverId(), "/direct-messages", notification);
+    }
+  }
+
+  public void deleteMessageAndAttachments(String messageId, String username) {
+    Message message = getMessageById(messageId);
+    Optional<User> user = userRepository.findByUsername(username);
+
+    if (user.isEmpty()) {
+      throw new ResourceNotFoundException("User not found with username: " + username);
+    }
+
+    // Only message sender or admin can delete a message
+    if (!message.getSenderId().equals(user.get().getId())
+        && !userService.isAdmin(user.get().getId(), message.getChannelId())) {
+      throw new UnauthorizedException("You don't have permission to delete this message");
+    }
+
+    // Delete attachments if present
+    if (message.isHasAttachment() && message.getAttachments() != null) {
+      for (Message.FileInfo attachment : message.getAttachments()) {
+        fileService.deleteFile(attachment.getFileId());
+      }
+    }
+
+    // Delete from database
+    messageRepository.delete(message);
+
+    // Create notification about message deletion
+    Map<String, Object> notification = new HashMap<>();
+    notification.put("type", "Message deleted");
+    notification.put("messageId", messageId);
+    notification.put("deletedBy", user.get().getId());
+
+    // For channel messages, broadcast to the channel
+    if (!message.isDirectMessage()) {
+      messagingTemplate.convertAndSend("/topic/channel/" + message.getChannelId(), notification);
+    } else {
       messagingTemplate.convertAndSendToUser(
           message.getSenderId(), "/direct-messages", notification);
 

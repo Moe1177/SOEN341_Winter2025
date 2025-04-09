@@ -1,6 +1,8 @@
 package com.example.soen341_backend.payload;
 
+import com.example.soen341_backend.message.Message;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +20,6 @@ public class WebSocketMessage {
   private String receiverId;
   private boolean isDirectMessage;
   private Instant timestamp;
+  private boolean hasAttachment;
+  private List<Message.FileInfo> attachments;
 }

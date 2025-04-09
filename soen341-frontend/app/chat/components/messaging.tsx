@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
 import { useDirectMessages } from "@/hooks/useDirectMessages";
 import { useMessaging } from "@/hooks/useMessaging";
+import { toast } from "react-hot-toast";
 
 /**
  *  Messaging component allowing users to message eachother
@@ -257,16 +258,102 @@ export function Messaging() {
     setUsersMap((prev) => createUpdatedUsersMap(prev));
   }, [users, directMessages, currentUser, channels]);
 
-  const handleSendMessage = (content: string) => {
-    if (!activeConversationId) {
-      console.error("No active conversation selected");
-      return;
-    }
+  const handleSendMessage = (content: string, files?: File[]) => {
+    if (!activeConversationId) return;
 
     if (isActiveChannelConversation) {
-      sendGroupMessage(content);
+      if (files && files.length > 0) {
+        handleSendAttachment(content, files, activeConversationId, true);
+      } else {
+        sendGroupMessage(content);
+      }
     } else {
-      sendDirectMessage(content, receiverId);
+      const activeDM = getActiveDirectMessage(activeConversationId);
+      if (activeDM && activeDM.receiverId) {
+        if (files && files.length > 0) {
+          handleSendAttachment(content, files, activeDM.receiverId, false);
+        } else {
+          sendDirectMessage(content, activeDM.receiverId);
+        }
+      }
+    }
+  };
+
+  const handleSendAttachment = async (content: string, files: File[], targetId: string, isChannel: boolean) => {
+    // Show loading toast
+    const toastId = toast.loading("Uploading attachment...");
+    
+    try {
+      const formData = new FormData();
+      formData.append("content", content);
+      
+      if (isChannel) {
+        formData.append("channelId", targetId);
+      } else {
+        formData.append("recipientId", targetId);
+      }
+      
+      // Check file size total
+      const totalSize = files.reduce((total, file) => total + file.size, 0);
+      const MAX_TOTAL_SIZE = 30 * 1024 * 1024; // 30MB
+      
+      if (totalSize > MAX_TOTAL_SIZE) {
+        toast.error(`Total file size exceeds 30MB limit`);
+        toast.dismiss(toastId);
+        return;
+      }
+      
+      // Log files being uploaded for debugging
+      console.log("Files being uploaded:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+      
+      // Append files to form data
+      files.forEach(file => {
+        formData.append("files", file);
+      });
+      
+      // Determine which endpoint to use
+      const endpoint = isChannel
+        ? `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/channel-with-attachment`
+        : `${process.env.NEXT_PUBLIC_BASE_BACKEND_URL}/api/messages/dm-with-attachment`;
+        
+      console.log(`Sending attachment to endpoint: ${endpoint}`);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Do NOT set Content-Type here - the browser will set it automatically with the boundary for multipart/form-data
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `Error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.text();
+          console.error(`Server response: ${response.status} ${response.statusText}, Details:`, errorData);
+          errorMessage = errorData || errorMessage;
+        } catch (err) {
+          console.error("Could not parse error response", err);
+        }
+        
+        toast.error(`Failed to send attachment: ${errorMessage}`);
+        toast.dismiss(toastId);
+        return;
+      }
+      
+      // Success handling
+      toast.success("Message with attachment sent successfully");
+      
+      // Fetch updated messages to refresh the list
+      const updatedMessages = await fetchMessages(activeConversationId!, isActiveChannelConversation);
+      setInitialMessages(updatedMessages);
+      
+    } catch (error) {
+      console.error("Error sending message with attachment:", error);
+      toast.error("Error sending attachment: " + (error instanceof Error ? error.message : "Unknown error"));
+    } finally {
+      toast.dismiss(toastId);
     }
   };
 
