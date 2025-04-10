@@ -1,14 +1,15 @@
-package com.example.soen341_backend.auth;
+package com.example.soen341_backend;
 
+import com.example.soen341_backend.auth.AuthController;
 import com.example.soen341_backend.security.EmailService;
 import com.example.soen341_backend.security.JwtUtils;
-import com.example.soen341_backend.user.Status;
 import com.example.soen341_backend.user.User;
 import com.example.soen341_backend.user.UserRepository;
 import com.example.soen341_backend.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,26 +17,36 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.openMocks;
 
-class AuthControllerTest {
+@Import(TestSecurityConfig.class)
+public class AuthControllerTest {
 
-    @InjectMocks private AuthController authController;
+    @InjectMocks
+    private AuthController authController;
 
-    @Mock private AuthenticationManager authenticationManager;
-    @Mock private JwtUtils jwtUtils;
-    @Mock private UserRepository userRepository;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private EmailService emailService;
-    @Mock private UserService userService;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private JwtUtils jwtUtils;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        openMocks(this);
         authController = new AuthController(authenticationManager, jwtUtils, userRepository,
                 passwordEncoder, emailService, userService);
     }
@@ -44,15 +55,24 @@ class AuthControllerTest {
     void testLogin_Success() {
         String username = "testUser";
         String password = "testPass";
+
+        // Create a verified user to simulate a valid login
         User user = new User();
         user.setId("userId");
+        user.setVerified(true);
+
+        // Set up the repository to return the verified user
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        // Simulate successful authentication
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(new UsernamePasswordAuthenticationToken(username, password, new ArrayList<>()));
+        // Stub JWT utility to generate a token for the valid user
         when(jwtUtils.generateToken(username)).thenReturn("mockToken");
 
         ResponseEntity<?> response = authController.login(username, password);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody().toString().contains("mockToken"));
+        assertTrue(Objects.requireNonNull(response.getBody()).toString().contains("mockToken"));
     }
 
     @Test
