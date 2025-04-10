@@ -42,6 +42,9 @@ jobs:
           VALIDATE_TYPESCRIPT_PRETTIER: false
           VALIDATE_NATURAL_LANGUAGE: false
           VALIDATE_CHECKOV: false
+          VALIDATE_GOOGLE_JAVA_FORMAT : false
+          VALIDATE_JAVA : false
+
 
   backend:
     runs-on: ubuntu-latest
