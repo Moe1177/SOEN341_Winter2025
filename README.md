@@ -64,6 +64,15 @@ The following core features will be available in this project:
   - Java Spring Boot
   - MongoDB
 
+- ## Coding style
+  - typescript/javascript style for frontend
+  - java style for springboot
+  - python style for bot
+
+- ## Naming conventions
+  - camelCase for variables, functions and objects
+  - PascalCase for React components, Typescript types and classes
+
 - ### Deployment
   - Docker
   - Render
