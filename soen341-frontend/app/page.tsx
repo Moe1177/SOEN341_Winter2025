@@ -21,11 +21,11 @@ export default function Home() {
       <div className="cosmic-glow-2"></div>
 
       <section id="Hero" className="min-h-[80vh] pt-4 relative z-10">
-        <Navbar />
+        <Navbar/>
         <div className="mt-4 md:mt-8">
           <Hero />
         </div>
-      </section>
+      
 
       <section
         id="About"
@@ -46,6 +46,7 @@ export default function Home() {
         className="py-4 md:py-10 lg:py-12 2xl:py-16 relative z-10"
       >
         <SignUp />
+      </section>
       </section>
     </main>
   );
