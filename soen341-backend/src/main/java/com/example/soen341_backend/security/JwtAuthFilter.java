@@ -22,10 +22,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   private final UserDetailsService userDetailsService;
 
   /**
-   * Filters incoming HTTP requests to validate the JWT token in the "Authorization" header. If the
-   * token is valid, it authenticates the user by setting the authentication context. If the
-   * "Authorization" header is missing or invalid, the request is passed through the filter chain
-   * without further processing.
+   * Filters incoming HTTP requests to validate the JWT token in the "Authorization" header 
+   * or query parameter. If the token is valid, it authenticates the user by setting the 
+   * authentication context. If no valid token is found, the request is passed through the 
+   * filter chain without authentication.
    *
    * @param request The HttpServletRequest object that contains the request from the client.
    * @param response The HttpServletResponse object used to send a response to the client.
@@ -38,20 +38,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws IOException, ServletException {
+    String jwt = null;
+    
+    // First try to get token from Authorization header
     final String authHeader = request.getHeader("Authorization");
-    final String jwt;
-    final String username;
-
-    // If there is no Authorization header or the header doesn't start with "Bearer", pass the
-    // request along the filter chain
-    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      jwt = authHeader.substring(7);
+    }
+    
+    // If not found in header, try to get from query parameter
+    if (jwt == null) {
+      String tokenParam = request.getParameter("token");
+      if (tokenParam != null && !tokenParam.isEmpty()) {
+        jwt = tokenParam;
+      }
+    }
+    
+    // If no token found, continue the filter chain
+    if (jwt == null) {
       filterChain.doFilter(request, response);
       return;
     }
-
-    // Extract the JWT from the Authorization header
-    jwt = authHeader.substring(7);
-    username = jwtUtils.extractUsername(jwt);
+    
+    // Try to extract username from token
+    String username = null;
+    try {
+      username = jwtUtils.extractUsername(jwt);
+    } catch (Exception e) {
+      // If token is invalid, continue without authentication
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     // If a valid username is found and no authentication is set, validate the token and set
     // authentication context

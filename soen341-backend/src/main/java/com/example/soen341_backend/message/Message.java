@@ -1,6 +1,7 @@
 package com.example.soen341_backend.message;
 
 import java.time.Instant;
+import java.util.List;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -22,4 +23,20 @@ public class Message {
   private Instant timestamp;
   private boolean isDirectMessage;
   private String receiverId;
+  
+  // Attachment fields
+  private boolean hasAttachment;
+  private List<FileInfo> attachments;
+  
+  @Getter
+  @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Builder
+  public static class FileInfo {
+    private String fileId;
+    private String filename;
+    private String contentType;
+    private long size;
+  }
 }

@@ -63,6 +63,7 @@ public class SecurityConfig {
         List.of("http://localhost:3000", "https://soen-341-winter2025.vercel.app")); // Frontend URL
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setExposedHeaders(List.of("Content-Disposition", "Content-Length"));
     configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
