@@ -34,7 +34,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flexBetween max-container padding-container relative z-30 py-4 sm:py-5 px-5 sm:px-8">
+    <nav className="flexBetween max-container padding-container relative z-100 py-4 sm:py-5 px-5 sm:px-8">
       <Link href="/" className="flex items-center">
         <Image
           src="/logo.svg"
@@ -90,7 +90,7 @@ const Navbar = () => {
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center">
           <button
             onClick={toggleMobileMenu}
-            className="absolute top-5 right-5 text-white p-2"
+            className="absolute top-5 right-5 text-white p-2 z-50"
             aria-label="Close menu"
           >
             <svg
