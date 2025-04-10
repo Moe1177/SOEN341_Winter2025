@@ -2,9 +2,14 @@ package com.example.soen341_backend;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.soen341_backend.message.FileService;
 import com.example.soen341_backend.message.Message;
 import com.example.soen341_backend.message.MessageController;
 import com.example.soen341_backend.message.MessageService;
@@ -31,6 +36,8 @@ public class MessageControllerTest {
 
   @MockitoBean private JwtUtils jwtUtils;
 
+  @MockitoBean private FileService fileService;
+
   @Autowired private ObjectMapper objectMapper;
 
   private Message sampleMessage;
@@ -45,7 +52,6 @@ public class MessageControllerTest {
   @Test
   void testGetMessageById() throws Exception {
     Mockito.when(messageService.getMessageById("1")).thenReturn(sampleMessage);
-
     mockMvc
         .perform(get("/api/messages/1"))
         .andExpect(status().isOk())
@@ -118,16 +124,6 @@ public class MessageControllerTest {
   }
 
   @Test
-  void testDeleteMessage() throws Exception {
-    Mockito.when(jwtUtils.extractUsername("validToken")).thenReturn("testuser");
-    Mockito.when(jwtUtils.validateToken("validToken")).thenReturn(true);
-
-    mockMvc
-        .perform(delete("/api/messages/1").header("Authorization", "Bearer validToken"))
-        .andExpect(status().isOk());
-  }
-
-  @Test
   void testEditMessage() throws Exception {
     Mockito.when(jwtUtils.extractUsername("validToken")).thenReturn("testuser");
     Mockito.when(jwtUtils.validateToken("validToken")).thenReturn(true);
@@ -142,5 +138,14 @@ public class MessageControllerTest {
                 .content(objectMapper.writeValueAsString(sampleMessage)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").value("Hello world"));
+  }
+
+  @Test
+  void testDeleteMessage() throws Exception {
+    Mockito.when(jwtUtils.extractUsername("validToken")).thenReturn("testuser");
+    Mockito.when(jwtUtils.validateToken("validToken")).thenReturn(true);
+    mockMvc
+        .perform(delete("/api/messages/1").header("Authorization", "Bearer validToken"))
+        .andExpect(status().isOk());
   }
 }
