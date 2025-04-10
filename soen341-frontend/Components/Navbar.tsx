@@ -41,7 +41,7 @@ const Navbar = () => {
           alt="logo"
           width={64}
           height={25}
-          className="w-[56px] h-auto sm:w-[64px]"
+          className="w-[56px] h-auto sm:w-[64px] filter brightness-0 invert"
         />
       </Link>
 
@@ -81,7 +81,7 @@ const Navbar = () => {
           alt="menu"
           width={28}
           height={28}
-          className="cursor-pointer"
+          className="cursor-pointer filter brightness-0 invert"
         />
       </button>
 
