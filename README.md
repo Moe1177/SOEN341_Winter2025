@@ -64,12 +64,12 @@ The following core features will be available in this project:
   - Java Spring Boot
   - MongoDB
 
-- ## Coding style
-  - typescript/javascript style for frontend
-  - java style for springboot
-  - python style for bot
+- ### Coding style
+  - Typescript/Javascript style for frontend
+  - Java style for springboot
+  - Python style for bot
 
-- ## Naming conventions
+- ### Naming conventions
   - camelCase for variables, functions and objects
   - PascalCase for React components, Typescript types and classes
 
@@ -77,6 +77,9 @@ The following core features will be available in this project:
   - Docker
   - Render
   - Vercel
+
+## Chatbot README
+Go to README for chat bot:[ /chatbot-backend/README.md](/chatbot-backend/README.md)
 
 ## Design and Architecture
 ![Block Architecture of the Project](/BlockDiagram_SOEN341_Winter2025.png)
