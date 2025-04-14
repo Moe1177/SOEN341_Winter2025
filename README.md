@@ -72,6 +72,7 @@ The following core features will be available in this project:
 - ### Naming conventions
   - camelCase for variables, functions and objects
   - PascalCase for React components, Typescript types and classes
+  - snake_case in python for variables, functions and objects
 
 - ### Deployment
   - Docker
