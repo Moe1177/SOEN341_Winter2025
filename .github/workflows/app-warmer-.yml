@@ -1,0 +1,34 @@
+name: Keep App Warm
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  warm-app:
+    name: Keep App Warm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP request
+        run: |
+          # Store the response code
+          RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "User-Agent: AppWarmer/1.0 (GitHub-Actions)" \
+            -m 30 \
+            https://soen341-deployement-latest.onrender.com/login)
+          
+          # Print timestamp and response
+          echo "App warmer ping sent at $(date)"
+          echo "Response code: $RESPONSE_CODE"
+          
+          # Check if the response was successful
+          if [[ "$RESPONSE_CODE" -ge 200 && "$RESPONSE_CODE" -lt 300 ]]; then
+            echo "✅ App successfully warmed"
+          else
+            echo "❌ App warming failed with response code: $RESPONSE_CODE"
+            # Don't exit with error to prevent GitHub from marking the workflow as failed
+            # We expect occasional failures when the app is cold starting
+          fi
