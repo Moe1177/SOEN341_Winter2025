@@ -1,11 +1,11 @@
-name: Keep App Warm
+name: App Warmer Cron Job
 
 on:
   schedule:
     # Runs every 10 minutes
     - cron: '*/10 * * * *'
   # Allow manual triggering for testing
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   warm-app:
@@ -32,3 +32,7 @@ jobs:
             # Don't exit with error to prevent GitHub from marking the workflow as failed
             # We expect occasional failures when the app is cold starting
           fi
+
+
+
+          
