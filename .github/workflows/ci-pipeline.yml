@@ -1,15 +1,52 @@
 name: CI Pipeline
 
-on: [ push, pull_request ]
+on: 
+  push:
+  pull_request:
+  schedule:
+    # Run every 10 minutes to keep the app warm
+    - cron: '*/10 * * * *'
+  # Allow manual triggering
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
 
 jobs:
+  # Add the app-warmer job that only runs on schedule events
+  app-warmer:
+    name: Keep App Warm
+    runs-on: ubuntu-latest
+    # This job only runs when triggered by the schedule
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Send HTTP request
+        env:
+          APP_URL: ${{ secrets.APP_BACKEND_URL }}
+        run: |
+          # Store the response code
+          RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "User-Agent: AppWarmer/1.0 (GitHub-Actions)" \
+            -m 30 \
+            "${APP_URL}")
+          
+          # Print timestamp and response (without exposing the full URL)
+          echo "App warmer ping sent at $(date)"
+          echo "Response code: $RESPONSE_CODE"
+          
+          # Check if the response was successful
+          if [[ "$RESPONSE_CODE" -ge 200 && "$RESPONSE_CODE" -lt 300 ]]; then
+            echo "✅ App successfully warmed"
+          else
+            echo "❌ App warming failed with response code: $RESPONSE_CODE"
+          fi
+
   lint:
     name: Super-Linter
     runs-on: ubuntu-latest
+    # Only run this job for push and pull_request events, not for schedules
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: read
@@ -51,6 +88,8 @@ jobs:
     defaults:
       run:
         working-directory: soen341-backend
+    # Only run this job for push and pull_request events, not for schedules
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     needs: lint  # Ensure linting passes before backend build
     steps:
       - name: Checkout Code
@@ -78,6 +117,8 @@ jobs:
     defaults:
       run:
         working-directory: soen341-frontend
+    # Only run this job for push and pull_request events, not for schedules
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     needs: lint  # Ensure linting passes before frontend build
     steps:
       - name: Checkout Code
